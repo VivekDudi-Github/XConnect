@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from 'bcryptjs'
 
+
 const userSchema = new mongoose.Schema({
     username : {
         type : String ,
@@ -11,7 +12,6 @@ const userSchema = new mongoose.Schema({
     password : {
         required : true,
         type : String ,
-        minlength : 8,
     } ,
     email : {
         type : String ,
@@ -29,12 +29,24 @@ const userSchema = new mongoose.Schema({
         default : "user"
     } ,
     profilePicture : {
-        type : String ,
-        default : "" ,
+        publicId : {
+            type : String ,
+            default : "" ,
+        } , 
+        url : {
+            type : String ,
+            default : "https://res.cloudinary.com/dxq5i0k1s/image/upload/v1736721353/placeholder.png" // Default placeholder image
+        }
     } ,
     banner : {
-        type : String ,
-        default : "" ,
+        publicId : {
+            type : String ,
+            default : "" ,
+        } , 
+        url : {
+            type : String ,
+            default : "https://res.cloudinary.com/dxq5i0k1s/image/upload/v1736721353/placeholder.png" // Default placeholder image
+        }
     } ,
     refreshToken : {
         type : String 
@@ -47,7 +59,7 @@ userSchema.methods.generateAccessToken = function(){
         _id : this._id ,
         username : this.username,
         role : this.role ,   
-    } , process.env.ACCESS_TOKEN_SECERET , {
+    } , process.env.ACCESS_TOKEN_SECRET , {
         expiresIn : process.env.ACCESS_TOKEN_SECRET_EXPIRES_IN
     }
     )
@@ -63,7 +75,7 @@ userSchema.methods.generateRefreshToken = function(){
     )
 }
 
-userSchema.methods.IsPasswordCorrect =async (password) => {
+userSchema.methods.IsPasswordCorrect =async function(password) {
     return await bcrypt.compare(password, this.password);
 }
 
