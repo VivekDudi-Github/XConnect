@@ -37,7 +37,7 @@ const checkUser = (req, res , next) => {
     
                             return res.status(401).json({
                                 success : false ,
-                                message : "Please re-login. You are not authenticated ."
+                                message : "Unauthenticated request , please relogin."
                             });
                         } else{
                             const user = await User.findById(decoded._id).select("username _id role");

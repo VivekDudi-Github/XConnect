@@ -1,6 +1,7 @@
 import { User } from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 
+//update banner & dp left
 const cookieOptions = {
     secure : true ,
     httpOnly : true  ,
@@ -117,10 +118,10 @@ const loginUser = TryCatch(async(req , res) => {
 } , "loginUser")
 
 const logoutUser = TryCatch(async(req , res) => {
-   return res
-   .clearCookie("refreshToken") 
-   .clearCookie("accessToken")
-   .status(200)
+    res.clearCookie('accessToken')
+    res.clearCookie('refreshToken')
+
+    return ResSuccess(res , 200 , 'Logged Out Successfully')
 } , 'LogoutUser')
 
 const getMe = TryCatch(async (req ,res) => {
@@ -134,11 +135,101 @@ const getMe = TryCatch(async (req ,res) => {
     return ResSuccess(res, 200, user);
 } , 'GetMe')
 
-//delete update read 
+const updateUser = TryCatch( async(req , res) => {
+    const {username , email , bio , fullname } = req.body ;
+
+    if(!username && !email && !bio && !fullname) return ResError(res , 400 , 'Atleast provide a field to be changed')
+
+    if ( username && (username.length < 3 || username.length > 20)) return ResError(res , 400 , "Username must be between 3 and 20 characters long") ;
+    if (username && !/^[a-zA-Z0-9_@]+$/.test(username)) return ResError(res, 400, "Username can only contain letters, numbers, and underscores");
+    if (email && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) return ResError(res, 400, "Invalid email format");
+    
+    
+    const existingUser = await User.findOne({
+        $or : [
+        {email : email} , 
+        {username : username}
+        ]  
+    }) 
+
+    if(existingUser) return ResError(res , 400 , 'Username or email already used')
+
+    const {_id} = req.user ;
+
+    const user = await User.findByIdAndUpdate(_id, {
+        username,
+        email,
+        bio,
+        fullname
+    }, { new : true , omitUndefined : true , runValidators: true  }).select("-password -refreshToken");
+
+    return ResSuccess(res , 200 , user)
+
+} , 'updateProfile')
+
+const deleteUser = TryCatch(async(req , res) => {
+    const {password} = req.body ;
+
+    if(!password) return ResError(res , 400 , 'Please provide the password' )
+
+    const user = await User.findById(req.user._id)
+    const passCheck = await user.IsPasswordCorrect(password)
+
+    if(!passCheck) return ResError(res , 400 , 'Provided Password is incorrect')
+    
+    user.isDeleted  = true ;
+    user.deletedAt = new Date() ;
+    await user.save() ; 
+
+    return ResError(res ,200 , "Accound removed Successfully")
+
+} , 'deleteUser')
+
+const getUserById = TryCatch(async(req , res) => {
+    const {id} = req.params ;
+    
+    if(!id) return ResError(res , 400 , 'User id is required')
+
+    const user = await User.findById(id).select("-password -refreshToken");
+
+    if(!user) return ResError(res , 404 , 'User not found')
+
+    return ResSuccess(res , 200 , user)
+} ,'getUserById')
+
+const changePassword = TryCatch(async(req , res) => {
+    const {oldPassword , newPassword}  = req.body ;
+
+    if(!oldPassword || !newPassword) return ResError(res , 400 , 'Password is required')
+    if(oldPassword.trim() === newPassword.trim() ) return ResError(res , 400 , 'Both Passwords are same')
+    if(newPassword.length < 8) return ResError(res , 400 , 'New Password must be at least 8 characters long')
+    
+    const user = await User.findById(req.user._id)
+    const OldPassCheck = await user.IsPasswordCorrect(oldPassword);
+    console.log( OldPassCheck);
+    
+    if(!OldPassCheck) return ResError(res , 400 , 'Password is incocrrect')
+    
+    const salt = await bcrypt.genSalt(15) ;
+    const newPassHash = await bcrypt.hash(newPassword , salt) ;
+    console.log(newPassHash);
+    
+    user.password = newPassHash ;
+    await user.save() ;
+
+    return ResSuccess(res , 200 , 'Password Changed')
+
+} , 'changePassword')
+
+
 
 export {
     registerUser ,
     loginUser ,
     logoutUser ,
-    getMe
+    getMe ,
+    updateUser ,
+    deleteUser ,
+    getUserById ,
+    changePassword ,
 }

@@ -23,6 +23,9 @@ const userSchema = new mongoose.Schema({
         type : String ,
         required : true ,
     } ,
+    bio : {
+        type : String ,
+    } ,
     role : {
         type : String ,
         enum : ["user", "admin"],
@@ -35,7 +38,7 @@ const userSchema = new mongoose.Schema({
         } , 
         url : {
             type : String ,
-            default : "https://res.cloudinary.com/dxq5i0k1s/image/upload/v1736721353/placeholder.png" // Default placeholder image
+            default : "" // Default placeholder image
         }
     } ,
     banner : {
@@ -45,7 +48,7 @@ const userSchema = new mongoose.Schema({
         } , 
         url : {
             type : String ,
-            default : "https://res.cloudinary.com/dxq5i0k1s/image/upload/v1736721353/placeholder.png" // Default placeholder image
+            default : "" // Default placeholder image
         }
     } ,
     refreshToken : {

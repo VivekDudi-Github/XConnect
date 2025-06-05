@@ -1,11 +1,11 @@
 import express from "express";
 import { checkUser } from "../utils/chekAuth.js";
-import { getMe, loginUser, logoutUser, registerUser } from "../controllers/user.controller.js";
+import { changePassword, deleteUser, getMe, getUserById, loginUser, logoutUser, registerUser, updateUser } from "../controllers/user.controller.js";
 
 
 const router = express.Router();
 
-router.get('/check-health', checkUser , (req , res) => {
+router.get('/check-health' , (req , res) => {
     res.status(200).json({
         success: true,
         message: "Server is healthy"
@@ -13,11 +13,14 @@ router.get('/check-health', checkUser , (req , res) => {
 })
 
 router.post('/signup' , registerUser)
-router.get('/logout' , logoutUser)
 router.post('/login' , loginUser)
+router.get('/logout'  , logoutUser)
 
 router.get('/me', checkUser, getMe);
+router.patch('/me' , checkUser , updateUser)
+router.delete('/me' , checkUser , deleteUser)
+router.put('/me/password' , checkUser , changePassword)
 
-
+router.get('/:id' , checkUser , getUserById)
 
 export default router;
