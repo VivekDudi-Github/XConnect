@@ -2,23 +2,22 @@ import React from 'react'
 import Sidebar from './Sidebar'
 import BottomBar from './BottomBar'
 
-function Layout({childern}) {
+function Layout({children}) {
   return (
     <>
-      <div className="flex h-screen">
+      <div className="flex overflow-y-auto dark:bg-black bg-white">
       {/* Sidebar (hidden on small screens) */}
-      <div className="hidden md:block w-56 bg-white border-r shadow-sm">
+      <div className="fixed md:w-56 sm:w-[72px] sm:translate-x-0 w-0 -translate-x-12 bg-white dark:bg-black md:border-r-2 border-r-0 border-x-gray-400 shadow-sm left-0 top-0 duration-200 h-screen ">
         <Sidebar />
       </div>
 
       {/* Main content */}
-      <main className="flex-1  overflow-y-auto p-4 pb-20 md:pb-4">
-        abc
-        {childern}
+      <main className=" text-black sm:mb-0 mb-14 md:ml-56 sm:ml-[72px]  h-screen overflow-y-auto w-full duration-200">
+        {children}
       </main>
 
       {/* Bottom nav (only visible on small screens) */}
-      <div className="md:hidden fixed bottom-0 left-0 w-full bg-white border-t shadow-md z-50">
+      <div className=" fixed sm:translate-y-full translate-y-0 bottom-0 left-0 w-full bg-white dark:border-gray-700 border-t shadow-md z-50 duration-200">
         <BottomBar />
       </div>
     </div>

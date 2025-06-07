@@ -1,10 +1,14 @@
 import React from 'react'
+import Layout from '../layout/Layout'
+import Feed from '../component/explore/Feed'
 
 function HomePage() {
   return (
-    <div className='bg-black text-white'>
-        HomePage
-    </div>
+    <Layout>
+      <div className='dark:bg-black bg-white dark:text-white'>
+        <Feed/>
+      </div>
+    </Layout>
   )
 }
 

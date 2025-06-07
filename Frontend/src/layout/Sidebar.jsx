@@ -1,4 +1,5 @@
 import { Bell, Settings, RocketIcon, SearchIcon, User2Icon, HomeIcon, LucideMessagesSquare, Users2, BookmarkIcon } from 'lucide-react';
+import { NavLink } from 'react-router-dom';
 
 const navItems = [
   { name: 'Home', icon: <HomeIcon />, path: '/' },
@@ -14,16 +15,16 @@ const navItems = [
 
 export default function Sidebar() {
   return (
-    <nav className="p-4 space-y-3">
+    <nav className="p-4 space-y-3 dark:bg-black dark:text-gray-200 shadow-lg h-full shadow-black">
       {navItems.map(item => (
-        <a
+        <NavLink
           key={item.name}
-          href={item.path}
-          className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 text-gray-700"
+          to={item.path}
+          className="flex items-center gap-3 p-2 rounded-lg dark:hover:bg-gray-100  dark:hover:text-gray-700 dark:text-gray-300 hover:bg-gray-300 text-gray-700 duration-200"
         >
-          <span className="text-lg">{item.icon}</span>
-          <span className="font-medium">{item.name}</span>
-        </a>
+          <span className="text-lg" title={item.name}>{item.icon}</span>
+          <span className="font-medium sm:w-0 md:w-auto overflow-hidden">{item.name}</span>
+        </NavLink>
       ))}
     </nav>
   );

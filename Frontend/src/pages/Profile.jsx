@@ -7,11 +7,12 @@ function Profile() {
   return (
     <Layout>
       <div className='dark:bg-black bg-white w-full h-full'>
-        <div className="max-w-4xl  mx-auto ">
-            <ProfileHeader />
-            <ProfileTabs />
-        </div>
-    </div>
+          <div className="w-full">
+              <ProfileHeader />
+              <ProfileTabs />
+          </div>
+      </div> 
+    
     </Layout>
   )
 }
