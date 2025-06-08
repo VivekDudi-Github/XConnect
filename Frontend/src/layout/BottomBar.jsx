@@ -1,3 +1,4 @@
+import { NavLink } from 'react-router-dom';
 import { Home, User, MessageCircle, Bell, SearchIcon } from 'lucide-react';
 
 const navItems = [
@@ -13,14 +14,14 @@ export default function BottomNav() {
   return (
     <nav className="flex justify-around items-center dark:bg-black h-14 bg-white">
       {navItems.map(item => (
-        <a
+        <NavLink
           key={item.name}
-          href={item.path}
+          to={item.path}
           className="flex flex-col items-center dark:text-gray-300 text-gray-600 hover:text-purple-600"
         >
           {item.icon}
           <span className="text-xs">{item.name}</span>
-        </a>
+        </NavLink>
       ))}
     </nav>
   );

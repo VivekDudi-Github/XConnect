@@ -8,7 +8,7 @@ function ProfileHeader() {
       <>
         <div className='relative w-full'>
           <img className='w-full h-40 bg-gradient-to-b from-gray-300 to-gray-500 -z-20 ' 
-            src="" 
+            src="https://via.placeholder.com/1200x400" 
             alt="banner" />
           <div className='bg-gradient-to-b to-gray-800 via-transparent from-transparent absolute w-full h-full z-10 top-0'/>
         </div>

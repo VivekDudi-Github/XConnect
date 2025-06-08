@@ -2,7 +2,6 @@ import React from 'react'
 
 function InPostImages({imagesArray}) {
   const length = imagesArray.length ;
-  console.log(length);
      
   return (
       <div className={`w-full max-h-96 grid gap-2 

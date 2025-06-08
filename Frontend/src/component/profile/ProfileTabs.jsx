@@ -3,6 +3,8 @@ import React from 'react'
 import { useState } from 'react';
 import PostCard from '../post/PostCard';
 
+import { dummyPosts } from '../../sampleData';
+
 const tabs = ['Posts', 'Media' , 'Replies' , 'Likes' , 'History'];
 
 function ProfileTabs() {
@@ -28,7 +30,7 @@ function ProfileTabs() {
 
       <div className="mt-6 mx-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {[...Array(6)].map((_, i) => (
-          <PostCard key={i} />
+          <PostCard key={i} post={dummyPosts[1]}  />
         ))}
       </div>
     </div>

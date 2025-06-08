@@ -2,7 +2,6 @@ import { Heart, MessageCircle } from 'lucide-react';
 import InPostImages from './InPostImages';
 
 export default function PostCard({ post }) {
-  console.log(post.image.length);
   
   return (
     <div className="bg-white rounded-xl dark:shadow-sm p-4 mb-4 dark:bg-gradient-to-b dark:from-gray-800 dark:to-black dark:text-white shadow-slate-800/50 shadow-lg border-t border-slate-800/50 ">
@@ -23,7 +22,9 @@ export default function PostCard({ post }) {
       <p className="dark:text-gray-300 mb-2">{post.content}</p>
 
       {/* Image */}
-      <InPostImages imagesArray={post.image}/>
+      {/* {post.images && post.images.length > 0 && (
+        <InPostImages imagesArray={post.image}/>
+      )} */}
 
       {/* Actions */}
       <div className="flex gap-6 text-sm text-gray-600 mt-2">

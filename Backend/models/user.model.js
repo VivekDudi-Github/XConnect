@@ -26,6 +26,9 @@ const userSchema = new mongoose.Schema({
     bio : {
         type : String ,
     } ,
+    location : {
+        type : String ,
+    } ,
     role : {
         type : String ,
         enum : ["user", "admin"],
