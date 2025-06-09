@@ -19,12 +19,30 @@ const api = createApi({
         body : body ,
         credentials : 'include' 
       }) ,
-    })
+    }) ,
+    loginMe : builder.mutation({
+      query : (body) => ({
+        url : 'user/login' ,
+        method : 'POST' ,
+        credentials : 'include' ,
+        body : body ,
+      })
+    }) ,
+    updateProfile : builder.mutation({
+      query : (body) => ({
+        url : '/user/me' ,
+        method : 'PATCH' ,
+        body : body ,
+        credentials : 'include'
+      }) 
+    }) 
   })
 })
 export default api ;
 
 export const {
   useLazyFetchMeQuery ,
-  useRegisterMeMutation
+  useRegisterMeMutation ,
+  useLoginMeMutation ,
+  useUpdateProfileMutation
 } = api ;

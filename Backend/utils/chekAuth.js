@@ -22,7 +22,6 @@ const checkUser = (req, res , next) => {
                 }
             });
         }
-        console.log('further worded');
         
         return checkRefreshToken() ;
 

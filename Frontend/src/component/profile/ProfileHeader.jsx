@@ -1,8 +1,11 @@
-import { SettingsIcon } from 'lucide-react';
+import { EditIcon, SettingsIcon } from 'lucide-react';
 import React from 'react'
+import { useDispatch } from 'react-redux';
 import { NavLink } from 'react-router-dom';
+import { setIsProfileEdit } from '../../redux/reducer/miscSlice';
 
 function ProfileHeader() {
+  const dispatch = useDispatch() ;
   const user = 'user' ;
     return (
       <>
@@ -10,7 +13,7 @@ function ProfileHeader() {
           <img className='w-full h-40 bg-gradient-to-b from-gray-300 to-gray-500 -z-20 ' 
             src="https://via.placeholder.com/1200x400" 
             alt="banner" />
-          <div className='bg-gradient-to-b to-gray-800 via-transparent from-transparent absolute w-full h-full z-10 top-0'/>
+          <div className='bg-gradient-to-b to-gray-800 via-transparent from-transparent absolute w-full h-full z-0 top-0'/>
         </div>
         <div className="flex flex-col relative items-center px-3 pt-2 gap-3 dark:bg-black sm:flex-row sm:items-start sm:gap-6">
           
@@ -33,15 +36,22 @@ function ProfileHeader() {
               <span><strong className='dark:text-gray-300'>450</strong> Following</span>
             </div>
             {user && (
-            <button className="hidden sm:block mt-4 px-4 py-1 text-sm font-medium bg-blue-600 text-white rounded hover:bg-blue-700">
+            <button 
+            onClick={() => dispatch(setIsProfileEdit(true))}
+            className="hidden sm:block mt-4 px-4 py-1 text-sm font-medium bg-blue-600 text-white rounded hover:bg-blue-700">
               Edit Profile
             </button>
             )}
           </div>
 
           {user && (
-          <button className=' absolute sm:hidden block  right-2 p-2 text-gray-400 bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors'>
+          <button title='Settings' className=' absolute sm:hidden block  right-2 p-2 text-gray-600 bg-gray-100 hover:bg-gray-300 rounded-lg dark:bg-black  dark:text-white   dark:hover:bg-white shadow-sm shadow-black/60 dark:hover:text-black duration-300'>
             <SettingsIcon/>
+          </button>
+          )}
+          {user && (
+          <button title='Edit Profile' className=' absolute sm:hidden block top-14 right-2 p-2 text-gray-600 bg-gray-100 hover:bg-gray-300 rounded-lg dark:bg-black  dark:text-white   dark:hover:bg-white shadow-sm shadow-black/60 dark:hover:text-black transition-colors duration-300'>
+            <EditIcon/>
           </button>
           )}
         </div>

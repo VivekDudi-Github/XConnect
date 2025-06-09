@@ -1,6 +1,7 @@
 import { lazy } from 'react';
 import {Routes , Route, Navigate, useNavigate} from 'react-router-dom'
 
+import { ToastContainer , Slide } from 'react-toastify';
 import ProtectedRoute from './component/specific/ProtectedRoute';
 import { useLazyFetchMeQuery } from './redux/api/api';
 import { useEffect } from 'react';
@@ -16,6 +17,7 @@ const Profile = lazy(() => import('./pages/Profile'));
 
 
 function App() {
+  const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
   const navigate = useNavigate()
   const dispatch = useDispatch();
 
@@ -55,6 +57,20 @@ useEffect(() => {
           <Route path='/profile' element={<Profile/>} />
         </Route>
       </Routes>
+      <ToastContainer
+        position="top-center"
+        autoClose={2000}
+        closeButton={false}
+        hideProgressBar={true}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        theme={isDarkMode ? 'dark' : 'light'}
+        transition={Slide}
+        pauseOnHover 
+        />
     </>
   )
 }

@@ -1,39 +1,74 @@
 import { useState } from 'react';
-import { useRegisterMeMutation } from '../redux/api/api';
+import { useRegisterMeMutation , useLoginMeMutation } from '../redux/api/api';
 import Loader from '../component/shared/Loader';
+import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import {login} from '../redux/reducer/authSlice'
 
 export default function AuthPage() {
+  const navigate = useNavigate() ;
+  const dispatch = useDispatch() ;
+
+
+
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
-  const [loading , isLoading] = useState(false)
+  const [isLoading , setLoading] = useState(false)
 
-  const [emai , setEmail] =useState('') ;
+  const UsernameRegex = /^[a-zA-Z0-9_]{3,20}$/; 
+
+  const [email , setEmail] =useState('') ;
   const [password , setPassword] = useState('') ;
   const [username ,  setUsername] = useState('') ;
   const [fullname , setFullname] = useState('') ;
 
-  const [mutate] = useRegisterMeMutation() ;
-  
+  const [RegisterMutation] = useRegisterMeMutation() ;
+  const [LoginMutation] = useLoginMeMutation() ;
+
   const handleRegister = async(e) => {
     e.preventDefault() ;
     try {
-      const res = await mutate({
-        email: emai,
+      setLoading(true) ;
+      const test = UsernameRegex.test(username) ;
+      if(!test) return toast.error('Username can only have alphabets , underscores and numbers.' )
+      
+      const res = await RegisterMutation({
+        email: email,
         password: password,
         username: username,
         fullname: fullname
       }).unwrap() ;
-      console.log(res);
+      setIsLogin(true) ;
+      toast.info('Tap Login to continue')
     } catch (error) {
       console.log(error);
+      return toast.error(error.data.message || 'Something went wrong😢. Please try again.')
+    }finally{
+      setLoading(false)
     }
   }
 
   const handleLogin = async(e) => {
     e.preventDefault() ;
-    console.log('Login attempt with', { email: emai, password: password });
+    try {
+      setLoading(true) ;
+      const res = await LoginMutation({
+        email , password 
+      }).unwrap() ;
+      if(res){
+        dispatch(login(res.data)) ;
+        toast.success('Welcome Back!') ;
+        navigate('/') ;
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error.data.message || 'Something went wrong😢. Please try again.' )
+    }finally{
+      setLoading(false)
+    }
   }
-
+  
   return (
     <div className="min-h-screen dark:bg-black  flex items-center justify-center px-4 -z-30">
       
@@ -43,7 +78,7 @@ export default function AuthPage() {
         style={{height : isLogin ? '390px' : '520px'}}
       >
         
-        {!isLoading && (
+        {isLoading && (
           <div className='absolute w-full h-full top-0 left-0 z-10 dark:bg-gray-900/50'>
             <Loader message={isLogin ? 'Connecting You Back..' : 'Joining..'  } /> 
           </div>
@@ -71,7 +106,7 @@ export default function AuthPage() {
               className="w-full px-4 py-2 mt-1 border rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
               required
               onChange={e => setEmail(e.target.value)}
-              value={emai}
+              value={email}
             />
           </div>
 
@@ -85,6 +120,7 @@ export default function AuthPage() {
                 required
                 onChange={e => setPassword(e.target.value)}
                 value={password}
+                minLength={8}
               />
               <button
                 type="button"
@@ -97,25 +133,27 @@ export default function AuthPage() {
           </div>
 
 
-            <div className={`${isLogin ? ' opacity-0 h-0 -translate-y-5 ' : ''} duration-500`}>
+            <div className={`${isLogin ? ' opacity-0 h-0 -translate-y-5 ' : ''} duration-500 `}>
               <label className="block text-sm text-gray-700 dark:text-gray-300">Username</label>
               <input
                 type="text"
+                style={{height : isLogin ? '0px' : 'auto'}}
                 placeholder="Your Username"
                 className="w-full px-4 py-2 mt-1 border rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                required
+                required = {!isLogin}
                 onChange={e => setUsername(e.target.value)}
                 value={username}
               />
             </div>
 
-            <div className={`${isLogin ? ' opacity-0 h-0 -translate-y-5 ' : ''} duration-500`}>
+            <div className={`${isLogin ? ' opacity-0 h-0 -translate-y-5' : ''} duration-500 `}>
               <label className="block text-sm text-gray-700 dark:text-gray-300 ">Fullname</label>
               <input 
-                type="text"
+                type="text" 
+                style={{height : isLogin ? '0px' : 'auto'}}
                 placeholder="Your Fullname"
                 className="w-full px-4 py-2 mt-1 border rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                required
+                required = {!isLogin}
                 onChange={e => setFullname(e.target.value)}
                 value={fullname}
               />
@@ -123,7 +161,7 @@ export default function AuthPage() {
           
           <button
             type="submit"
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg font-semibold transition"
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg font-semibold transition z-50"
           >
             {isLogin ? 'Login' : 'Create Account'}
           </button>
@@ -145,7 +183,7 @@ export default function AuthPage() {
               Already have an account?{' '}
               <button
                 className="text-indigo-500 hover:underline"
-                onClick={() => setIsLogin(true)}
+                onClick={() => {setIsLogin(true)}}
               >
                 Login
               </button>
