@@ -10,8 +10,6 @@ const EditProfile = lazy(() =>  import('../component/profile/EditProfile'))
 
 function Profile() {
   const isProfileEdit = useSelector((state) => state.misc.isProfileEdit);
-
-  console.log('isProfileEdit', isProfileEdit);
   
   return (
     <Layout>
@@ -20,7 +18,7 @@ function Profile() {
               <ProfileHeader />
               <ProfileTabs />
               {isProfileEdit && (
-                <div className='absolute top-0 flex items-center w-full backdrop-filter backdrop-blur-sm '>
+                <div className='absolute top-0 flex justify-center w-full backdrop-filter h-full backdrop-blur-sm '>
                   <EditProfile/>
                 </div>
               )}

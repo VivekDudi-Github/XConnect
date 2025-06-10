@@ -33,7 +33,7 @@ const api = createApi({
         url : '/user/me' ,
         method : 'PATCH' ,
         body : body ,
-        credentials : 'include'
+        credentials : 'include' ,
       }) 
     }) 
   })

@@ -136,29 +136,21 @@ const getMe = TryCatch(async (req ,res) => {
 } , 'GetMe')
 
 const updateUser = TryCatch( async(req , res) => {
-    const {username , email , bio , fullname ,location , hobby } = req.body ;
+    const {username , bio , fullname ,location , hobby } = req.body ;
 
-    if(!username && !email && !bio && !fullname && !location && !hobby) return ResError(res , 400 , 'Atleast provide a field to be changed')
+    if(!username && !bio && !fullname && !location && !hobby) return ResError(res , 400 , 'Atleast provide a field to be changed')
 
     if ( username && (username.length < 3 || username.length > 20)) return ResError(res , 400 , "Username must be between 3 and 20 characters long") ;
-    if (username && !/^[a-zA-Z0-9_@]+$/.test(username)) return ResError(res, 400, "Username can only contain letters, numbers, and underscores");
-    if (email && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) return ResError(res, 400, "Invalid email format");
+    if (username && !/^[a-zA-Z0-9_@]+$/.test(username)) return ResError(res, 400, "Username can only contain letters, numbers, and underscores"); 
     
-    
-    const existingUser = await User.findOne({
-        $or : [
-        {email : email} , 
-        {username : username}
-        ]  
-    }) 
+    const existingUser = await User.findOne({username : username}) 
 
-    if(existingUser) return ResError(res , 400 , 'Username or email already used')
+    if(!existingUser._id.equals( req.user._id)) return ResError(res , 400 , 'Username already used')
 
     const {_id} = req.user ;
 
     const user = await User.findByIdAndUpdate(_id, {
         username,
-        email,
         bio,
         fullname ,
         location ,

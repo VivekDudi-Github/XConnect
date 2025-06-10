@@ -37,7 +37,7 @@ const userSchema = new mongoose.Schema({
         enum : ["user", "admin"],
         default : "user"
     } ,
-    profilePicture : {
+    avatar : {
         publicId : {
             type : String ,
             default : "" ,

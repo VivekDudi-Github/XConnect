@@ -22,15 +22,35 @@ function EditProfile() {
     fullname: user?.fullname || '',
     username: user?.username || '',
     bio: user?.bio || '',
+    hobby: user?.hobby || '', 
     location: user?.location || '',
-    avatar: user?.avatar || '', // avatar URL
+    avatar: user?.avatar?.url || '', // avatar URL
     avatarFile: null, // file for upload
-    banner: user?.banner || '', // banner URL
+    banner: user?.banner?.url || '', // banner URL
     bannerFile : null, // file for upload
   });
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  }
+
   const handleImageChange = (e , img) => {
   const file = e.target.files[0];
+  const reader = new FileReader();
+
+  reader.onloadend = () => {
+    setForm(prev => ({
+      ...prev ,
+      [img] : reader.result, 
+      [`${img}File`]: file, 
+    }))
+  }
+
+  reader.readAsDataURL(file) ;
   }
 
 const handleSubmit = async(e) => {
@@ -41,6 +61,7 @@ const handleSubmit = async(e) => {
   data.append('fullname', form.fullname);
   data.append('username', form.username);
   data.append('bio', form.bio);
+  data.append('hobby' , form.hobby)
   data.append('location', form.location);
   if (form.avatarFile) {
     data.append('avatar', form.avatarFile);
@@ -48,35 +69,34 @@ const handleSubmit = async(e) => {
   if (form.bannerFile) {
     data.append('banner', form.bannerFile);
   }
+  
 
   try {
     const res = await updateMutation(data).unwrap() ;
-    dispatch(updateUser(res.data.user))
+    
+    dispatch(updateUser(res.data))
     toast.update(id , {
       render : 'Profile Upated' ,
       type : 'success' ,
       isLoading: false,
       autoClose: true,
-    } , 
+    }  
   ) ;
     dispatch(setIsProfileEdit(false)) ;
   } catch (error) {
     console.log(error);
     toast.update(id , {
-      render : error.data.message ,
+      render : error.data.message || "Something went" ,
       type : 'error' ,
       isLoading: false,
       autoClose: true,
     } , 
   ) ;
   }
-
-
-
 }
 
   return  (
-    <div className="max-w-xl mx-auto p-6 bg-white dark:bg-black/90 rounded-xl shadow relative dark:text-white text-black w-full h-screen overflow-auto">
+    <div className="max-w-xl mx-auto p-6 bg-white dark:bg-black/90 rounded-xl shadow relative dark:text-white text-black w-full h-screen overflow-auto top-0">
       <h2 className="text-2xl font-bold mb-4">Edit Profile</h2>
     <button 
     onClick={() => dispatch(setIsProfileEdit(false))} 
@@ -88,7 +108,7 @@ const handleSubmit = async(e) => {
         <div className='w-full relative mb-16 '>
           <div className="flex items-center gap-4 w-full z-10 ">
             <img
-              src={form?.avatar || '/default-avatar.png'}
+              src={form?.avatar || user?.avatar?.ur || null}
               alt="avatar"
               className="w-24 h-24 rounded-full object-cover ring-1 ring-white shadow-md shadow-indigo-00  cursor-pointer"
               // onClick={() => fileInputRef.current.click()}
@@ -104,7 +124,7 @@ const handleSubmit = async(e) => {
           </div>
           <div className='border absolute w-full top-0 z-0 '>
             <img
-              src={form?.banner || '/default-banner.jpg'}
+              src={form?.banner || user?.banner.url || null}
               alt="banner"
               className="w-full min-h-32 object-cover rounded-lg mt-2 cursor-pointer"
               onClick={() => bannerInputRef.current.click()}
@@ -124,10 +144,10 @@ const handleSubmit = async(e) => {
         <div>
           <label className="block text-sm font-medium mb-1">Full Name</label>
           <input
-            name="name"
+            name="fullname"
             type="text"
-            // value={form.name}
-            // onChange={handleInputChange}
+            value={form.fullname }
+            onChange={handleInputChange}
             className="w-full p-2 rounded border border-gray-300 dark:border-gray-700 dark:bg-gradient-to-b dark:from-gray-800 dark:to-black duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-white"
             required
           />
@@ -138,8 +158,8 @@ const handleSubmit = async(e) => {
           <input
             name="username"
             type="text"
-            // value={form.username}
-            // onChange={handleInputChange}
+            value={form.username}
+            onChange={handleInputChange}
             className="w-full p-2 rounded border border-gray-300 dark:border-gray-700 dark:bg-gradient-to-b dark:from-gray-800 dark:to-black duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-white"
             required
           />
@@ -150,9 +170,20 @@ const handleSubmit = async(e) => {
           <textarea
             name="bio"
             rows={3}
-            // value={form.bio}
-            // onChange={handleInputChange}
+            value={form?.bio}
+            onChange={handleInputChange}
             className="w-full p-2 rounded border border-gray-300 dark:border-gray-700 dark:bg-gradient-to-b dark:from-gray-800 dark:to-black duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-white resize-none"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">Work</label>
+          <input
+            name="hobby"
+            type="text"
+            value={form.hobby}
+            onChange={handleInputChange}
+            className="w-full p-2 rounded border border-gray-300 dark:border-gray-700 dark:bg-gradient-to-b dark:from-gray-800 dark:to-black duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-white"
           />
         </div>
 
@@ -161,8 +192,8 @@ const handleSubmit = async(e) => {
           <input
             name="location"
             type="text"
-            // value={form.location}
-            // onChange={handleInputChange}
+            value={form?.location}
+            onChange={handleInputChange}
             className="w-full p-2 rounded border border-gray-300 dark:border-gray-700 dark:bg-gradient-to-b dark:from-gray-800 dark:to-black duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-white"
           />
         </div>

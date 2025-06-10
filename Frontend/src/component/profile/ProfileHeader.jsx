@@ -1,17 +1,18 @@
-import { EditIcon, SettingsIcon } from 'lucide-react';
+import { EditIcon, Send, SettingsIcon, UserCheck2, UserPlus2Icon } from 'lucide-react';
 import React from 'react'
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { NavLink } from 'react-router-dom';
 import { setIsProfileEdit } from '../../redux/reducer/miscSlice';
 
 function ProfileHeader() {
   const dispatch = useDispatch() ;
-  const user = 'user' ;
+  const {user} = useSelector(state => state.auth) ;
+  const following = false ;
     return (
       <>
         <div className='relative w-full'>
           <img className='w-full h-40 bg-gradient-to-b from-gray-300 to-gray-500 -z-20 ' 
-            src="https://via.placeholder.com/1200x400" 
+            src={user?.banner?.url || null}
             alt="banner" />
           <div className='bg-gradient-to-b to-gray-800 via-transparent from-transparent absolute w-full h-full z-0 top-0'/>
         </div>
@@ -19,38 +20,61 @@ function ProfileHeader() {
           
           <div>
             <img
-              src="https://via.placeholder.com/150"
+              src={user?.avatar?.url || '/avatar-default.svg' } 
               alt="Profile"
               className="w-28 h-28 mx-auto rounded-full object-cover border-2 border-gray-300"
             />
-          <h2 className="text-base text-center block p-2 dark:text-slate-400 text-cyan-600">@glucose999calories&fit</h2>
+          <h2 className="text-base text-center block p-2 dark:text-slate-400 text-cyan-600">@{user.username}</h2>
           </div>
           <div className='pt-2  sm:w-auto  w-full'>
-            <h2 className="text-3xl font-semibold dark:text-gray-200" >Abc</h2>
+            <h2 className="text-3xl font-semibold dark:text-gray-200" >{user.fullname}</h2>
             
-            <p className="text-gray-600 dark:text-gray-300 text-sm">Web Developer • 🇮🇳 India</p>
-            <p className="mt-2 text-gray-700 dark:hover:text-gray-200 dark:text-gray-500">Building the next-gen social app 🚀</p>
+            <p className="text-gray-600 dark:text-gray-300 text-sm">{user?.hobby} • 🇮🇳 {user?.location || (
+              <>
+              <img className='size-5 inline-block' src="/XConnect_icon.png" alt="" />Connect                
+              </>
+            )}</p>
+            <p className="mt-2 text-gray-700 dark:hover:text-gray-200 dark:text-gray-500">{user?.bio}</p>
             <div className="flex gap-6 mt-4 text-sm text-gray-700 dark:text-gray-500">
               <span><strong className='dark:text-gray-300'>132</strong> Posts</span>
               <span><strong className='dark:text-gray-300'>1.2k</strong> Followers</span>
               <span><strong className='dark:text-gray-300'>450</strong> Following</span>
             </div>
-            {user && (
-            <button 
-            onClick={() => dispatch(setIsProfileEdit(true))}
-            className="hidden sm:block mt-4 px-4 py-1 text-sm font-medium bg-blue-600 text-white rounded hover:bg-blue-700">
-              Edit Profile
-            </button>
+            {!user ? (
+              <button 
+              onClick={() => dispatch(setIsProfileEdit(true))}
+              className="hidden sm:block mt-4 px-4 py-1 text-sm font-medium bg-blue-600 text-white rounded hover:bg-blue-700">
+                Edit Profile
+              </button>
+              ) : (
+              <div className='flex'>
+                <button
+                // onClick={handleFollowToggle}
+                className={`mt-4 mr-3 px-2 py-[3px] font-sm flex gap-1 items-center justify-center font-semibold rounded-md text-cyan-500 dark:text-black bg-white duration-200 hover:bg-gray-200 hover:scale-105 active:scale-95 shadow-sm shadow-black/40 `}
+                >
+                  {following ? <UserCheck2 size={17}/> : <UserPlus2Icon size={17}/> }
+                <p>{following ? 'Unfollow' : 'Follow' }</p>
+                </button>
+                
+                <button
+                // onClick={() => navigate(`/messages/${profile._id}`)}
+                className="mt-4 mr-3 px-2 py-[3px] font-sm flex gap-1 items-center justify-center font-semibold  dark:text-black dark:bg-white rounded-md text-cyan-500 duration-200 hover:bg-gray-200 hover:scale-105 active:scale-95 shadow-sm shadow-black/40"
+                >
+                  <Send size={17}/> <p>Message</p>
+                </button>
+            </div>
             )}
           </div>
 
           {user && (
-          <button title='Settings' className=' absolute sm:hidden block  right-2 p-2 text-gray-600 bg-gray-100 hover:bg-gray-300 rounded-lg dark:bg-black  dark:text-white   dark:hover:bg-white shadow-sm shadow-black/60 dark:hover:text-black duration-300'>
+          <button title='Settings' className=' absolute sm:hidden block  right-2 p-2 text-gray-600 bg-gray-100 hover:bg-gray-300 rounded-lg dark:bg-black  dark:text-white   dark:hover:bg-white shadow-sm shadow-black/60 dark:hover:text-black duration-300 active:scale-90'>
             <SettingsIcon/>
           </button>
           )}
           {user && (
-          <button title='Edit Profile' className=' absolute sm:hidden block top-14 right-2 p-2 text-gray-600 bg-gray-100 hover:bg-gray-300 rounded-lg dark:bg-black  dark:text-white   dark:hover:bg-white shadow-sm shadow-black/60 dark:hover:text-black transition-colors duration-300'>
+          <button title='Edit Profile' className=' absolute sm:hidden block top-14 right-2 p-2 text-gray-600 bg-gray-100 hover:bg-gray-300 rounded-lg dark:bg-black  dark:text-white   dark:hover:bg-white shadow-sm shadow-black/60 dark:hover:text-black transition-colors duration-300 active:scale-95'
+            onClick={() => dispatch(setIsProfileEdit(true))}
+          >
             <EditIcon/>
           </button>
           )}

@@ -1,6 +1,7 @@
 import express from "express";
 import { checkUser } from "../utils/chekAuth.js";
 import { changePassword, deleteUser, getMe, getUserById, loginUser, logoutUser, registerUser, updateUser } from "../controllers/user.controller.js";
+import { uploadFiles} from "../middlewares/multer.js";
 
 
 const router = express.Router();
@@ -17,7 +18,7 @@ router.post('/login' , loginUser)
 router.get('/logout'  , logoutUser)
 
 router.get('/me', checkUser, getMe);
-router.patch('/me' , checkUser , updateUser)
+router.patch('/me' , checkUser , uploadFiles , updateUser)
 router.delete('/me' , checkUser , deleteUser)
 router.put('/me/password' , checkUser , changePassword)
 

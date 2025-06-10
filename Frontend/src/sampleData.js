@@ -17,7 +17,7 @@ const dummyPosts = [
   },
   {
     id: 2,
-    username: 'mona',
+    username: 'Kaalia',
     avatar: 'https://i.pravatar.cc/150?img=20',
     content: 'What’s your favorite JavaScript feature? 🤔',
     image: [],
