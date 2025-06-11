@@ -1,6 +1,7 @@
 import React from 'react'
 import Sidebar from './Sidebar'
 import BottomBar from './BottomBar'
+import CreatePost from '../component/post/CreatePost'
 
 function Layout({children}) {
   return (
@@ -13,7 +14,8 @@ function Layout({children}) {
 
       {/* Main content */}
       <main className=" text-black sm:mb-0 mb-14 md:ml-56 sm:ml-[72px]  h-screen overflow-y-auto w-full duration-200">
-        {children}
+        {/* {children} */}
+        <CreatePost />
       </main>
 
       {/* Bottom nav (only visible on small screens) */}
