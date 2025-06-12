@@ -28,7 +28,7 @@ function ProfileTabs() {
         ))}
       </div>
 
-      <div className="mt-6 mx-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="mt-6 mx-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {[...Array(6)].map((_, i) => (
           <PostCard key={i} post={dummyPosts[1]}  />
         ))}

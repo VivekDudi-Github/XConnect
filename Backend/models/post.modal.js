@@ -42,7 +42,8 @@ const postSchema = mongoose.Schema({
   visiblity : {
     type : String ,
     enum : ['public' ,'followers' ,'group' ] ,
-    default : 'public' 
+    default : 'public' ,
+    required : true ,
   } ,
   isPinned : {
     type : Boolean ,
@@ -50,4 +51,4 @@ const postSchema = mongoose.Schema({
   }
 } , {timestamps : true})
 
-export const Post = mongoose.model('Post' , postSchema)
+export const Post = mongoose.model("Post", postSchema);
