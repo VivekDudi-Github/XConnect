@@ -1,6 +1,6 @@
-import mongoose  from 'mongoose'
+import mongoose from "mongoose";
 
-const postSchema = mongoose.Schema({
+const postSchema = new mongoose.Schema({
   author : {
     type : mongoose.Types.ObjectId ,
     ref : "User" ,
@@ -12,10 +12,16 @@ const postSchema = mongoose.Schema({
     maxlenght : 280 ,
   } ,
   media : [
-    {url : {
+    {
+    _id : false ,
+    url : {
       type : String ,
-      required : true
+      required : true ,
     } , 
+    public_id : {
+      type : String , 
+      required : true ,
+    } ,
      type : {
       type : String , 
       enum : ['image' , 'video'] ,
@@ -33,6 +39,7 @@ const postSchema = mongoose.Schema({
   isDeleted: {
     type: Boolean,
     default: false,
+    index: true
   },
   repost : {
     type : mongoose.Types.ObjectId ,
@@ -45,10 +52,19 @@ const postSchema = mongoose.Schema({
     default : 'public' ,
     required : true ,
   } ,
+  isEdited : {
+    type : Boolean ,
+    default : false
+  } ,
   isPinned : {
     type : Boolean ,
     default : false
   }
 } , {timestamps : true})
+
+postSchema.query.NoDelete = function() {
+  return this.where({ isDeleted : false})
+}
+
 
 export const Post = mongoose.model("Post", postSchema);

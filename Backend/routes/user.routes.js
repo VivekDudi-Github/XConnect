@@ -13,15 +13,15 @@ router.get('/check-health' , (req , res) => {
     });
 })
 
-router.post('/signup' , registerUser)
-router.post('/login' , loginUser)
-router.get('/logout'  , logoutUser)
+router.post('/signup' , registerUser);
+router.post('/login' , loginUser);
+router.get('/logout'  , logoutUser);
 
 router.get('/me', checkUser, getMe);
-router.patch('/me' , checkUser , uploadFiles , updateUser)
-router.delete('/me' , checkUser , deleteUser)
-router.put('/me/password' , checkUser , changePassword)
+router.patch('/me' , checkUser , uploadFiles , updateUser);
+router.delete('/me' , checkUser , deleteUser);
+router.put('/me/password' , checkUser , changePassword);
 
-router.get('/:id' , checkUser , getUserById)
+router.get('/:id' , checkUser , getUserById);
 
 export default router;
