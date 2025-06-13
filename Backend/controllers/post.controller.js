@@ -22,7 +22,7 @@ const createPost = TryCatch( async(req , res) => {
     visiblity : visiblity || 'public' ,
   })
 
-  return ResSuccess(res , 200 , Post)
+  return ResSuccess(res , 200 , post)
 
 
 
