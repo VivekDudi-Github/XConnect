@@ -1,23 +1,36 @@
-import { useState, useRef } from 'react';
-import { Smile, ImagePlus, Loader2, X } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Smile, ImagePlus, Loader2Icon, X,  GlobeIcon, Users2Icon, UserPlus2Icon, UserCheck2 } from 'lucide-react';
 import data from '@emoji-mart/data';
 import  Picker  from '@emoji-mart/react';
+import { toast } from 'react-toastify';
+
 import { useDropzone } from 'react-dropzone';
+import { useCreatePostMutation } from '../../redux/api/api';
+
 
 export default function CreatePost({ user, onSubmit }) {
+  
+  const [loading, setLoading] = useState(false);
+  const [ openVisiblity ,setOpenVisiblity] = useState(false)
+
+
   const [content, setContent] = useState('');
   const [media, setMedia] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [visiblity , setVisiblity] = useState('public') ;
+  const [hashtags  , sethashTags] = useState([])
+  const [mentions , setMentions] = useState([]) ;
+  const [repost, setRepost] = useState(null);
 
   const inputRef = useRef(null);
   const imageInputRef  = useRef(null);
+
+  const [createPostMutate] =  useCreatePostMutation();
 
   const onDrop = (acceptedFiles) => {
     const newMedia = acceptedFiles.map(file => ({
       file,
       preview: URL.createObjectURL(file) ,
-      type : file.type.startsWith('image/') ? 'image' : 'video',
     }));
     setMedia(prev => [...prev, ...newMedia]);
   };
@@ -33,19 +46,46 @@ export default function CreatePost({ user, onSubmit }) {
     maxFiles: 5,
   });
 
-  const handlePost = async () => {
+  const submitPost = async () => {
     if (!content.trim() && media.length === 0) return;
 
     setLoading(true);
-    await onSubmit({
-      content,
-      media: media.map(m => m.file), // Send actual files
-    });
-    setContent('');
-    setMedia([]);
+    
+    const form = new FormData();
+    form.append('content', content);
+    form.append('visiblity', visiblity);
+    
+    hashtags.forEach((tag) => {
+      form.append(`hashtags` , tag)
+    }) ;
+    mentions.forEach((mention) => {
+      form.append(`mentions` , mention)
+    }) ;
+    
+    media.length > 0 && 
+    media.forEach((m) => {
+      form.append('media' , m.file )
+    }) 
+    
+    form.append('repost', repost || null);
+
+    try {
+      console.log(form.get('media[]'));
+      
+     const data = await createPostMutate(form).unwrap();
+      if (data) {
+        toast.success('Post created successfully!');        
+        setContent('');
+        setMedia([]);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error.data?.message || "Couldn't create the post. Please try again.");
+    }finally{
     setLoading(false);
     setShowEmojiPicker(false);
-  };
+  }
+};
 
   const handleEmojiSelect = (emoji) => {
     setContent(prev => prev + emoji.native);
@@ -55,11 +95,25 @@ export default function CreatePost({ user, onSubmit }) {
     setMedia(prev => prev.filter((_, i) => i !== index));
   };
 
-  const detectHashtags = () => {
-    const matches = content.match(/#[\w]+/g);
-    return matches || [];
-  };
+  useEffect(() => {
+    const detectHashtags = () => {
+      const matches = content.match(/#[\w]+/g);
+      sethashTags(matches || []); 
+      return matches || [];
+    };
+  
+    const detectMentions = () => {
+      const matches = content.match(/@[\w]+/g);
+      setMentions(matches || []);
+      return matches || [] ;
+    };
 
+    detectHashtags() ;
+    detectMentions() ;
+  } , [content]);
+  
+
+  
   return (
     <div {...getRootProps()} className="mt-2 w-full max-w-3xl mx-auto dark:bg-gradient-to-b dark:from-slate-950 dark:to-black rounded-2xl p-4 shadow-lg shadow-slate-800/50 text-white duration-200">
       <div className="flex items-start space-x-4">
@@ -97,7 +151,7 @@ export default function CreatePost({ user, onSubmit }) {
           )}
 
           <div className="flex justify-between items-center mt-3">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <div className="cursor-pointer dark:text-zinc-400  dark:hover:text-white hover:text-cyan-500 text-cyan-400 transition"
               onClick={() => imageInputRef.current.click()}
               
@@ -111,16 +165,45 @@ export default function CreatePost({ user, onSubmit }) {
               >
                 <Smile size={20} />
               </button>
+              
+              <button 
+              onClick={() => setOpenVisiblity(prev => !prev)}
+              className="relative text-cyan-400 hover:text-cyan-500 dark:text-zinc-400 dark:hover:text-white transition">
+                <GlobeIcon size={20} />
+
+                <div className={`absolute left-0 mt-2 w-40 rounded-lg border border-zinc-300 dark:border-zinc-800 bg-white dark:bg-black shadow-lg flex flex-col p-1 duration-200 ${openVisiblity ? '' : 'scale-0 -translate-x-14 -translate-y-14 '} `}>
+                  <div 
+                  onClick={() => setVisiblity('public')}
+                  className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-300 dark:hover:bg-zinc-700 cursor-pointer">
+                    <GlobeIcon size={17} />
+                    <span>Public</span>
+                  </div>
+                  <div 
+                  onClick={() => setVisiblity('followers')}
+                  className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-300 dark:hover:bg-zinc-700 cursor-pointer">
+                    <UserCheck2 size={17} />
+                    <span>Followers Only</span>
+                  </div>
+                  <div 
+                  onClick={() => setVisiblity('group')}
+                  className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-300 dark:hover:bg-zinc-700 cursor-pointer">
+                    <Users2Icon size={17} />
+                    <span>Group</span>
+                  </div>
+                </div>
+              </button>
+
+
             </div>
             {media.length < 2 && <div className='animate-pulse dark:text-white text-black opacity-20 '>
               You can drag  & drop media.
             </div>}
             <button
-              onClick={handlePost}
+              onClick={submitPost}
               disabled={loading || (!content.trim() && media.length === 0)}
-              className="bg-gradient-to-r from-indigo-500 to-purple-600 px-4 py-1.5 rounded-full text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+              className="bg-gradient-to-r from-indigo-500 to-purple-600 px-4 py-1.5 rounded-full text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed duration-200"
             >
-              {loading ? <Loader2 size={16} className="animate-spin" /> : 'Post'}
+              {loading ? <Loader2Icon className='animate-spin'/> : 'Post'}
             </button>
           </div>
 
@@ -134,10 +217,16 @@ export default function CreatePost({ user, onSubmit }) {
               />
             </div>
           )}
+          
 
-          {detectHashtags().length > 0 && (
+          {hashtags.length > 0 && (
             <div className="mt-2 text-xs text-indigo-400">
-              Detected hashtags: {detectHashtags().join(', ')}
+              Detected hashtags: {hashtags.join(', ')}
+            </div>
+          )}
+          {mentions.length > 0 && (
+            <div className="mt-2 text-xs text-indigo-400">
+              Mentions: {mentions.join(', ')}
             </div>
           )}
         </div>

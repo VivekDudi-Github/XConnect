@@ -6,6 +6,7 @@ const api = createApi({
   tagTypes : ['Group' , 'Messages' , 'User' , 'Post' , ] ,
 
   endpoints : (builder) => ({
+//users
     fetchMe : builder.query({
       query : () => ({
         url : '/user/me' ,
@@ -35,7 +36,39 @@ const api = createApi({
         body : body ,
         credentials : 'include' ,
       }) 
-    }) 
+    }) ,
+
+//posts
+    getPost: builder.query({
+      query : (id) => ({
+        url : `/post/:${id}` ,
+        credentials : 'include' ,
+      })
+    }) ,
+    createPost : builder.mutation({
+      query : (data) => ({
+        url : '/post' ,
+        method : 'POST' ,
+        body : data ,
+        credentials : 'include' ,
+      })
+    }) ,
+    deletePost : builder.mutation({
+      query : (id) => ({
+        url : `/post/${id}` ,
+        method : 'DELETE' ,
+        credentials : 'include' ,
+      }) 
+    }) ,
+    editPost : builder.mutation({
+      query : ({id , ...data}) => ({
+        url : `/post/${id}` ,
+        method : 'PATCH' ,
+        body : data ,
+        credentials : 'include' ,
+      })
+    }) ,
+
   })
 })
 export default api ;
@@ -44,5 +77,9 @@ export const {
   useLazyFetchMeQuery ,
   useRegisterMeMutation ,
   useLoginMeMutation ,
-  useUpdateProfileMutation
+  useUpdateProfileMutation ,
+  useCreatePostMutation ,
+  useEditPostMutation ,
+  useDeletePostMutation ,
+  useLazyGetPostQuery ,
 } = api ;

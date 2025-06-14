@@ -3,7 +3,7 @@ import { deleteFilesFromCloudinary, uploadFilesTOCloudinary } from '../utils/clo
 import {ResError , ResSuccess ,TryCatch} from '../utils/extra.js'
 
 const createPost = TryCatch( async(req , res) => {
-  const {content , hashtags = [] ,  repost , visiblity } = req.body ;
+  const {content , hashtags = [] ,  repost , mentions= [] , visiblity } = req.body ;
   console.log(req.body , req?.files);
   const {media} = req.files ;
 
@@ -11,7 +11,9 @@ const createPost = TryCatch( async(req , res) => {
 
   if(!Array.isArray(media)) return ResError(res , 400 , "Media's data is invalid.")
   if(!Array.isArray(hashtags)) return ResError(res , 400 , "Hastags' data is invalid.")
-  if(repost && typeof repost !== 'string') return ResError(res , 400 , "Repost's data is invalid.")
+  if(!Array.isArray(mentions)) return ResError(res , 400 , "Mention' data is invalid.")
+  
+    if(repost && typeof repost !== 'string') return ResError(res , 400 , "Repost's data is invalid.")
   if(visiblity && !['public' , 'followers' , 'group'].includes(visiblity)) return ResError(res , 400 , "Visiblity's data is invalid.")
 
   let cloudinaryResults = [] ;  
@@ -25,6 +27,7 @@ const createPost = TryCatch( async(req , res) => {
     hashtags : hashtags || [] ,
     repost : repost || null ,
     visiblity : visiblity || 'public' ,
+    mentions : mentions || [] ,
   })
   if(!post) return ResError(res , 500 , 'Post could not be created.')
 

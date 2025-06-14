@@ -1,15 +1,9 @@
 import mongoose from "mongoose";
 
 const postSchema = new mongoose.Schema({
-  author : {
-    type : mongoose.Types.ObjectId ,
-    ref : "User" ,
-    required : true ,
-    index : true
-  } , 
   content : {
     type : String ,
-    maxlenght : 280 ,
+    maxlength : 280 ,
   } ,
   media : [
     {
@@ -36,14 +30,26 @@ const postSchema = new mongoose.Schema({
       trim : true
     }
   ] ,
+  mentions : [
+    {
+      type : String , 
+      lowercase : true ,
+      trim : true
+    }
+  ] ,
   isDeleted: {
     type: Boolean,
     default: false,
     index: true
   },
-  repost : {
+  author : {
     type : mongoose.Types.ObjectId ,
-    ref : 'Post' ,
+    ref : "User" ,
+    required : true ,
+    index : true
+  } , 
+  repost : {
+    type : String ,
     default : null ,
   } ,
   visiblity : {
