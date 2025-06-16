@@ -1,7 +1,10 @@
 const dummyPosts = [
   {
     id: 1,
-    username: 'vivekdudi',
+    author : {
+      username : 'vivekdudi',
+      fullname : 'Vivek Dudi',
+    },
     avatar: 'https://i.pravatar.cc/150?img=12',
     content: 'Building the future of social platforms 🚀',
     image: ['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTAHAe0g1f5ng-92MI1s6prc0NW9ZnRPDlHuQ&s' ,
@@ -17,7 +20,10 @@ const dummyPosts = [
   },
   {
     id: 2,
-    username: 'Kaalia',
+    author : {
+      username : 'Kaalia',
+      fullname : 'Kaalia',
+    } ,
     avatar: 'https://i.pravatar.cc/150?img=20',
     content: 'What’s your favorite JavaScript feature? 🤔',
     image: [],
@@ -27,7 +33,10 @@ const dummyPosts = [
   },
   {
     id: 6,
-    username: 'vivekdudi',
+    author : {
+      username : 'vivekdudi',
+      fullname : 'Vivek Dudi',
+    },
     avatar: 'https://i.pravatar.cc/150?img=12',
     content: 'Building the future of social platforms 🚀',
     image: ['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTAHAe0g1f5ng-92MI1s6prc0NW9ZnRPDlHuQ&s' ,
@@ -43,7 +52,10 @@ const dummyPosts = [
   },
   {
     id: 5,
-    username: 'Kaalia',
+    author : {
+      username : 'Kaalia',
+      fullname : 'Kaalia',
+    } ,
     avatar: 'https://i.pravatar.cc/150?img=20',
     content: 'What’s your favorite JavaScript feature? 🤔',
     image: [],
@@ -53,7 +65,10 @@ const dummyPosts = [
   },
   {
     id: 3,
-    username: 'vivekdudi',
+    author : {
+      username : 'vivekdudi',
+      fullname : 'Vivek Dudi',
+    },
     avatar: 'https://i.pravatar.cc/150?img=12',
     content: 'Building the future of social platforms 🚀',
     image: ['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTAHAe0g1f5ng-92MI1s6prc0NW9ZnRPDlHuQ&s' ,
@@ -69,7 +84,10 @@ const dummyPosts = [
   },
   {
     id: 4,
-    username: 'Kaalia',
+    author : {
+      username : 'Kaalia',
+      fullname : 'Kaalia',
+    } ,
     avatar: 'https://i.pravatar.cc/150?img=20',
     content: 'What’s your favorite JavaScript feature? 🤔',
     image: [],

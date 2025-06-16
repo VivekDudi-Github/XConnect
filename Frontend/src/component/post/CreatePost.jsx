@@ -8,7 +8,7 @@ import { useDropzone } from 'react-dropzone';
 import { useCreatePostMutation } from '../../redux/api/api';
 
 
-export default function CreatePost({ user, onSubmit }) {
+export default function CreatePost({ user }) {
   
   const [loading, setLoading] = useState(false);
   const [ openVisiblity ,setOpenVisiblity] = useState(false)
@@ -31,6 +31,7 @@ export default function CreatePost({ user, onSubmit }) {
     const newMedia = acceptedFiles.map(file => ({
       file,
       preview: URL.createObjectURL(file) ,
+      type : file.type.startsWith('image/') ? 'image' : 'video',
     }));
     setMedia(prev => [...prev, ...newMedia]);
   };
@@ -67,11 +68,11 @@ export default function CreatePost({ user, onSubmit }) {
       form.append('media' , m.file )
     }) 
     
-    form.append('repost', repost || null);
+    if(repost){
+      form.append('repost', repost);
+    }
 
     try {
-      console.log(form.get('media[]'));
-      
      const data = await createPostMutate(form).unwrap();
       if (data) {
         toast.success('Post created successfully!');        

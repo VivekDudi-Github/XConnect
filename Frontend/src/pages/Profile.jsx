@@ -1,4 +1,4 @@
-import React, { lazy } from 'react'
+import React, { lazy, useRef } from 'react'
 import {useSelector} from 'react-redux'
 
 import ProfileHeader from '../component/profile/ProfileHeader'
@@ -10,13 +10,14 @@ const EditProfile = lazy(() =>  import('../component/profile/EditProfile'))
 
 function Profile() {
   const isProfileEdit = useSelector((state) => state.misc.isProfileEdit);
-  
+  const containerRef = useRef(null);
+
   return (
     <Layout>
       <div className='dark:bg-black bg-white w-full h-full'>
-          <div className="w-full relative">
+          <div className="w-full h-screen relative">
               <ProfileHeader />
-              <ProfileTabs />
+              <ProfileTabs containerRef={containerRef} />
               {isProfileEdit && (
                 <div className='absolute top-0 flex justify-center w-full backdrop-filter h-full backdrop-blur-sm '>
                   <EditProfile/>

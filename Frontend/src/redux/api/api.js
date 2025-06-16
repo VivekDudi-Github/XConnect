@@ -69,6 +69,20 @@ const api = createApi({
       })
     }) ,
 
+    getUserPosts : builder.query({
+      query : ({page , tab}) => ({
+        url : `/post/me/posts/?page=${page}&tab${tab}` ,
+        credentials : 'include' ,
+      })
+    }) ,
+    toggleLikePost : builder.mutation({
+      query : (id) => ({
+        url : `/post/like/${id}` ,
+        method : 'POST' ,
+        credentials : 'include'   
+      })
+    }) ,
+    
   })
 })
 export default api ;
@@ -82,4 +96,6 @@ export const {
   useEditPostMutation ,
   useDeletePostMutation ,
   useLazyGetPostQuery ,
+
+  useLazyGetUserPostsQuery,
 } = api ;
