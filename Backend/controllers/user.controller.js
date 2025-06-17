@@ -1,6 +1,7 @@
 import { User } from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import { TryCatch , ResError , ResSuccess } from "../utils/extra.js";
+import { uploadFilesTOCloudinary } from "../utils/cloudinary.js";
 
 //update banner & dp left
 const cookieOptions = {
@@ -114,8 +115,10 @@ const getMe = TryCatch(async (req ,res) => {
 
 const updateUser = TryCatch( async(req , res) => {
     const {username , bio , fullname ,location , hobby } = req.body ;
+    const {banner , avatar} = req.files ;
 
-    if(!username && !bio && !fullname && !location && !hobby) return ResError(res , 400 , 'Atleast provide a field to be changed')
+
+    if(!username && !bio && !fullname && !location && !hobby || !banner || !avatar) return ResError(res , 400 , 'Atleast provide a field to be changed')
 
     if ( username && (username.length < 3 || username.length > 20)) return ResError(res , 400 , "Username must be between 3 and 20 characters long") ;
     if (username && !/^[a-zA-Z0-9_@]+$/.test(username)) return ResError(res, 400, "Username can only contain letters, numbers, and underscores"); 
@@ -124,6 +127,17 @@ const updateUser = TryCatch( async(req , res) => {
 
     if(!existingUser._id.equals( req.user._id)) return ResError(res , 400 , 'Username already used')
 
+    let avatarResults ;
+    if(avatar) {
+        avatarResults = await uploadFilesTOCloudinary(avatar) ;
+    }
+ 
+    let bannerResults  ;
+    if(banner) {
+        bannerResults =  await uploadFilesTOCloudinary(banner) ;
+    }
+
+        
     const {_id} = req.user ;
 
     const user = await User.findByIdAndUpdate(_id, {
@@ -131,6 +145,8 @@ const updateUser = TryCatch( async(req , res) => {
         bio,
         fullname ,
         location ,
+        avatar : avatarResults ? avatarResults[0] : undefined ,
+        banner : bannerResults ? bannerResults[0] : undefined ,
         hobby ,
     }, { new : true , omitUndefined : true , runValidators: true  }).select("-password -refreshToken");
 

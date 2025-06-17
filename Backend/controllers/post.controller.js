@@ -1,7 +1,11 @@
+import mongoose from 'mongoose';
 import { Likes } from '../models/likes.modal.js';
 import {Post} from '../models/post.model.js'
 import { deleteFilesFromCloudinary, uploadFilesTOCloudinary } from '../utils/cloudinary.js';
 import {ResError , ResSuccess ,TryCatch} from '../utils/extra.js'
+
+
+const ObjectId = mongoose.Types.ObjectId ;
 
 
 const createPost = TryCatch( async(req , res) => {
@@ -111,18 +115,108 @@ const getMyPosts = TryCatch(async(req , res) => {
   const {page = 1 , limit = 2 , tab = 'Posts'} = req.query;
   const skip = (page - 1) * limit;  
 
-  const totalPost  = await Post.countDocuments({author : req.user._id})
+  const totalPost  = await Post.countDocuments({author : req.user._id}) ;
   const totalPages = Math.ceil(totalPost/limit) ;
+  
+
+  const posts = await Post.aggregate([
+    {$match : {
+      author :  new ObjectId(`${req.user._id}`) ,
+      isDeleted : false ,
+    }} ,
+    {$sort : {
+      createdAt : -1 
+    }} ,
+    { $skip : skip} ,
+    { $limit : limit} ,
+
+    {$lookup : {
+      from : 'users' ,
+      let : { userId : new ObjectId(`${req.user._id}`)} ,
+      pipeline : [
+        {
+          $match : {
+            $expr : {
+              $eq : [ '$_id' , '$$userId']
+            }
+          }
+        } ,
+        {
+          $project : {
+            avatar : 1 ,
+            username : 1 ,
+            fullname : 1 ,
+          }
+        }
+      ] ,
+      as : 'authorDetails'
+    }} ,
+
+    {$lookup : {
+      from : 'reposts' ,
+      let : {'repostsId' : '$repost' } ,
+      pipeline : [
+        {$match : {
+          $expr : {
+            $eq : [ '$_id' , '$$repostsId']
+          }
+        }} ,
+      ] , 
+      as : 'repostDetails'
+    }} ,
+
+// check your post like status,
+    {$lookup : {
+      from : 'likes' ,
+      let : {'postId' : '$_id'} ,
+      pipeline : [
+        {$match : {
+          $expr : {
+            $and : [
+              {$eq : ['$post' , '$$postId']} ,
+              {$eq : ['$user' , new ObjectId(`${req.user._id}`)]}
+            ]
+          }
+        }}
+      ] ,
+      as : 'userLike'
+    }} ,
+
+    {$lookup : {
+      from : 'likes' ,
+      localField : '_id' ,
+      foreignField : 'post' ,
+      as : 'likesArray' ,
+    }} ,
+
+    {$addFields : {
+      likeStatus : { $gt : [{ $size : '$userLike'} , 0 ]} ,
+      totalLikes :{ $size : '$likesArray'} , 
+      repost : '$repostDetails' , 
+      author : '$authorDetails'
+    }} ,
     
+    {$project : {
+      userLike : 0 ,
+      likesArray : 0  ,
+      authorDetails : 0 ,
+      repostDetails : 0 ,
+    }} ,
 
-  const posts = await Post.find({author: req.user._id}).NoDelete()
-    .sort({createdAt: -1})
-    .skip(skip)
-    .limit(Number(limit))
-    .populate('repost', 'author content media hashtags visiblity')
-    .populate('author', 'username fullname profilePicture');
+    {$unwind: { path: "$author", preserveNullAndEmptyArrays: true } },
+    {$unwind: { path: "$repost", preserveNullAndEmptyArrays: true } },
 
-    console.log(posts[0]);
+
+  ])
+
+  
+
+  // const post = await Post.find({author: req.user._id}).NoDelete()
+  //   .sort({createdAt: -1})
+  //   .skip(skip)
+  //   .limit(Number(limit))
+  //   .populate('repost', 'author content media hashtags visiblity')
+  //   .populate('author', 'username fullname profilePicture');
     
   return ResSuccess(res, 200, {posts  , totalPages});
 } , 'get MyPosts')
@@ -137,10 +231,10 @@ const toggleLikePost  = TryCatch(async(req , res) => {
   const IsAlreadyLiked = await Likes.exists({post : id , user : req.user._id})
   if(IsAlreadyLiked){
     await Likes.deleteOne({_id : IsAlreadyLiked._id}) ;
-    return ResSuccess(res , 200 )
+    return ResSuccess(res , 200 ,{like : false} )
   }else {
     await Likes.create({post : id , user : req.user._id}) ;
-    return ResSuccess(res , 200 )
+    return ResSuccess(res , 200 , {like : true} )
   }
 } , 'toggleLikePost')
 

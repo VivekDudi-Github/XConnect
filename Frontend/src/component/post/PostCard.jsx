@@ -2,11 +2,33 @@ import { Heart, MessageCircle } from 'lucide-react';
 import InPostImages from './InPostImages';
 import { NavLink } from 'react-router-dom';
 import moment from 'moment'
- 
+import { useToggleLikePostMutation } from '../../redux/api/api'; 
+import { useState } from 'react';
+
 export default function PostCard({ post }) {
-  
+  const [likeStatus , setLikeStatus] = useState(post.likeStatus) ; 
+  const [totalLikes , setTotalLikes] = useState(post.totalLikes) ;
+
+  const [toggleLikeMutation] = useToggleLikePostMutation()
+
+  const toggleLikeFunc = async() => {
+    try {
+      const data  = await toggleLikeMutation(post._id).unwrap() ;
+      if(data.data.like){
+        setLikeStatus(true)
+        setTotalLikes(prev => prev + 1)
+      }else {
+        setLikeStatus(false)
+        setTotalLikes(prev => prev - 1)
+      }
+    } catch (error) {
+      console.log('error in doing like');
+    }
+  }
+
+
   return (
-    <div className="bg-white w-full mx-auto rounded-xl dark:shadow-sm p-4 mb-4 dark:bg-gradient-to-b dark:from-gray-800 dark:to-black dark:text-white shadow-slate-800/50 shadow-lg border-t border-slate-800/50 duration-200 ">
+    <div className="bg-white w-full mx-auto rounded-xl dark:shadow-sm p-4 mb-4 dark:bg-gradient-to-b dark:from-gray-800 dark:to-black dark:text-white shadow-slate-800/50 shadow-lg border-t border-slate-800/50 duration-200 break-inside-avoid  ">
       {/* Header */}
       <div className="flex items-center gap-3 mb-2">
         <img
@@ -34,9 +56,16 @@ export default function PostCard({ post }) {
 
       {/* Actions */}
       <div className="flex gap-6 text-sm text-gray-600 mt-2">
-        <button className="flex items-center gap-1">
-          <Heart className=' text-pink-600 dark:text-white dark:hover:fill-white hover:fill-pink-600 duration-500 hover:scale-110 active:scale-95 ' size={18} /> {post.likes}
+        <button 
+        className="flex items-center gap-1" 
+        onClick={toggleLikeFunc}
+        >
+          <Heart 
+          className={ ` text-pink-600  dark:hover:fill-white hover:fill-pink-600 duration-500 hover:scale-110 active:scale-95 ${ likeStatus ? ' fill-pink-600' : 'dark:text-white'} `} 
+          size={18} /> 
+          {totalLikes}
         </button>
+
         <button className="flex items-center gap-1">
           <MessageCircle className=' text-blue-600 dark:text-white  dark:hover:fill-white hover:fill-blue-600 duration-500 hover:scale-110 active:scale-95' size={18} /> {post.comments}
         </button>

@@ -19,9 +19,9 @@ function InPostImages({imagesArray}) {
               key={index}
               src={url}
               alt={'post'+index}
-              className={`w-full rounded-lg mb-2 object-cover 
+              className={`w-full rounded-lg mb-2 object-cover max-h-[385px] duration-200
                 ${length == 3 && index == 2 ? ' col-span-1 row-span-2 ' : '' }  
-                ${length == 2 ? 'row-span-2 h-full' : 'row-span-1 col-span-1 h-full' }
+                ${length == 2 ? 'row-span-2 h-full' : 'row-span-1 col-span-1 h-full ' }
                 `}
               />
               )

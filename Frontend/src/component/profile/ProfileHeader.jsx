@@ -1,4 +1,4 @@
-import { EditIcon, Send, SettingsIcon, UserCheck2, UserPlus2Icon } from 'lucide-react';
+import { EditIcon, Send, SettingsIcon, UserCheck2, UserPenIcon, UserPlus2Icon } from 'lucide-react';
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { NavLink } from 'react-router-dom';
@@ -7,11 +7,13 @@ import { setIsProfileEdit } from '../../redux/reducer/miscSlice';
 function ProfileHeader() {
   const dispatch = useDispatch() ;
   const {user} = useSelector(state => state.auth) ;
+  console.log(user);
+  
   const following = false ;
     return (
       <>
         <div className='relative w-full'>
-          <img className='w-full h-40 bg-gradient-to-b from-gray-300 to-gray-500 -z-20 ' 
+          <img className='w-full h-40 bg-gradient-to-b from-gray-300 to-gray-500 -z-20 object-cover ' 
             src={user?.banner?.url || null}
             alt="banner" />
           <div className='bg-gradient-to-b to-gray-800 via-transparent from-transparent absolute w-full h-full z-0 top-0'/>
@@ -40,11 +42,11 @@ function ProfileHeader() {
               <span><strong className='dark:text-gray-300'>1.2k</strong> Followers</span>
               <span><strong className='dark:text-gray-300'>450</strong> Following</span>
             </div>
-            {!user ? (
+            {user ? (
               <button 
               onClick={() => dispatch(setIsProfileEdit(true))}
-              className="hidden sm:block mt-4 px-4 py-1 text-sm font-medium bg-blue-600 text-white rounded hover:bg-blue-700">
-                Edit Profile
+              className="mt-4 mr-3 px-2 py-[3px] text-sm flex gap-1 items-center justify-center font-semibold rounded-md text-cyan-500 dark:text-black bg-white duration-200 hover:bg-gray-200 hover:scale-105 active:scale-95 shadow-sm shadow-black/40">
+                <UserPenIcon size={17}/> <p>Edit Profile </p>
               </button>
               ) : (
               <div className='flex'>

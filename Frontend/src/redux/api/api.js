@@ -88,14 +88,19 @@ const api = createApi({
 export default api ;
 
 export const {
+// profile-user
   useLazyFetchMeQuery ,
   useRegisterMeMutation ,
   useLoginMeMutation ,
   useUpdateProfileMutation ,
+
+//post
   useCreatePostMutation ,
   useEditPostMutation ,
   useDeletePostMutation ,
   useLazyGetPostQuery ,
 
   useLazyGetUserPostsQuery,
+  useToggleLikePostMutation ,
+  
 } = api ;

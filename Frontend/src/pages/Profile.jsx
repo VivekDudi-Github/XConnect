@@ -15,7 +15,7 @@ function Profile() {
   return (
     <Layout>
       <div className='dark:bg-black bg-white w-full h-full'>
-          <div className="w-full h-screen relative">
+          <div className={`w-full h-screen relative ${isProfileEdit ? 'overflow-hidden' : ''}`}>
               <ProfileHeader />
               <ProfileTabs containerRef={containerRef} />
               {isProfileEdit && (

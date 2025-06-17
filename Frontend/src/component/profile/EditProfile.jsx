@@ -53,6 +53,8 @@ function EditProfile() {
   reader.readAsDataURL(file) ;
   }
 
+  console.log(form);
+  
 const handleSubmit = async(e) => {
   const id = toast.loading('Updating profile...') ;
 
@@ -105,28 +107,13 @@ const handleSubmit = async(e) => {
     </button>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className='w-full relative mb-16 '>
-          <div className="flex items-center gap-4 w-full z-10 ">
+        
+        <div className="w-full relative mb-4">
+          <div className="absolute top-0 left-0 w-full h-32 z-0 overflow-hidden rounded-lg">
             <img
-              src={form?.avatar || user?.avatar?.ur || null}
-              alt="avatar"
-              className="w-24 h-24 rounded-full object-cover ring-1 ring-white shadow-md shadow-indigo-00  cursor-pointer"
-              // onClick={() => fileInputRef.current.click()}
-            />
-            <input
-              type="file"
-              // ref={fileInputRef}
-              className="hidden"
-              accept="image/*"
-              // onChange={handleImageChange}
-            />
-            <span className="text-sm text-gray-500 dark:text-gray-400">Click avatar & banner to change</span>
-          </div>
-          <div className='border absolute w-full top-0 z-0 '>
-            <img
-              src={form?.banner || user?.banner.url || null}
-              alt="banner"
-              className="w-full min-h-32 object-cover rounded-lg mt-2 cursor-pointer"
+              src={form?.banner || user?.banner?.url || '/avatar-default.svg'}
+              alt="Banner"
+              className={`w-full h-full object-cover cursor-pointer ${!form?.banner && !user?.banner?.url ? 'blur-sm ' : ''}`}
               onClick={() => bannerInputRef.current.click()}
             />
             <input
@@ -134,11 +121,32 @@ const handleSubmit = async(e) => {
               ref={bannerInputRef}
               className="hidden"
               accept="image/*"
-              onChange={handleImageChange}
+              onChange={(e) => handleImageChange(e, 'banner')}
+            />
+          </div>
+
+        <div className="relative z-10 flex items-center gap-4 pt-24 px-4 pointer-events-none">
+            <div className="relative pointer-events-auto">
+              <img
+                src={form?.avatar || user?.avatar?.url || '/avatar-default.svg'}
+                alt="Avatar"
+                className="w-28 h-28 rounded-full object-cover dark:bg-black bg-white ring-2 ring-white cursor-pointer"
+                onClick={() => fileInputRef.current.click()}
               />
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={(e) => handleImageChange(e, 'avatar')}
+              />
+            </div>
           </div>
         </div>
 
+
+
+        <span className="text-sm text-gray-400 dark:text-gray-500 animate-pulse  ">Click on avatar & banner to change</span>
         
 
         <div>

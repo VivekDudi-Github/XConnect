@@ -91,7 +91,7 @@ useEffect(() => {
       </div>}
 
       {posts && (
-        <div className="mt-6 mx-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="mt-6 mx-2 columns-1 sm:columns-2 lg:columns-3 gap-4">
           {posts.map((post, i) => (
             <div ref={ i === posts.length - 1 ? lastPostRef : null }  key={i} >
               <PostCard post={post}  />
