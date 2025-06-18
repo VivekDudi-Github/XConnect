@@ -43,7 +43,7 @@ const createPost = TryCatch( async(req , res) => {
     
   return ResSuccess(res , 200 , post)
 
-} , 'CreatePost' )
+} , 'CreatePost' ) 
 
 const deletePost = TryCatch(async(req , res) => {
   const {id} = req.params;
