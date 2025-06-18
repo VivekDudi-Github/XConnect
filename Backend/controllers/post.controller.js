@@ -3,6 +3,7 @@ import { Likes } from '../models/likes.modal.js';
 import {Post} from '../models/post.model.js'
 import { deleteFilesFromCloudinary, uploadFilesTOCloudinary } from '../utils/cloudinary.js';
 import {ResError , ResSuccess ,TryCatch} from '../utils/extra.js'
+import { Bookmark } from '../models/bookmark.modal.js';
 
 
 const ObjectId = mongoose.Types.ObjectId ;
@@ -183,6 +184,24 @@ const getMyPosts = TryCatch(async(req , res) => {
     }} ,
 
     {$lookup : {
+      from : 'bookmarks' ,
+      let : {'postId' : '$_id'} ,
+      pipeline : [
+        {
+          $match : {
+            $expr : {
+              $and : [
+                {$eq : ['$post' , '$$postId']} ,
+                {$eq : ['$user' , new ObjectId(`${req.user._id}`)]}
+              ]
+            }
+          }
+        }
+      ] , 
+      as : 'userBookmark'
+    }} ,
+
+    {$lookup : {
       from : 'likes' ,
       localField : '_id' ,
       foreignField : 'post' ,
@@ -190,15 +209,18 @@ const getMyPosts = TryCatch(async(req , res) => {
     }} ,
 
     {$addFields : {
+      isBookmarked : { $gt : [{ $size : '$userBookmark'} , 0 ]} ,
       likeStatus : { $gt : [{ $size : '$userLike'} , 0 ]} ,
       totalLikes :{ $size : '$likesArray'} , 
       repost : '$repostDetails' , 
-      author : '$authorDetails'
+      author : '$authorDetails' ,
     }} ,
     
     {$project : {
       userLike : 0 ,
-      likesArray : 0  ,
+      isDeleted : 0 ,
+      likesArray : 0 ,
+      userBookmark : 0 ,
       authorDetails : 0 ,
       repostDetails : 0 ,
     }} ,
@@ -210,33 +232,53 @@ const getMyPosts = TryCatch(async(req , res) => {
   ])
 
   
-
-  // const post = await Post.find({author: req.user._id}).NoDelete()
-  //   .sort({createdAt: -1})
-  //   .skip(skip)
-  //   .limit(Number(limit))
-  //   .populate('repost', 'author content media hashtags visiblity')
-  //   .populate('author', 'username fullname profilePicture');
-    
   return ResSuccess(res, 200, {posts  , totalPages});
 } , 'get MyPosts')
 
-const toggleLikePost  = TryCatch(async(req , res) => {
+const toggleOnPost  = TryCatch(async(req , res) => {
   const {id} = req.params ;
+  const {option} = req.body ;
+
   if(!id) return ResError(res , 400 , 'Post id not provided.')
+
+  if(option === 'pin'){
+    const post = await Post.findOne({_id : id , author : req.user._id}) ;
+    if(!post) return ResError(res , 404 , 'Post not found')
+    let pinStatus = post.isPinned ;
+    
+    post.isPinned = !post.isPinned ;
+    await post.save() ;
+    return ResSuccess(res , 200 , {opertation : !pinStatus } ) ;
+  }
+
+  let doc ;
+  switch (option) {
+    case 'like':
+      doc = Likes
+      break;
+    case 'bookmark' : 
+      doc = Bookmark
+      break ;
+    default: 
+      doc = null ;
+      break;
+  }
+
   
   const IsPostExist = await Post.exists({_id : id})
   if(!IsPostExist) return ResError(res , 400 , 'No such Post exist')
   
-  const IsAlreadyLiked = await Likes.exists({post : id , user : req.user._id})
+
+  const IsAlreadyLiked = await doc.exists({post : id , user : req.user._id})
   if(IsAlreadyLiked){
-    await Likes.deleteOne({_id : IsAlreadyLiked._id}) ;
-    return ResSuccess(res , 200 ,{like : false} )
+    await doc.deleteOne({_id : IsAlreadyLiked._id}) ;
+    return ResSuccess(res , 200 ,{opertation : false} )
   }else {
-    await Likes.create({post : id , user : req.user._id}) ;
-    return ResSuccess(res , 200 , {like : true} )
+    await doc.create({post : id , user : req.user._id}) ;
+    return ResSuccess(res , 200 , {opertation : true} )
   }
-} , 'toggleLikePost')
+} , 'toggleOnPost')
+
 
 
 export {
@@ -245,5 +287,5 @@ export {
   editPost ,
   getPost ,
   getMyPosts ,
-  toggleLikePost ,
+  toggleOnPost ,
 }

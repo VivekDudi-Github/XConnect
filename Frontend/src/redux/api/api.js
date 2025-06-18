@@ -75,12 +75,15 @@ const api = createApi({
         credentials : 'include' ,
       })
     }) ,
-    toggleLikePost : builder.mutation({
-      query : (id) => ({
-        url : `/post/like/${id}` ,
+    toggleOnPost : builder.mutation({
+      query : ({id , option}) => {
+        console.log(option , id)
+        return ({
+        url : `/post/toggle/${id}` ,
         method : 'POST' ,
+        body : {option : option} ,
         credentials : 'include'   
-      })
+      })}
     }) ,
     
   })
@@ -101,6 +104,6 @@ export const {
   useLazyGetPostQuery ,
 
   useLazyGetUserPostsQuery,
-  useToggleLikePostMutation ,
+  useToggleOnPostMutation ,
   
 } = api ;

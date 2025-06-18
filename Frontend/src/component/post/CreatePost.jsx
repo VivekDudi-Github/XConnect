@@ -6,10 +6,12 @@ import { toast } from 'react-toastify';
 
 import { useDropzone } from 'react-dropzone';
 import { useCreatePostMutation } from '../../redux/api/api';
+import { useSelector } from 'react-redux';
 
 
-export default function CreatePost({ user }) {
-  
+export default function CreatePost() {
+  const {user}  = useSelector(state => state.auth) ;
+
   const [loading, setLoading] = useState(false);
   const [ openVisiblity ,setOpenVisiblity] = useState(false)
 
@@ -119,7 +121,7 @@ export default function CreatePost({ user }) {
     <div {...getRootProps()} className="mt-2 w-full max-w-3xl mx-auto dark:bg-gradient-to-b dark:from-slate-950 dark:to-black rounded-2xl p-4 shadow-lg shadow-slate-800/50 text-white duration-200">
       <div className="flex items-start space-x-4">
         <img
-          src={user?.avatar || 'https://img.freepik.com/premium-vector/male-face-avatar-icon-set-flat-design-social-media-profiles_1281173-3806.jpg?semt=ais_hybrid&w=740'}
+          src={user?.avatar?.url || 'https://img.freepik.com/premium-vector/male-face-avatar-icon-set-flat-design-social-media-profiles_1281173-3806.jpg?semt=ais_hybrid&w=740'}
           alt="avatar"
           className="w-10 h-10 rounded-full object-cover"
         />

@@ -118,7 +118,7 @@ const updateUser = TryCatch( async(req , res) => {
     const {banner , avatar} = req.files ;
 
 
-    if(!username && !bio && !fullname && !location && !hobby || !banner || !avatar) return ResError(res , 400 , 'Atleast provide a field to be changed')
+    if(!username && !bio && !fullname && !location && !hobby && !banner && !avatar) return ResError(res , 400 , 'Atleast provide a field to be changed')
 
     if ( username && (username.length < 3 || username.length > 20)) return ResError(res , 400 , "Username must be between 3 and 20 characters long") ;
     if (username && !/^[a-zA-Z0-9_@]+$/.test(username)) return ResError(res, 400, "Username can only contain letters, numbers, and underscores"); 

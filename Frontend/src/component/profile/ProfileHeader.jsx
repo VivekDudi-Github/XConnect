@@ -7,8 +7,6 @@ import { setIsProfileEdit } from '../../redux/reducer/miscSlice';
 function ProfileHeader() {
   const dispatch = useDispatch() ;
   const {user} = useSelector(state => state.auth) ;
-  console.log(user);
-  
   const following = false ;
     return (
       <>
@@ -74,7 +72,7 @@ function ProfileHeader() {
           </button>
           )}
           {user && (
-          <button title='Edit Profile' className=' absolute sm:hidden block top-14 right-2 p-2 text-gray-600 bg-gray-100 hover:bg-gray-300 rounded-lg dark:bg-black  dark:text-white   dark:hover:bg-white shadow-sm shadow-black/60 dark:hover:text-black transition-colors duration-300 active:scale-95'
+          <button title='Edit Profile' className=' absolute sm:hidden block top-14 right-2 p-2 text-cyan-600 bg-gray-100 hover:bg-gray-300 rounded-lg dark:bg-black  dark:text-white   dark:hover:bg-white shadow-sm shadow-black/60 dark:hover:text-black transition-colors duration-300 active:scale-95'
             onClick={() => dispatch(setIsProfileEdit(true))}
           >
             <EditIcon/>

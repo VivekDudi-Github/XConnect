@@ -4,7 +4,6 @@ import { useState } from 'react';
 import PostCard from '../post/PostCard';
 import Loader from '../shared/Loader'
 
-import { dummyPosts } from '../../sampleData';
 import { useLazyGetUserPostsQuery } from '../../redux/api/api';
 import { useEffect } from 'react';
 import { toast } from 'react-toastify';
@@ -12,7 +11,7 @@ import { toast } from 'react-toastify';
 
 const tabs = ['Posts', 'Media' , 'Replies' , 'Likes' , 'History'];
 
-function ProfileTabs( {containerRef}) {
+function ProfileTabs() {
   const observer = useRef(null) ;
   
   const [activeTab, setActiveTab] = useState('Posts');
@@ -91,7 +90,7 @@ useEffect(() => {
       </div>}
 
       {posts && (
-        <div className="mt-6 mx-2 columns-1 sm:columns-2 lg:columns-3 gap-4">
+        <div className="mt-6 mx-2 columns-1 sm:columns-1 lg:columns-3 gap-4 max-w-6xl">
           {posts.map((post, i) => (
             <div ref={ i === posts.length - 1 ? lastPostRef : null }  key={i} >
               <PostCard post={post}  />
