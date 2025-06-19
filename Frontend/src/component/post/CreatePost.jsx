@@ -59,10 +59,10 @@ export default function CreatePost() {
     form.append('visiblity', visiblity);
     
     hashtags.forEach((tag) => {
-      form.append(`hashtags` , tag)
+      form.append(`hashtags[]` , tag)
     }) ;
     mentions.forEach((mention) => {
-      form.append(`mentions` , mention)
+      form.append(`mentions[]` , mention)
     }) ;
     
     media.length > 0 && 
@@ -129,7 +129,7 @@ export default function CreatePost() {
           <textarea
             ref={inputRef}
             rows="3"
-            className="w-full bg-transparent text-black/60 dark:text-white resize-none placeholder-zinc-400 p-2 outline-none border-b-2 border-gray-300 duration-200"
+            className="w-full bg-transparent text-black/60 dark:text-white resize-none font-sans placeholder-zinc-400 p-2 outline-none border-b-2 border-gray-300 duration-200"
             placeholder="What's happening?"
             value={content}
             onChange={(e) => setContent(e.target.value)}

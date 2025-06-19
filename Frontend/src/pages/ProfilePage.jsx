@@ -17,7 +17,7 @@ function Profile() {
       <div className='dark:bg-black bg-white w-full h-full'>
           <div className={`w-full h-screen relative ${isProfileEdit ? 'overflow-hidden' : ''}`}>
               <ProfileHeader />
-              <ProfileTabs containerRef={containerRef} />
+              <ProfileTabs  />
               {isProfileEdit && (
                 <div className='absolute top-0 flex justify-center w-full backdrop-filter h-full backdrop-blur-sm '>
                   <EditProfile/>

@@ -9,10 +9,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import Loader from './component/shared/Loader';
 import { login, logout } from './redux/reducer/authSlice';
 
+
 const Auth = lazy(() => import('./pages/Auth'));
 const HomePage = lazy(() => import('./pages/HomePage'));
-const Profile = lazy(() => import('./pages/Profile'));
-
+const Profile = lazy(() => import('./pages/ProfilePage'));
+const ExplorePage = lazy(() => import('./pages/ExplorePage'))
 
 
 
@@ -55,6 +56,7 @@ useEffect(() => {
         <Route element={<ProtectedRoute user={user} /> } >
           <Route path='/' element={<HomePage/>} />
           <Route path='/profile' element={<Profile/>} />
+          <Route path='/explore' element={<ExplorePage/>} />
         </Route>
       </Routes>
       <ToastContainer

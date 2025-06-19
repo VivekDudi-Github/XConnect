@@ -211,7 +211,7 @@ const getMyPosts = TryCatch(async(req , res) => {
     {$addFields : {
       isBookmarked : { $gt : [{ $size : '$userBookmark'} , 0 ]} ,
       likeStatus : { $gt : [{ $size : '$userLike'} , 0 ]} ,
-      totalLikes :{ $size : '$likesArray'} , 
+      likeCount :{ $size : '$likesArray'} , 
       repost : '$repostDetails' , 
       author : '$authorDetails' ,
     }} ,

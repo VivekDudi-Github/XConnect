@@ -1,9 +1,9 @@
 import { NavLink } from 'react-router-dom';
-import { Home, User, MessageCircle, Bell, SearchIcon } from 'lucide-react';
+import { Home, User, MessageCircle, Bell, SearchIcon, Rocket } from 'lucide-react';
 
 const navItems = [
   { name: 'Home', icon: <Home size={22} />, path: '/' },
-  {name : 'Search' , icon : <SearchIcon size={22}/>, path : '/search'} ,
+  {name : 'Xplore' , icon : <Rocket size={22}/>, path : '/explore'} ,
   { name: 'Messages', icon: <MessageCircle size={22} />, path: '/messages' },
   { name: 'Profile', icon: <User size={22} />, path: '/profile' },
   { name: 'Notifications', icon: <Bell size={22} />, path: '/notifications' },

@@ -42,6 +42,18 @@ const postSchema = new mongoose.Schema({
     default: false,
     index: true
   },
+  likeCount : {
+    type : Number ,
+    default : 0 ,
+  } ,
+  shareCount : {
+    type : Number ,
+    default : 0 
+  } ,
+  commentCount : {
+    type : Number ,
+    default : 0 ,
+  } ,
   author : {
     type : mongoose.Types.ObjectId ,
     ref : "User" ,

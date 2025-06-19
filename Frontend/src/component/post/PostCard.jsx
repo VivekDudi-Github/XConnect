@@ -6,13 +6,14 @@ import { useToggleOnPostMutation } from '../../redux/api/api';
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
+import RenderPostContent from '../specific/RenderPostContent';
 
 export default function PostCard({ post }) {
   const {user} = useSelector(state => state.auth)
 
   const [isOpenOptions , setOpenOptions] = useState(false) ;
   const [likeStatus , setLikeStatus] = useState(post.likeStatus) ; 
-  const [totalLikes , setTotalLikes] = useState(post.totalLikes) ;
+  const [totalLikes , setTotalLikes] = useState(post.likeCount) ;
 
   const [pinStatus , setPinStatus] = useState(post.isPinned) ;
   const [bookmarkStatus , setBookmarkStatus] = useState(post.isBookmarked) ;
@@ -64,7 +65,6 @@ export default function PostCard({ post }) {
 
   const deleteFunc = () => {
   }
-console.log(pinStatus);
 
   return (
     <article className="bg-white w-full mx-auto relative rounded-xl dark:shadow-sm p-4 mb-4 dark:bg-gradient-to-b dark:from-gray-800 dark:to-black dark:text-white shadow-slate-800/50 shadow-lg border-t border-slate-800/50 duration-200 break-inside-avoid  ">
@@ -118,7 +118,7 @@ console.log(pinStatus);
       </div>
 
       {/* Content */}
-      <pre className="dark:text-gray-300 mb-2 font-sans">{post.content}</pre>
+      <pre className="dark:text-gray-300 mb-2 font-sans text-wrap">{RenderPostContent(post.content)}</pre>
 
       {/* Image */}
       {post.media && post.media.length > 0 && (

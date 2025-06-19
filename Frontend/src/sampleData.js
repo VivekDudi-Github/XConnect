@@ -70,7 +70,7 @@ const dummyPosts = [
       fullname : 'Vivek Dudi',
     },
     avatar: 'https://i.pravatar.cc/150?img=12',
-    content: 'Building the future of social platforms 🚀',
+    content: 'Building the future of social platforms 🚀 #abc#bbd @jhbj @jye @kbka',
     image: ['https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTAHAe0g1f5ng-92MI1s6prc0NW9ZnRPDlHuQ&s' ,
       // 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTAHAe0g1f5ng-92MI1s6prc0NW9ZnRPDlHuQ&s' ,
        'https://images.pexels.com/photos/2486168/pexels-photo-2486168.jpeg?cs=srgb&dl=pexels-rpnickson-2486168.jpg&fm=jpg',
