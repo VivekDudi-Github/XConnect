@@ -8,6 +8,7 @@ function Feed() {
   const [activeTab, setActiveTab] = useState("All");
 
 
+  
   return (
     <div className="max-w-3xl mx-auto mt-4 px-2 sm:px-0">
       <h1 className="text-2xl font-semibold mb-4">Your Feed</h1>

@@ -86,6 +86,13 @@ const api = createApi({
       })}
     }) ,
     
+    getFeedPosts : builder.query({
+      query : () => ({
+        url : '/post/feed' ,
+        credentials : 'include' ,
+        
+      })
+    })
   })
 })
 export default api ;

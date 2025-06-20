@@ -5,7 +5,6 @@ import { Link } from 'react-router-dom';
 export default function RenderPostContent(text) {
   const regex = /(#\w+|@\w+)/g ;
   const parts = text.split(regex) 
-  console.log(parts);
   
   if(parts.length > 0){
     return parts.map((part , index) => {

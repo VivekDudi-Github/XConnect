@@ -20,10 +20,11 @@ export default function PostCard({ post }) {
 
   const [toggleMutation] = useToggleOnPostMutation()
 
+
   const toggleLiketFunc = async(option) => {
     try {
       const data  = await toggleMutation({id :post._id , option : option }).unwrap() ;
-      if(data.data.opertation){
+      if(data.data.operation){
         setLikeStatus(true)
         setTotalLikes(prev => prev + 1)
       }else {
@@ -37,7 +38,7 @@ export default function PostCard({ post }) {
   const togglePostFunc = async(option) => {
     try {
       const data  = await toggleMutation({id :post._id , option : option }).unwrap() ;
-      if(data.data.opertation){
+      if(data.data.operation){
         if(option === 'pin'){
           setPinStatus(true)
         }else if(option === 'bookmark'){

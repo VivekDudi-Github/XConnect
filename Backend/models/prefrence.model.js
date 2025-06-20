@@ -5,16 +5,18 @@ const preferanceSchema = new mongoose.Schema({
     type : mongoose.Types.ObjectId ,
     ref : 'user' ,
     required : true,
+    index: true 
   } ,
   hashtags : {
     type : String ,
     required : true ,
+    index : true
   } ,
   score : {
     type : Number ,
     default : 0 ,
-  }
-  
+    required : true ,
+  } ,
 } , {timestamps : true})
 
-export const preferance = mongoose.model('preferance' , preferanceSchema)
+export const Preferance = mongoose.model('Preferance' , preferanceSchema)

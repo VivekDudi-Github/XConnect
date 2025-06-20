@@ -23,11 +23,12 @@ const postSchema = new mongoose.Schema({
      } 
     }
   ] ,
-  hastags : [
+  hashtags : [
     {
       type : String , 
       lowercase : true ,
-      trim : true
+      trim : true , 
+      index : true ,
     }
   ] ,
   mentions : [

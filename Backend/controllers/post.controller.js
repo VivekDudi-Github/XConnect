@@ -1,9 +1,12 @@
 import mongoose from 'mongoose';
 import { Likes } from '../models/likes.modal.js';
 import {Post} from '../models/post.model.js'
+import {User} from '../models/user.model.js'
 import { deleteFilesFromCloudinary, uploadFilesTOCloudinary } from '../utils/cloudinary.js';
 import {ResError , ResSuccess ,TryCatch} from '../utils/extra.js'
-import { Bookmark } from '../models/bookmark.modal.js';
+import { Bookmark } from '../models/bookmark.model.js';
+import { Preferance } from '../models/prefrence.model.js';
+import { Following } from '../models/following.model.js';
 
 
 const ObjectId = mongoose.Types.ObjectId ;
@@ -20,7 +23,7 @@ const createPost = TryCatch( async(req , res) => {
 
   if( media && !Array.isArray(media)) return ResError(res , 400 , "Media's data is invalid.")
   if(!Array.isArray(hashtags)) return ResError(res , 400 , "Hastags' data is invalid.")
-  if(!Array.isArray(mentions)) return ResError(res , 400 , "Mention' data is invalid.")
+  if(!Array.isArray(mentions)) return ResError(res , 400 , "Mentions' data is invalid.")
   
   if(repost && typeof repost !== 'string') return ResError(res , 400 , "Repost's data is invalid.")
   if(visiblity && !['public' , 'followers' , 'group'].includes(visiblity)) return ResError(res , 400 , "Visiblity's data is invalid.")
@@ -248,37 +251,119 @@ const toggleOnPost  = TryCatch(async(req , res) => {
     
     post.isPinned = !post.isPinned ;
     await post.save() ;
-    return ResSuccess(res , 200 , {opertation : !pinStatus } ) ;
+    return ResSuccess(res , 200 , {operation : !pinStatus } ) ;
   }
 
-  let doc ;
   switch (option) {
     case 'like':
-      doc = Likes
+      await LikePost(req , res , id ,)
       break;
     case 'bookmark' : 
-      doc = Bookmark
+      await BookmarkPost(req ,res , id)
       break ;
     default: 
-      doc = null ;
-      break;
+      return ResError(res , 400 , 'Something went wrong.')
+    break;
   }
 
-  
-  const IsPostExist = await Post.exists({_id : id})
+} , 'toggleOnPost')
+
+
+const BookmarkPost = async(req , res , postId) => {
+  const IsPostExist = await Post.exists({_id : postId})
   if(!IsPostExist) return ResError(res , 400 , 'No such Post exist')
   
 
-  const IsAlreadyLiked = await doc.exists({post : id , user : req.user._id})
+  const IsAlreadyLiked = await Bookmark.exists({post : postId , user : req.user._id})
   if(IsAlreadyLiked){
-    await doc.deleteOne({_id : IsAlreadyLiked._id}) ;
-    return ResSuccess(res , 200 ,{opertation : false} )
+    await Bookmark.deleteOne({_id : IsAlreadyLiked._id}) ;
+    return ResSuccess(res , 200 ,{operation : false} )
   }else {
-    await doc.create({post : id , user : req.user._id}) ;
-    return ResSuccess(res , 200 , {opertation : true} )
+    await Bookmark.create({post : id , user : req.user._id}) ;
+     return ResSuccess(res , 200 , {operation : true} )
   }
-} , 'toggleOnPost')
+}
 
+const LikePost = async(req , res , postId , ) => {
+  const IsPostExist = await Post.findById({_id : postId})
+  if(!IsPostExist) return ResError(res , 400 , 'No such Post exist')
+  
+  const hashtags =  IsPostExist.hashtags.slice(0 , 4) || [] ;
+  console.log(hashtags);
+  
+  const IsAlreadyLiked = await Likes.exists({post : postId , user : req.user._id})
+  
+  if(IsAlreadyLiked){
+    await Likes.deleteOne({_id : IsAlreadyLiked._id}) ;
+    ResSuccess(res , 200 ,{operation : false} )
+    
+    
+    if(hashtags.length > 0){
+      console.log('removed like');
+      const ops = hashtags.map((h) => ({
+        updateOne : {
+          filter : { user : req.user._id , hashtags  : h} ,
+          update : { $inc : { score : -1} } ,
+          upsert : true 
+        }
+      })
+      ) ;
+
+      await Preferance.bulkWrite(ops , { ordered : false})
+    }
+    return ;
+  }else {
+    await Likes.create({post : postId , user : req.user._id}) ;
+    ResSuccess(res , 200 , {operation : true} )
+    
+    if(hashtags.length > 0){  
+      console.log('added like');
+      const ops = hashtags.map((h) => ({
+        updateOne: {
+          filter: { user: req.user._id, hashtags: h },
+          update: { $inc: { score: 1 } },
+          upsert: true
+        }
+      }
+      )) ;
+    
+      await Preferance.bulkWrite(ops , { ordered : false})
+    }
+
+    return ;
+  }
+}
+
+
+const fetchFeedPost = TryCatch( async(req , res) => {
+  //post from least last 3 days, post from followers , post from preferances
+  const userId = req.user._id ;
+
+  const followings = await Following.find({followedBy : userId})
+
+  const tags = Preferance.find({user : userId })
+
+  const posts = await Post.aggregate([
+    {
+      $match : {
+        $or : [
+          {createdAt : {}} ,
+          { author : { $in : followings}} ,
+          { hashtags : { $in : tags }} ,
+        ]
+      }
+    } , 
+    { $sort : {createdAt : -1}} ,
+    {$limit : 10} ,
+  ])
+
+  return ResSuccess (res , 200 , posts)
+
+} , 'fetchFeedPosts')
+
+const fetchExplorePost = TryCatch(async(req , res) => {
+
+} , 'fetchExplorePosts')
 
 
 export {
@@ -288,4 +373,6 @@ export {
   getPost ,
   getMyPosts ,
   toggleOnPost ,
+
+  fetchFeedPost
 }
