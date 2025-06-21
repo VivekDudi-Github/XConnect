@@ -7,6 +7,7 @@ import {ResError , ResSuccess ,TryCatch} from '../utils/extra.js'
 import { Bookmark } from '../models/bookmark.model.js';
 import { Preferance } from '../models/prefrence.model.js';
 import { Following } from '../models/following.model.js';
+import { Hashtag } from '../models/hastags.model.js';
 
 
 const ObjectId = mongoose.Types.ObjectId ;
@@ -343,11 +344,14 @@ const fetchFeedPost = TryCatch( async(req , res) => {
 
   const tags = Preferance.find({user : userId })
 
+  const threeDaysAgo = new Date();
+  threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+
   const posts = await Post.aggregate([
     {
       $match : {
         $or : [
-          {createdAt : {}} ,
+          {createdAt : { $gte : threeDaysAgo}} ,
           { author : { $in : followings}} ,
           { hashtags : { $in : tags }} ,
         ]
@@ -362,6 +366,27 @@ const fetchFeedPost = TryCatch( async(req , res) => {
 } , 'fetchFeedPosts')
 
 const fetchExplorePost = TryCatch(async(req , res) => {
+  const tags =await  Hashtag.find({count : 1 })
+
+  const posts = await Post.aggregate([
+    {
+      $sort : {
+        likeCount : -1 ,
+        createdAt : -1 ,
+      }
+    } ,
+    { $sample : {size : 30}} ,
+    { $limit : 30} ,
+
+
+    {$project : {
+      content  : 1 ,
+      media : 1 ,
+      author : 1 ,
+      createdAt : 1 ,
+      isEdited : 1 ,
+    }}
+  ])
 
 } , 'fetchExplorePosts')
 

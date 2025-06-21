@@ -90,7 +90,6 @@ const api = createApi({
       query : () => ({
         url : '/post/feed' ,
         credentials : 'include' ,
-        
       })
     })
   })
