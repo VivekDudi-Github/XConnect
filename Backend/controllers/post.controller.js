@@ -370,7 +370,7 @@ const fetchExplorePost = TryCatch(async(req , res) => {
 
   const posts = await Post.aggregate([
     {
-      $sort : {
+      $sort : { 
         likeCount : -1 ,
         createdAt : -1 ,
       }
