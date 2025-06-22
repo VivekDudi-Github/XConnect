@@ -7,6 +7,8 @@ const TABS = ["All", "Following", "Communities", "Media"]
 function Feed() {
   const [activeTab, setActiveTab] = useState("All");
 
+  
+
 
   
   return (

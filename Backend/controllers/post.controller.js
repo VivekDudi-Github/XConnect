@@ -375,8 +375,8 @@ const fetchExplorePost = TryCatch(async(req , res) => {
         createdAt : -1 ,
       }
     } ,
-    { $sample : {size : 30}} ,
-    { $limit : 30} ,
+    { $sample : {size : 10}} ,
+    { $limit : 10} ,
 
 
     {$project : {
@@ -399,5 +399,6 @@ export {
   getMyPosts ,
   toggleOnPost ,
 
-  fetchFeedPost
+  fetchFeedPost ,
+  fetchExplorePost ,
 }
