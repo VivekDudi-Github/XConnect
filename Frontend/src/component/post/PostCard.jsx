@@ -106,7 +106,7 @@ export default function PostCard({ post }) {
             {bookmarkStatus ?  <BookmarkCheckIcon size={17} />  : <BookmarkIcon size={17} />}
             <span>{  bookmarkStatus ? 'Bookmarked' : 'Bookmark' }</span>
           </div>
-          {user._id === post?.author?._id && 
+          {user?._id === post?.author?._id && 
           <div 
           onClick={() => deleteFunc()}
           className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-300 dark:hover:bg-slate-900 cursor-pointer"

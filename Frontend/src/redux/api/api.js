@@ -88,7 +88,7 @@ const api = createApi({
     
     getFeedPosts : builder.query({
       query : () => ({
-        url : '/post/feed' ,
+        url : '/post/me/feed' ,
         credentials : 'include' ,
       })
     })
@@ -111,5 +111,8 @@ export const {
 
   useLazyGetUserPostsQuery,
   useToggleOnPostMutation ,
-  
+ 
+//feed
+  useLazyGetFeedPostsQuery ,  
+
 } = api ;

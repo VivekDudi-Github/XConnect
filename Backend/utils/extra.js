@@ -22,9 +22,9 @@ const TryCatch = (func , funcName ) => {
           return ResError(res, 500, `Internal Server Error`);
       } finally {
         
-        if(Array.isArray( req.CreatePostMediaForDelete) && req.CreatePostMediaForDelete.length > 0){
+        if(Array.isArray( req.CreateMediaForDelete) && req.CreateMediaForDelete.length > 0){
           await Promise.allSettled(
-            req.CreatePostMediaForDelete.map(f => fs.unlink(f.path).catch(err => console.error('Cleanup error:', err)))
+            req.CreateMediaForDelete.map(f => fs.unlink(f.path).catch(err => console.error('Cleanup error:', err)))
           )
         }
       }

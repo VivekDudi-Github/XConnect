@@ -14,11 +14,11 @@ const ObjectId = mongoose.Types.ObjectId ;
 
 
 const createPost = TryCatch( async(req , res) => {
-  req.CreatePostMediaForDelete = [] ;
+  req.CreateMediaForDelete = [] ;
   const {content , hashtags = [] ,  repost , mentions= [] , visiblity } = req.body ;
   
   const {media} = req.files ;
-  if(media) media.forEach(file => req.CreatePostMediaForDelete.push(file)) ;
+  if(media) media.forEach(file => req.CreateMediaForDelete.push(file)) ;
   
   if(!content || typeof content !== 'string' ) return ResError(res , 400 , 'There should be some text for context.')
 
@@ -340,12 +340,15 @@ const fetchFeedPost = TryCatch( async(req , res) => {
   //post from least last 3 days, post from followers , post from preferances
   const userId = req.user._id ;
 
-  const followings = await Following.find({followedBy : userId})
-
-  const tags = Preferance.find({user : userId })
+  const followings = await Following.find({followedBy : userId}) ;
+  const tags = await Preferance.find({user : userId }).select(' hashtags -_id') ;
+  
+  const hashtags = tags.map(t => t.hashtags )
+  
 
   const threeDaysAgo = new Date();
   threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+
 
   const posts = await Post.aggregate([
     {
@@ -353,12 +356,66 @@ const fetchFeedPost = TryCatch( async(req , res) => {
         $or : [
           {createdAt : { $gte : threeDaysAgo}} ,
           { author : { $in : followings}} ,
-          { hashtags : { $in : tags }} ,
+          { hashtags : { $in : hashtags }} ,
         ]
-      }
-    } , 
-    { $sort : {createdAt : -1}} ,
-    {$limit : 10} ,
+      } 
+    } ,
+    {$sample : { size : 10}} ,
+
+    { $lookup : {
+      from : 'users' ,
+      let : { userId : '$author'} ,
+      pipeline : [
+        {$match : {
+          $expr : {
+            $eq : ['$_id' , '$$userId']
+          }
+        }} ,
+        {$project: {
+          avatar : 1 ,
+          username : 1 ,
+          fullname : 1 ,
+        }}
+      ] ,
+      as : 'authorDetails'
+    }} ,
+    {$lookup : {
+      from : 'likes' ,
+      let : { postId : '$_id'} ,
+      pipeline : [
+        {$match : {
+          $expr : {
+            $and : [
+              {$eq : ['$post' , '$$postId']} ,
+              {$eq : ['$user' , new ObjectId(`${userId}`)]}
+            ]
+          }
+        }}
+      ] ,
+      as : 'userLike'
+    }} ,
+
+    {$lookup : {
+      from : 'likes' ,
+      localField : '_id' ,
+      foreignField : 'post' ,
+      as : 'totalLike' ,
+    }} ,
+
+    {$addFields : {
+      author : '$authorDetails' ,
+      likeStatus : { $gt : [{ $size : '$userLike'} , 0 ]}  ,
+      likeCount : {$size : '$totalLike'}
+    }} ,
+
+    {$unwind: {path: '$author',preserveNullAndEmptyArrays: true} } ,
+    
+    {$project : {
+      authorDetails : 0 ,
+      totalLike : 0 ,
+      userLike : 0 ,
+    }}
+
   ])
 
   return ResSuccess (res , 200 , posts)
@@ -366,7 +423,6 @@ const fetchFeedPost = TryCatch( async(req , res) => {
 } , 'fetchFeedPosts')
 
 const fetchExplorePost = TryCatch(async(req , res) => {
-  const tags =await  Hashtag.find({count : 1 })
 
   const posts = await Post.aggregate([
     {
@@ -387,6 +443,8 @@ const fetchExplorePost = TryCatch(async(req , res) => {
       isEdited : 1 ,
     }}
   ])
+
+  ResSuccess(res , 200 , posts)
 
 } , 'fetchExplorePosts')
 

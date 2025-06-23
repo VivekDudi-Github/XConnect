@@ -13,5 +13,5 @@ router.delete('/:id' , checkUser , deletePost);
 router.get('/me/posts' , checkUser , getMyPosts);
 router.post('/toggle/:id' , checkUser , toggleOnPost );
 
-router.get('/feed' , checkUser , fetchFeedPost )
+router.get('/me/feed/' , checkUser , fetchFeedPost )
 export default router;
