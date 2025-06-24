@@ -8,6 +8,7 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Loader from './component/shared/Loader';
 import { login, logout } from './redux/reducer/authSlice';
+import CommentPage from './pages/CommentPage';
 
 
 const Auth = lazy(() => import('./pages/Auth'));
@@ -55,8 +56,9 @@ useEffect(() => {
 
         <Route element={<ProtectedRoute user={user} /> } >
           <Route path='/' element={<HomePage/>} />
-          <Route path='/profile' element={<Profile/>} />
+          <Route path='/profile' element={<CommentPage/>} />
           <Route path='/explore' element={<ExplorePage/>} />
+          
         </Route>
       </Routes>
       <ToastContainer

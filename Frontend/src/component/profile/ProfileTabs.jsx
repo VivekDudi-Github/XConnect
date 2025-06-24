@@ -7,6 +7,7 @@ import Loader from '../shared/Loader'
 import { useLazyGetUserPostsQuery } from '../../redux/api/api';
 import { useEffect } from 'react';
 import { toast } from 'react-toastify';
+import PostCardSkeleton from '../shared/PostCardSkeleton';
 
 
 const tabs = ['Posts', 'Media' , 'Replies' , 'Likes' , 'History'];
@@ -99,13 +100,15 @@ useEffect(() => {
         </div>
       )}
       
-
-      
-      {isLoading && (
-        <div className='m-4'>
-          <Loader />
+      {!posts || isLoading  &&  (
+        <div className='mt-6 mx-2 columns-1 sm:columns-1 lg:columns-3 gap-4 max-w-6xl'>
+          {Array.from({length : 6}).map((_  , i) => (
+            <PostCardSkeleton key={i}/>
+          ))}
         </div>
-      )}
+      ) }
+      
+      
     </div>
   );
 }

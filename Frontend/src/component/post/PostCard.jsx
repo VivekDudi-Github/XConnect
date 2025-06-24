@@ -3,13 +3,18 @@ import InPostImages from './InPostImages';
 import { NavLink } from 'react-router-dom';
 import moment from 'moment'
 import { useToggleOnPostMutation } from '../../redux/api/api'; 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import RenderPostContent from '../specific/RenderPostContent';
 
 export default function PostCard({ post }) {
   const {user} = useSelector(state => state.auth)
+  const renderPreRef = useRef(null) ;
+
+  const [expandable , setExpandable] = useState(false) ;
+  const [textExpended , setTextExpended] = useState(false) ;
+
 
   const [isOpenOptions , setOpenOptions] = useState(false) ;
   const [likeStatus , setLikeStatus] = useState(post.likeStatus) ; 
@@ -67,6 +72,15 @@ export default function PostCard({ post }) {
   const deleteFunc = () => {
   }
 
+useEffect(() => {
+  if(renderPreRef.current){
+    console.log(renderPreRef.current.scrollHeight);
+    if(renderPreRef.current.scrollHeight > 50 ){
+      setExpandable(true)
+    }
+  }
+} , [post.content])
+
   return (
     <article className="bg-white w-full mx-auto relative rounded-xl dark:shadow-sm p-4 mb-4 dark:bg-gradient-to-b dark:from-gray-800 dark:to-black dark:text-white shadow-slate-800/50 shadow-lg border-t border-slate-800/50 duration-200 break-inside-avoid  ">
       {/* Header */}
@@ -119,7 +133,18 @@ export default function PostCard({ post }) {
       </div>
 
       {/* Content */}
-      <pre className="dark:text-gray-300 mb-2 font-sans text-wrap">{RenderPostContent(post.content)}</pre>
+      <div className={` overflow-hidden transition-[max-height] duration-1000 ease-in-out `}
+      style={{
+        maxHeight : textExpended ? '800px' : '48px' ,
+      }}
+      >
+        <pre ref={renderPreRef} className="dark:text-gray-300 mb-2 font-sans text-wrap">{RenderPostContent(post.content)}</pre>
+      </div>
+      <button 
+      onClick={() => setTextExpended((prev) => !prev)}
+      className={`text-gray-500 mb-1 font-sans text-wrap ${expandable ? '' : 'hidden'}`}>
+            {textExpended ? 'show less..' : 'read more...'}
+      </button>
 
       {/* Image */}
       {post.media && post.media.length > 0 && (

@@ -3,6 +3,7 @@ import PostCard from '../post/PostCard'
 
 import { dummyPosts} from '../../sampleData'
 import { useLazyGetFeedPostsQuery } from '../../redux/api/api';
+import PostCardSkeleton from '../shared/PostCardSkeleton';
 
 const TABS = ["All", "Following", "Communities", "Media"]
 function Feed() {
@@ -43,7 +44,7 @@ function Feed() {
 
 
   return (
-    <div className="max-w-3xl mx-auto mt-4 px-2 sm:px-0">
+    <div className="max-w-3xl mx-auto mt-4 px-2 sm:px-0 dark:bg-black  rounded-xl ">
       <h1 className="text-2xl font-semibold mb-4">Your Feed</h1>
 
       <div className="flex gap-4 border-b pb-2 mb-4 overflow-x-auto ml-2">
@@ -62,11 +63,15 @@ function Feed() {
         ))}
       </div>
 
-      {posts.map((post , i) => (
+      {posts && posts.map((post , i) => (
         <div ref={ i === posts.length - 1 ? lastPostRef : null }  key={i} >
           <PostCard post={post}  />
         </div>
       ))}
+      {(!posts || posts.length < 4) &&  Array.from({length : 4}).map((_  , i) => (
+        <PostCardSkeleton key={i}/>
+      ))}
+        
     </div>
 
   )

@@ -1,11 +1,12 @@
 import { RectangleEllipsis } from 'lucide-react';
-import React from 'react'
+import React , {useState} from 'react'
 import { Link } from 'react-router-dom';
 
 export default function RenderPostContent(text) {
   const regex = /(#\w+|@\w+)/g ;
-  const parts = text.split(regex) 
-  
+  const parts = text.split(regex) ;
+
+
   if(parts.length > 0){
     return parts.map((part , index) => {
       if(part.startsWith('#')){
@@ -17,4 +18,8 @@ export default function RenderPostContent(text) {
       return <span key={index}>{part}</span>
     })
   }
+  
 }
+
+
+
