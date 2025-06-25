@@ -8,14 +8,13 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Loader from './component/shared/Loader';
 import { login, logout } from './redux/reducer/authSlice';
-import CommentPage from './pages/CommentPage';
 
 
 const Auth = lazy(() => import('./pages/Auth'));
 const HomePage = lazy(() => import('./pages/HomePage'));
 const Profile = lazy(() => import('./pages/ProfilePage'));
-const ExplorePage = lazy(() => import('./pages/ExplorePage'))
-
+const ExplorePage = lazy(() => import('./pages/ExplorePage')) ;
+const PostPage = lazy(() => import('./pages/PostPage')) ;
 
 
 function App() {
@@ -56,8 +55,11 @@ useEffect(() => {
 
         <Route element={<ProtectedRoute user={user} /> } >
           <Route path='/' element={<HomePage/>} />
-          <Route path='/profile' element={<CommentPage/>} />
-          <Route path='/explore' element={<ExplorePage/>} />
+          <Route path='/profile/:username' element={<Profile/>} />
+          <Route path='/explore/' element={<ExplorePage/>} />
+          <Route path='/post/:id' element={<PostPage/>} />
+          <Route path='/profile' element={<Profile/>} />
+          
           
         </Route>
       </Routes>

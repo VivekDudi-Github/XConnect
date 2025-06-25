@@ -74,7 +74,6 @@ export default function PostCard({ post }) {
 
 useEffect(() => {
   if(renderPreRef.current){
-    console.log(renderPreRef.current.scrollHeight);
     if(renderPreRef.current.scrollHeight > 50 ){
       setExpandable(true)
     }
@@ -85,19 +84,21 @@ useEffect(() => {
     <article className="bg-white w-full mx-auto relative rounded-xl dark:shadow-sm p-4 mb-4 dark:bg-gradient-to-b dark:from-gray-800 dark:to-black dark:text-white shadow-slate-800/50 shadow-lg border-t border-slate-800/50 duration-200 break-inside-avoid  ">
       {/* Header */}
       <div className="flex items-center gap-3 mb-2">
-        <img
-          src={post?.author?.avatar?.url || post.avatar || '/avatar-default.svg'}
-          alt="avatar"
-          className="w-10 h-10 rounded-full object-cover "
-        />
-        <div>
+        <NavLink to={`/profile/${post?.author?.username}`}>
+          <img
+            src={post?.author?.avatar?.url || post.avatar || '/avatar-default.svg'}
+            alt="avatar"
+            className="w-10 h-10 rounded-full object-cover "
+          />
+        </NavLink>
+        <NavLink to={`/profile/${post?.author?.username}`}>
           <h2 className="font-semibold">{post.author.fullname}
-          <NavLink className='text-sm text-gray-500 hover:text-blue-400'> @{post.author.username} </NavLink>
+          <div className='text-sm text-gray-500 hover:text-blue-400'> @{post.author.username} </div>
           </h2>
           <span className="text-xs text-gray-500">
             • {moment(post.updatedAt).fromNow()}
           </span>
-        </div>
+        </NavLink>
       </div>
 
       <div 
@@ -163,9 +164,9 @@ useEffect(() => {
           {totalLikes}
         </button>
 
-        <button className="flex items-center gap-1">
+        <NavLink to={`/post/${post._id}`} className="flex items-center gap-1">
           <MessageCircle className=' text-blue-600 dark:text-white  dark:hover:fill-white hover:fill-blue-600 duration-500 hover:scale-110 active:scale-95' size={18} /> {post.comments}
-        </button>
+        </NavLink>
       </div>
     </article>
   );

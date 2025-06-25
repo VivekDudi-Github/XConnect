@@ -6,7 +6,7 @@ function CommentCardSkeleton() {
     <div className="border p-3 animate-pulse rounded-lg dark:bg-gradient-to-b dark:from-slate-900 dark:to-black dark:text-white shadow-slate-800/50 shadow-lg border-t border-slate-800/50 duration-200 hover:scale-105">
     <div className="flex justify-between items-center">
       <div className="flex gap-2 w-1/2 rounded-md">
-        <img className="size-7 rounded-full " src="./avatar-default.svg" alt="" />
+        <img className="size-7 rounded-full " src="/avatar-default.svg" alt="" />
         <div className="w-2/5 h-4 bg-slate-500 rounded-md"></div>
         <div className="w-1/5 h-4 bg-slate-600 rounded-md"></div>
       </div>

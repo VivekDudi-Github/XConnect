@@ -1,7 +1,6 @@
 import { EditIcon, Send, SettingsIcon, UserCheck2, UserPenIcon, UserPlus2Icon } from 'lucide-react';
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { NavLink } from 'react-router-dom';
 import { setIsProfileEdit } from '../../redux/reducer/miscSlice';
 
 function ProfileHeader() {

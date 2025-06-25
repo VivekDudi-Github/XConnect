@@ -15,27 +15,12 @@ const commentSchema = new mongoose.Schema({
   comment_id : {
     type : mongoose.Types.ObjectId ,
     ref : 'comment' ,
-    index : true 
+    index : true ,
+    default : null ,
   } ,
   content : {
     type : String ,
   } ,
-  media : [
-    {
-      type : {
-        type : String ,
-        required : true 
-      } ,
-      url : {
-        type : String ,
-        required : true 
-      } ,
-      public_id : {
-        type : String ,
-        required : true ,
-      }
-    } ,
-  ] ,
   mentions : [
     {
       type : String , 

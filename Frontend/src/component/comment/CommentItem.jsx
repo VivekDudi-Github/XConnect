@@ -29,28 +29,28 @@ export default function CommentItem({ data, onLike }) {
       <div className="flex justify-between items-center">
         <div className="flex gap-2">
           <img className="size-7 rounded-full" src="./avatar-default.svg" alt="" />
-          <div className="text-sm font-medium">{data.user}</div>
+          <div className="text-sm font-medium">{data?.user || 'Anonymous'}</div>
           <div className="text-sm font-medium">@alex</div>
         </div>
         <div className="flex gap-2">
         <span className="text-gray-500 text-sm">3 hours ago.</span>
         <button
-          onClick={() => onLike(data.id)}
+          onClick={() => onLike(data._id)}
           className="flex items-center gap-1 text-xs text-gray-500 hover:text-red-500"
         >
           <Heart size={14} />
           {data.likes}
         </button>
         <button
-          onClick={() => onLike(data.id)}
+          onClick={() => onLike(data._id)}
           className="flex items-center gap-1 text-xs text-gray-500 hover:text-red-500"
         >
           <Share2Icon size={14} />
-          {data.likes}
+          {}
         </button>
         </div>
       </div>
-      <div className="text-sm mt-1">{RenderPostContent(data.text)}</div>
+      <div className="text-sm mt-1">{RenderPostContent(data?.content)}</div>
       <div className="mt-2 flex gap-3 text-xs text-gray-500">
         <button onClick={() => setShowReply(!showReply)} className="flex">
           10 Replies <ChevronDown size={15}/> 

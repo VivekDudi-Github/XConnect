@@ -41,7 +41,7 @@ const api = createApi({
 //posts
     getPost: builder.query({
       query : (id) => ({
-        url : `/post/:${id}` ,
+        url : `/post/${id}` ,
         credentials : 'include' ,
       })
     }) ,
@@ -91,9 +91,20 @@ const api = createApi({
         url : '/post/me/feed' ,
         credentials : 'include' ,
       })
+    }) ,
+
+//comments
+    postComment : builder.mutation({
+      query : ({postId , ...data}) => ({
+        url : `/comment/${postId}` ,
+        method : 'POST' ,
+        body : data ,
+        credentials : 'include' ,
+      })
     })
   })
 })
+
 export default api ;
 
 export const {
@@ -107,7 +118,7 @@ export const {
   useCreatePostMutation ,
   useEditPostMutation ,
   useDeletePostMutation ,
-  useLazyGetPostQuery ,
+  useGetPostQuery ,
 
   useLazyGetUserPostsQuery,
   useToggleOnPostMutation ,
@@ -115,4 +126,6 @@ export const {
 //feed
   useLazyGetFeedPostsQuery ,  
 
+// comment
+  usePostCommentMutation ,
 } = api ;

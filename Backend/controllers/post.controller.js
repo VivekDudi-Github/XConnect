@@ -103,12 +103,13 @@ const editPost = TryCatch(async(req , res) => {
 
 const getPost = TryCatch(async(req , res) => {
   const {id} = req.params;
-
+  console.log(id);
+  
   if(!id) return ResError(res , 400 , 'Post ID is required.')
 
   const post = await Post.findOne({_id : id , isDeleted : false})
   .populate('repost' , 'author content media hashtags visiblity')
-  .populate('author' , 'username fullname profilePicture')
+  .populate('author' , 'username fullname avatar ')
 
 
   if(!post) return ResError(res , 404 , 'Post not found.')

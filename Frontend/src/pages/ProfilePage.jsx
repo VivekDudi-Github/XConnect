@@ -10,7 +10,6 @@ const EditProfile = lazy(() =>  import('../component/profile/EditProfile'))
 
 function Profile() {
   const isProfileEdit = useSelector((state) => state.misc.isProfileEdit);
-  const containerRef = useRef(null);
 
   return (
     <Layout>

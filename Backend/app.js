@@ -5,7 +5,8 @@ import cors from 'cors'
 
 import connectDB from "./utils/connectDB.js";
 import userRouter from "./routes/user.routes.js" ;
-import postRouter from './routes/post.routes.js'
+import postRouter from './routes/post.routes.js' ;
+import commentRouter from './routes/comment.routes.js' ;
 import { v2 as cloudinary } from "cloudinary";
 
 dotenv.config() ;
@@ -27,6 +28,7 @@ app.use(cookieParser()) ;
 
 app.use('/api/v1/user' , userRouter )
 app.use('/api/v1/post' , postRouter) ;
+app.use('/api/v1/comment' , commentRouter) ;
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
