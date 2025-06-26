@@ -1,4 +1,4 @@
-import React, { use, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   MessageSquare,
   Heart,
@@ -11,32 +11,33 @@ import {toast} from 'react-toastify';
 
 import CommentItem from './CommentItem';
 import CommentCardSkeleton from '../shared/CommentCardSkeleton';
-import { usePostCommentMutation } from '../../redux/api/api';
+import { useLazyGetCommentQuery, usePostCommentMutation } from '../../redux/api/api';
 import { useParams } from 'react-router-dom';
 
 
 export default function CommentSection() {
   const {id} = useParams();
-  const [comments, setComments] = useState([]);
+  const [totalComments , setTotalComments] = useState(0);
+  const [comments, setComments] = useState(null);
   const [commentInput, setCommentInput] = useState('');
   const [isOpenOptions , setIsOpenOptions] = useState(false) ;
   const [sortBy, setSortBy] = useState('Top');
 
+  const [totalPages , setTotalPages] = useState(0);
+  const [page , setPage] = useState(1);
+
   const [PostCommentMutation] = usePostCommentMutation();
+  const [getCommentQuery , {data , isLoading , isError}] = useLazyGetCommentQuery({id : id}) ;
+
 
   const handleAddComment = async() => {
-    
-
     try {
-      console.log('run 1');
-      
       const {data} = await PostCommentMutation({
         postId : id ,
         content : commentInput ,
         isEdited : false ,
         mentions : [] ,
       }).unwrap();
-      console.log('completed' , data);
       
       setComments([data, ...comments]);
       setCommentInput('');
@@ -47,7 +48,25 @@ export default function CommentSection() {
     }
   };
 
-  const handleLike = (id, isReply = false, parentId = null) => {};
+  const lastCommentRef = useCallback(node => {
+    lastRefFunc({
+      observer , 
+      node , 
+      isLoading , 
+      page ,
+      activeTab ,
+      toatalPages : null ,
+      fetchFunc : getCommentQuery
+    })
+  } , [getCommentQuery , page , isLoading  , activeTab , ]
+  )
+  
+
+useEffect(() => {getCommentQuery({id , page })} , [] ) ;
+
+
+
+  const handleLike = (id) => {};
 
 
 
@@ -74,7 +93,7 @@ export default function CommentSection() {
       <div className="flex items-center justify-between text-sm text-gray-500">
         <div className="flex items-center gap-1 ">
           <MessageSquare size={16} />
-          {comments.length} Comments
+          {totalComments || ''} Comments
         </div>
         <div className="flex items-center gap-1 relative z-20"
         onClick={()=> setIsOpenOptions(prev => !prev)}
@@ -109,7 +128,9 @@ export default function CommentSection() {
       {/* Comments */}
       <div className="space-y-4">
         {comments && comments.map((comment) => (
-          <CommentItem key={comment._id} data={comment} onLike={handleLike} />
+          <div ref={ i === comments.length - 1 ? lastCommentRef : null } key={comment._id} >
+            <CommentItem  data={comment} onLike={handleLike} />
+          </div>
         ))}
       </div>
         {!comments && Array.from({length : 4}).map((_ , i) => (

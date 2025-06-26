@@ -3,7 +3,6 @@ import {
   ChevronDown,
   Heart,
   Share2Icon,
-  ThumbsUp,
 } from 'lucide-react';
 import RenderPostContent from "../specific/RenderPostContent";
 

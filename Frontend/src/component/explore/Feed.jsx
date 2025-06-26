@@ -4,6 +4,7 @@ import PostCard from '../post/PostCard'
 import { dummyPosts} from '../../sampleData'
 import { useLazyGetFeedPostsQuery } from '../../redux/api/api';
 import PostCardSkeleton from '../shared/PostCardSkeleton';
+import lastRefFunc from '../specific/LastRefFunc';
 
 const TABS = ["All", "Following", "Communities", "Media"]
 function Feed() {
@@ -16,23 +17,19 @@ function Feed() {
   const [fetchMorePost , {data , isError  , isLoading , error } ] = useLazyGetFeedPostsQuery() ;
 
   const lastPostRef = useCallback(node => {
-    if(observer.current) observer.current.disconnect() ;
-
-    observer.current = new IntersectionObserver(entries => {
-      if(entries[0].isIntersecting && !isLoading  && page > 1){
-        console.log('fetching post');
-        fetchMorePost({page : page , tab: activeTab}) ;
-      }
-    } , {
-      root : null ,
-      threshold : 0.5 ,
-      rootMargin : '0px'
+    lastRefFunc({
+      observer , 
+      node , 
+      isLoading , 
+      page ,
+      activeTab ,
+      toatalPages : null ,
+      fetchFunc : fetchMorePost
     })
+  } , [fetchMorePost , page , isLoading  , activeTab , ]
+  )
 
-    if(node) observer.current.observe(node)
-  
-   } , [fetchMorePost , page , isLoading  , activeTab])
-  
+
   useEffect(() =>{ fetchMorePost() } , [])
 
   useEffect(() => {

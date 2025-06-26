@@ -103,18 +103,151 @@ const editPost = TryCatch(async(req , res) => {
 
 const getPost = TryCatch(async(req , res) => {
   const {id} = req.params;
-  console.log(id);
   
   if(!id) return ResError(res , 400 , 'Post ID is required.')
 
-  const post = await Post.findOne({_id : id , isDeleted : false})
-  .populate('repost' , 'author content media hashtags visiblity')
-  .populate('author' , 'username fullname avatar ')
+//look for author details , 
+//look for repost details ,
+//look for likes & likestatus ,
+//look for bookmarks ,
+
+  const postData = await Post.findById(id).select('author visiblity') ;
+  
+  if(!postData || postData.isDeleted === true) return ResError(res , 404 , 'Post not found.') ;
+  
+  if( !postData.author.equals( req.user._id) && postData.visiblity === 'private') return ResError(res , 403 , 'The post is private.')
+  
+  const IsFollower = await Following.exists({followedBy : req.user._id , followedTo : postData.author}) ;
+  if(!IsFollower && postData.visiblity === 'followers') return ResError(res , 403 , 'You are not authorized to view this post.')
 
 
-  if(!post) return ResError(res , 404 , 'Post not found.')
+  const post = await Post.aggregate([
+    {$match : {
+      $expr : {
+        $and : [
+          {$eq : ['$_id' ,new ObjectId(`${id}`)]} ,
+          {$eq : ['$isDeleted' , false]} ,
+        ]
+      }
+    }} ,
+    //author
+    {$lookup : {
+      from : 'users' ,
+      let : { userId : '$author'} ,
+      pipeline : [
+        {$match : {
+          $expr : {
+            $eq : ['$_id' , '$$userId']
+          }
+        }} ,
+        {$project : {
+          avatar : 1 ,
+          username : 1 ,
+          fullname : 1 ,
+        }}
+      ] ,
+      as : 'authorDetails'
+    }} ,
+    //repost
+    {$lookup : {
+      from : 'reposts' ,
+      let : {'repostsId' : '$repost' } ,
+      pipeline : [
+        {$match : {
+          $expr : {
+            $and : [
+              {$eq : [ '$_id' , '$$repostsId']} ,
+              {$eq : ['$isDeleted' , false]} ,
+              {$eq : ['$visiblity' , 'public']} ,
+            ]
+          }
+        }} ,
+        {$project : {
+          author : 1 ,
+          content : 1 ,
+          media : 1 ,
+          hashtags : 1 ,
+          visiblity : 1 ,
+        }}
+      ] , 
+      as : 'repostDetails'
+    }} ,
+    //userlike
+    {$lookup : {
+      from : 'likes' ,
+      let : { postId : '$_id'} ,
+      pipeline : [
+        {$match : {
+          $expr : {
+            $and : [
+              {$eq : ['$post' , '$$postId']} ,
+              {$eq : ['$user' , new ObjectId(`${req.user._id}`)]}
+            ]
+          }
+        }}
+      ] ,
+      as : 'userLike'
+    }} ,
+    //userBookmark
+    {$lookup : {
+      from : 'bookmarks' ,
+      let : { postId : '$_id'} ,
+      pipeline : [
+        {
+          $match : {
+            $expr : {
+              $and : [
+                {$eq : ['$post' , '$$postId']} ,
+                {$eq : ['$user' , new ObjectId(`${req.user._id}`)]}
+              ]
+            }
+          }
+        }
+      ] , 
+      as : 'userBookmark'
+    }} ,
 
-  return ResSuccess(res , 200 , post)
+    {$lookup : {
+      from : 'bookmarks' ,
+      localField : '_id' ,
+      foreignField : 'post' ,
+      as : 'bookmarksArray' ,
+    }} ,
+    {$lookup : {
+      from : 'likes' ,
+      localField : '_id' ,
+      foreignField : 'post' ,
+      as : 'likesArray' ,
+    }} ,
+
+    {$addFields : {
+      likeStatus : { $gt : [{ $size : '$userLike'} , 0 ]}  ,
+      bookmarkStatus : { $gt : [{ $size : '$userBookmark'} , 0 ]}  ,
+      likeCount :{ $size : '$likesArray'} , 
+      bookmarkCount: { $size : '$bookmarksArray'} ,
+      repost : '$repostDetails' , 
+      author : '$authorDetails' ,
+    }} ,
+    
+    {$unwind: {path: '$author',preserveNullAndEmptyArrays: true} } ,
+    {$unwind: {path: '$repost',preserveNullAndEmptyArrays: true} } ,
+
+    {$project : {
+      userLike : 0 ,
+      isDeleted : 0 ,
+      likesArray : 0 ,
+      userBookmark : 0 ,
+      bookmarkArray : 0 ,
+      authorDetails : 0 ,
+      repostDetails : 0 ,
+    }}
+
+  ])
+  
+
+  if(post.length === 0) return ResError(res , 404 , 'Post not found.')
+
+  return ResSuccess(res , 200 , post[0])
 }, 'GetPost')
 
 const getMyPosts = TryCatch(async(req , res) => {
@@ -281,7 +414,7 @@ const BookmarkPost = async(req , res , postId) => {
     await Bookmark.deleteOne({_id : IsAlreadyLiked._id}) ;
     return ResSuccess(res , 200 ,{operation : false} )
   }else {
-    await Bookmark.create({post : id , user : req.user._id}) ;
+    await Bookmark.create({post : postId , user : req.user._id}) ;
      return ResSuccess(res , 200 , {operation : true} )
   }
 }

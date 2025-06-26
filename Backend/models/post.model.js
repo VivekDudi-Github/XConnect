@@ -43,10 +43,6 @@ const postSchema = new mongoose.Schema({
     default: false,
     index: true
   },
-  likeCount : {
-    type : Number ,
-    default : 0 ,
-  } ,
   shareCount : {
     type : Number ,
     default : 0 
@@ -67,7 +63,7 @@ const postSchema = new mongoose.Schema({
   } ,
   visiblity : {
     type : String ,
-    enum : ['public' ,'followers' ,'group' ] ,
+    enum : ['public' ,'followers' ,'private' ] ,
     default : 'public' ,
     required : true ,
   } ,

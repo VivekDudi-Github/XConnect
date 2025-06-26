@@ -101,7 +101,13 @@ const api = createApi({
         body : data ,
         credentials : 'include' ,
       })
-    })
+    }) ,
+    getComment : builder.query({
+      query : ({id , page , limit = 2}) => ({
+        url : `/comment/${id}?page=${page}&limit=${limit}` ,
+        credentials : 'include' ,
+      })  
+    }) ,
   })
 })
 
@@ -128,4 +134,5 @@ export const {
 
 // comment
   usePostCommentMutation ,
+  useLazyGetCommentQuery ,
 } = api ;

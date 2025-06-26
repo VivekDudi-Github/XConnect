@@ -8,6 +8,7 @@ import { useLazyGetUserPostsQuery } from '../../redux/api/api';
 import { useEffect } from 'react';
 import { toast } from 'react-toastify';
 import PostCardSkeleton from '../shared/PostCardSkeleton';
+import lastRefFunc from '../specific/LastRefFunc';
 
 
 const tabs = ['Posts', 'Media' , 'Replies' , 'Likes' , 'History'];
@@ -26,23 +27,19 @@ function ProfileTabs() {
 
   console.log(posts , toatalPages , page , isLoading);
   
-   const lastPostRef = useCallback(node => {
-    if(observer.current) observer.current.disconnect() ;
-
-    observer.current = new IntersectionObserver(entries => {
-      if(entries[0].isIntersecting && !isLoading && page <= toatalPages && page > 1){
-        console.log('fetcheing post');
-        fetchMorePost({page : page , tab: activeTab}) ;
-      }
-    } , {
-      root : null ,
-      threshold : 0.5 ,
-      rootMargin : '0px'
+  const lastPostRef = useCallback(node => {
+    lastRefFunc({
+      observer , 
+      node , 
+      isLoading , 
+      page ,
+      activeTab ,
+      toatalPages : toatalPages ,
+      fetchFunc : fetchMorePost ,
     })
+  } , [fetchMorePost , page , isLoading ,toatalPages , activeTab]
+)
 
-    if(node) observer.current.observe(node)
-  
-   } , [fetchMorePost , page , isLoading ,toatalPages , activeTab])
 
 useEffect(() =>{ return () => observer.current?.disconnect()} , [])
 
