@@ -6,7 +6,7 @@ import CommentSection from '../component/comment/commentSection'
 function PostPage() {
   return (
     <Layout>
-      <div className='dark:bg-black bg-white dark:text-white'>
+      <div className='dark:bg-black bg-white dark:text-white min-h-screen'>
         <MainPost/>
         <CommentSection/>
       </div>

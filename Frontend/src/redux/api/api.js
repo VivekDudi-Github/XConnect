@@ -103,10 +103,24 @@ const api = createApi({
       })
     }) ,
     getComment : builder.query({
-      query : ({id , page , limit = 2}) => ({
-        url : `/comment/${id}?page=${page}&limit=${limit}` ,
+      query : ({id , page , sortBy , }) => ({
+        url : `/comment/${id}?page=${page}&sortBy=${sortBy}` ,
         credentials : 'include' ,
       })  
+    }) ,
+    toggleLikeComment : builder.mutation({
+      query : ({id}) => ({
+        url : `/comment/like/${id}` ,
+        method : 'POST' ,
+        credentials : 'include' ,
+      })
+    }) ,
+    deleteComment : builder.mutation({
+      query : ({id}) => ({
+        url : `/comment/${id}` ,
+        method : 'DELETE' ,
+        credentials : 'include' ,
+      })
     }) ,
   })
 })
@@ -135,4 +149,6 @@ export const {
 // comment
   usePostCommentMutation ,
   useLazyGetCommentQuery ,
+  useToggleLikeCommentMutation ,
+  useDeleteCommentMutation ,
 } = api ;

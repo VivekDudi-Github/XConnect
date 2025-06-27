@@ -31,7 +31,13 @@ const commentSchema = new mongoose.Schema({
   isEdited : {
     type : Boolean ,
     required : true ,
-  }
+  } ,
+  user : {
+    type : mongoose.Types.ObjectId ,
+    ref : 'user' ,
+    required : true ,
+    index : true
+  } ,
 } , { timestamps : true})
 
 export const Comment = mongoose.model('Comment' , commentSchema)

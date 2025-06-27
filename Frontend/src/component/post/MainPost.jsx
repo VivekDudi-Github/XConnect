@@ -11,6 +11,7 @@ import {
   PinIcon,
   Repeat2Icon,
   BarChart3Icon,
+  BarChart2,
 } from 'lucide-react';
 import InPostImages from './InPostImages';
 import { use, useEffect, useState  } from 'react';
@@ -28,7 +29,6 @@ export default function PostViewPage() {
   const {id} = useParams() ;
   
   const [post , setPost] = useState({}) ;
-  console.log(post);
   
   const [menuOpen, setMenuOpen] = useState(false);
   const [likeStatus, setLikeStatus] = useState( 0);
@@ -89,11 +89,16 @@ export default function PostViewPage() {
       setTotalLikes(data?.data?.likeCount) ;
   } , [data])
 
+  useEffect(() => {
+    if(isError){
+      toast.error(error?.data?.message || "Couldn't fetch the post. Please try again.");
+      console.log(isError , error);}
+  } , [isError , error])
 
   if(isLoading) return <MainPostSkeleton/>
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6 dark:text-white shadow-lg shadow-slate-800/50 rounded-lg">
+    <div className="max-w-4xl mx-auto px-4 pt-6 pb-4 dark:text-white shadow-lg shadow-slate-800/50 rounded-lg">
       {/* Author + Timestamp + Options */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3">
@@ -114,7 +119,10 @@ export default function PostViewPage() {
 
         {/* Options menu */}
         <div className="relative flex gap-1">
-          <span className="text-xs font-semibold text-cyan-900 dark:text-white bg-slate-800/50  rounded-lg px-2 py-[2px] flex">  500 views</span>   
+          <span className="text-xs font-semibold -translate-y-52 sm:translate-y-0 duration-200 text-cyan-900 dark:text-white bg-slate-800/50  rounded-lg px-2 py-[2px] flex">  
+            <BarChart2 size={16} className=' text-cyan-600' />
+            500 views
+          </span>   
           {post?.IsEdited ? <div className=' text-xs text-cyan-400 bg-slate-800 rounded-xl px-2 py-[2px] '>Edited</div> : null}
           <button
             onClick={() => setMenuOpen((prev) => !prev)}
@@ -159,35 +167,39 @@ export default function PostViewPage() {
       )}
 
       {/* Actions */}
-      <div className="mt-6 flex items-center gap-6 text-sm">
-        <button
-          onClick={() => { toggleLiketFunc('like') }}
-          className={`flex items-center gap-1 `}
-        >
-          <Heart size={16} className={` ${
-            likeStatus ? 'fill-red-500' : ''
-          } duration-200 hover:scale-110 active:scale-95 text-red-500`} />
-          {totalLikes}
-        </button>
+      <div className="mt-6 flex items-center  gap-6 text-sm">
+          <button
+            onClick={() => { toggleLiketFunc('like') }}
+            className={`flex items-center gap-1 `}
+          >
+            <Heart size={16} className={` ${
+              likeStatus ? 'fill-red-500' : ''
+            } duration-200 hover:scale-110 active:scale-95 text-red-500`} />
+            {totalLikes}
+          </button>
 
-        <button className="flex items-center gap-1 hover:text-green-500">
-          <Share2 size={16} className='fill-blue-600 text-blue-600' />
-          Share
-        </button>
+          <button className="flex items-center gap-1 hover:text-green-500">
+            <Share2 size={16} className='fill-blue-600 text-blue-600' />
+            Share
+          </button>
 
-        <button className="flex items-center gap-1 hover:text-green-500">
-          <Repeat2Icon size={16} className=' text-green-600' /> 
-          Repost
-        </button>
+          <button className="flex items-center gap-1 hover:text-green-500">
+            <Repeat2Icon size={16} className=' text-green-600' /> 
+            Repost
+          </button>
 
-        <button
-          onClick={() => togglePostFunc('bookmark')}
-          className={`flex items-center gap-1 `}
-        >
-          <Bookmark size={16} className={`${ bookmarkStatus ? 'fill-yellow-500 text-yellow-500' : ''  } duration-200 hover:text-yellow-500` } />
-          {post?.bookmarkCount || ''} {bookmarkStatus ? 'Saved' : 'Saves'} 
-        </button>
-      </div>
+          <button
+            onClick={() => togglePostFunc('bookmark')}
+            className={`flex items-center gap-1 `}
+          >
+            <Bookmark size={16} className={`${ bookmarkStatus ? 'fill-yellow-500 text-yellow-500' : ''  } duration-200 text-yellow-500` } />
+            {post?.bookmarkCount || ''} {bookmarkStatus ? 'Saved' : 'Saves'} 
+          </button>
+          </div>
+          <div className='  sm:translate-x-full sm:mt-0 mt-3 text-gray-400 font-semibold duration-200 my-1 flex items-center justify-end text-sm'>
+            <BarChart2 size={16} className=' text-cyan-600' /> 
+            500 views
+          </div>
 
     </div>
   );

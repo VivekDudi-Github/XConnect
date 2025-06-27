@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useRef , useEffect, useState , useCallback, act} from 'react';
 import {
   MessageSquare,
   Heart,
@@ -11,23 +11,30 @@ import {toast} from 'react-toastify';
 
 import CommentItem from './CommentItem';
 import CommentCardSkeleton from '../shared/CommentCardSkeleton';
-import { useLazyGetCommentQuery, usePostCommentMutation } from '../../redux/api/api';
+import { useDeleteCommentMutation, useLazyGetCommentQuery, usePostCommentMutation } from '../../redux/api/api';
 import { useParams } from 'react-router-dom';
-
+import lastRefFunc from '../specific/LastRefFunc';
+import { useSelector } from 'react-redux';
+import { set } from 'mongoose';
 
 export default function CommentSection() {
   const {id} = useParams();
+  const observer = useRef();
+
+  const {user} = useSelector(state => state.auth);
+
   const [totalComments , setTotalComments] = useState(0);
-  const [comments, setComments] = useState(null);
+  const [comments, setComments] = useState([]);
   const [commentInput, setCommentInput] = useState('');
   const [isOpenOptions , setIsOpenOptions] = useState(false) ;
-  const [sortBy, setSortBy] = useState('Top');
+  const [sortBy, setSortBy] = useState('top');
 
   const [totalPages , setTotalPages] = useState(0);
   const [page , setPage] = useState(1);
+  
 
   const [PostCommentMutation] = usePostCommentMutation();
-  const [getCommentQuery , {data , isLoading , isError}] = useLazyGetCommentQuery({id : id}) ;
+  const [getCommentQuery , {data , isLoading , isError , error}] = useLazyGetCommentQuery({id : id}) ;
 
 
   const handleAddComment = async() => {
@@ -38,8 +45,15 @@ export default function CommentSection() {
         isEdited : false ,
         mentions : [] ,
       }).unwrap();
-      
-      setComments([data, ...comments]);
+      const author = {
+        _id : user?._id ,
+        username : user?.username ,
+        avatar : {
+          url : user?.avatar?.url ,
+        } , 
+      };
+
+      setComments([{...data , author} , ...comments]);
       setCommentInput('');
 
     } catch (error) {
@@ -47,34 +61,71 @@ export default function CommentSection() {
       toast.error(error?.data?.message || "Couldn't post the comment. Please try again.");
     }
   };
-
+  
   const lastCommentRef = useCallback(node => {
     lastRefFunc({
       observer , 
+      id ,
       node , 
       isLoading , 
       page ,
-      activeTab ,
-      toatalPages : null ,
-      fetchFunc : getCommentQuery
+      activeTab : null ,
+      sortBy ,
+      toatalPages : totalPages ,
+      fetchFunc : getCommentQuery 
     })
-  } , [getCommentQuery , page , isLoading  , activeTab , ]
-  )
+  } , [getCommentQuery , page , isLoading , totalPages  , sortBy , observer ])
   
 
 useEffect(() => {getCommentQuery({id , page })} , [] ) ;
 
+useEffect(() => {
+  if( sortBy !== 'top'){
+    setComments([]) ;
+    setPage(1) ;
+    getCommentQuery({id , page : 1 , sortBy}) ;  
+  }
+} , [sortBy]) ;
 
+console.log(page , totalPages);
+
+
+useEffect(() => {
+  if(data && data?.data){
+    setComments([...data?.data?.comments , ...comments]) ;
+    setTotalComments(data?.data?.totalComments) ;
+    setTotalPages(data?.data?.totalPages) ;
+    setPage(prev => prev + 1) ;
+  }
+} , [data]) ;
+
+useEffect(() => {
+  if(isError){
+    toast.error(error?.data?.message || "Couldn't fetch the comments. Please try again.");
+    console.log( error ) ;
+  }
+} , [error , isError])
+
+
+const removeComment = (id) => {
+  setComments(prev => prev.filter(c => c._id !== id)) ;
+  setTotalComments(prev => prev - 1) ;
+}
 
   const handleLike = (id) => {};
 
 
 
-
   return (
-    <div className="w-full max-w-2xl mx-auto p-4 space-y-4 border-t- dark:border-gray-700 border-gray-300">
+    <div className="w-full h-full max-w-2xl mx-auto p-4 space-y-4 border-t- dark:border-gray-700 border-gray-300 ">
       {/* Input Section */}
-      <div className="flex items-start gap-2">
+      <div 
+      style={ {
+        position : 'sticky' ,
+        top : '0' ,
+        zIndex : '10' ,
+      }}
+      className="flex items-start gap-2">
         <textarea
           className="w-full p-2 rounded border border-gray-300 dark:border-gray-700 dark:bg-black duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500  dark:focus:ring-gray-300 dark:text-white resize-none"
           placeholder="Write a comment..."
@@ -127,15 +178,19 @@ useEffect(() => {getCommentQuery({id , page })} , [] ) ;
 
       {/* Comments */}
       <div className="space-y-4">
-        {comments && comments.map((comment) => (
-          <div ref={ i === comments.length - 1 ? lastCommentRef : null } key={comment._id} >
-            <CommentItem  data={comment} onLike={handleLike} />
-          </div>
-        ))}
+      {comments.length > 0 && comments.map((c, i) => {
+          return (
+            <div ref={i === comments.length - 1 ? lastCommentRef : null} key={c._id}>
+              <CommentItem data={c} removeComment={removeComment} />
+            </div>
+          );
+        })}
+                                                                                                          
       </div>
-        {!comments && Array.from({length : 4}).map((_ , i) => (
+        {isLoading && Array.from({length : 4}).map((_ , i) => (
           <CommentCardSkeleton key={i}/>
         ))}
+        {comments.length === 0 && !isLoading && <div className="no-comments h-full text-center text-gray-500">No comments yet</div>}
     </div>
 
   );
