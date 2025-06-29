@@ -1,15 +1,15 @@
-import React, { lazy, useRef } from 'react'
-import {useSelector} from 'react-redux'
+import React, { lazy } from 'react'
+import { useSelector} from 'react-redux'
 
 import ProfileHeader from '../component/profile/ProfileHeader'
 import ProfileTabs from '../component/profile/ProfileTabs'
 import Layout from '../layout/Layout'
 
-
 const EditProfile = lazy(() =>  import('../component/profile/EditProfile'))
 
 function Profile() {
   const isProfileEdit = useSelector((state) => state.misc.isProfileEdit);
+  
 
   return (
     <Layout>
@@ -22,6 +22,7 @@ function Profile() {
                   <EditProfile/>
                 </div>
               )}
+
           </div>
       </div> 
     

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Share2Icon, Heart , MoreHorizontal , Clock , Bookmark } from 'lucide-react';
+import { Share2Icon, Heart , MoreHorizontal , Bookmark } from 'lucide-react';
 
 function MainPostSkeleton() {
   return (

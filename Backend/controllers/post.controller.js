@@ -51,16 +51,17 @@ const createPost = TryCatch( async(req , res) => {
 
 const deletePost = TryCatch(async(req , res) => {
   const {id} = req.params;
-
+  
   if(!id) return ResError(res , 400 , 'Post ID is required.')
 
   const post = await Post.findById(id);
+  
   if(!post) return ResError(res , 404 , 'Post not found.')
+  if(!post.author.equals( req.user._id)) return ResError(res , 403 , 'You are not authorized to delete this post.')
 
   await deleteFilesFromCloudinary(post.media)
   
   post.isDeleted = true;
-  post.deletedAt = new Date();
   await post.save();
 
   return ResSuccess(res , 200 , 'Post deleted successfully.')
@@ -487,11 +488,16 @@ const fetchFeedPost = TryCatch( async(req , res) => {
   const posts = await Post.aggregate([
     {
       $match : {
-        $or : [
-          {createdAt : { $gte : threeDaysAgo}} ,
-          { author : { $in : followings}} ,
-          { hashtags : { $in : hashtags }} ,
-        ]
+        $expr : {
+          $and : [
+            {$eq : ['$isDeleted' , false]} ,
+            {$or : [
+              { $gte: ['$createdAt', threeDaysAgo] },
+              { $in: ['$author', followings] },
+              { $in: ['$hashtags', hashtags] }
+            ]}
+          ]
+        }
       } 
     } ,
     {$sample : { size : 10}} ,

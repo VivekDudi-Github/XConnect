@@ -104,7 +104,7 @@ const api = createApi({
     }) ,
     getComment : builder.query({
       query : ({id , page , sortBy , }) => ({
-        url : `/comment/${id}?page=${page}&sortBy=${sortBy}` ,
+        url : `/comment/post/${id}?page=${page}&sortBy=${sortBy}` ,
         credentials : 'include' ,
       })  
     }) ,
@@ -119,6 +119,12 @@ const api = createApi({
       query : ({id}) => ({
         url : `/comment/${id}` ,
         method : 'DELETE' ,
+        credentials : 'include' ,
+      })
+    }) ,
+    getAComment : builder.query({
+      query : ({id}) => ({
+        url : `/comment/${id}` ,
         credentials : 'include' ,
       })
     }) ,
@@ -151,4 +157,6 @@ export const {
   useLazyGetCommentQuery ,
   useToggleLikeCommentMutation ,
   useDeleteCommentMutation ,
+
+  useGetACommentQuery ,
 } = api ;

@@ -1,20 +1,32 @@
 import {useRef, useState , useCallback, useEffect} from 'react'
-import PostCard from '../post/PostCard'
+import { useDispatch, useSelector } from 'react-redux';
 
-import { dummyPosts} from '../../sampleData'
-import { useLazyGetFeedPostsQuery } from '../../redux/api/api';
+import PostCard from '../post/PostCard'
 import PostCardSkeleton from '../shared/PostCardSkeleton';
+
+import {setisDeleteDialog} from '../../redux/reducer/miscSlice';
+
+import {deletePostFunc} from '../shared/SharedFun';
 import lastRefFunc from '../specific/LastRefFunc';
+import { useLazyGetFeedPostsQuery , useDeletePostMutation } from '../../redux/api/api';
+import DialogBox from '../shared/DialogBox';
+
+
 
 const TABS = ["All", "Following", "Communities", "Media"]
 function Feed() {
-  const [page , setPage] = useState(1) ;
-  const [activeTab, setActiveTab] = useState("All");
+  const dispatch = useDispatch();
   const observer = useRef() ;
 
+  const {isDeleteDialog} = useSelector(state => state.misc);
+  
+  const [page , setPage] = useState(1) ;
+  const [activeTab, setActiveTab] = useState("All");
+  
   const [posts , setPosts] = useState([]) ;
 
   const [fetchMorePost , {data , isError  , isLoading , error } ] = useLazyGetFeedPostsQuery() ;
+  const [deleteMutation] = useDeletePostMutation() ;
 
   const lastPostRef = useCallback(node => {
     lastRefFunc({
@@ -68,6 +80,12 @@ function Feed() {
       {(!posts || posts.length < 4) &&  Array.from({length : 4}).map((_  , i) => (
         <PostCardSkeleton key={i}/>
       ))}
+
+      {isDeleteDialog?.isOpen ?
+        (<DialogBox message='Are you sure you want to delete this post?' 
+          onClose={() => dispatch(setisDeleteDialog({isOpen : false , postId : null}))}
+          mainFuction={() => deletePostFunc(isDeleteDialog?.postId , deleteMutation , dispatch)}
+          />) : null }
         
     </div>
 

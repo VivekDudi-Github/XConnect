@@ -8,6 +8,7 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Loader from './component/shared/Loader';
 import { login, logout } from './redux/reducer/authSlice';
+import CommentPage from './pages/CommentPage';
 
 
 const Auth = lazy(() => import('./pages/Auth'));
@@ -60,6 +61,7 @@ useEffect(() => {
           <Route path='/post/:id' element={<PostPage/>} />
           <Route path='/profile' element={<Profile/>} />
           
+          <Route path='/comment/:id' element ={<CommentPage />} />
           
         </Route>
       </Routes>

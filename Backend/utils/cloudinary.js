@@ -35,28 +35,30 @@ export const uploadFilesTOCloudinary = async(files =[]) => {
       type : r.resource_type
     }))
 
-    files.forEach(f => fs.unlinkSync(f.path))
+    files.forEach(f => {
+      if (fs.existsSync(f.path)) fs.unlinkSync(f.path);
+    })
     
     return formattedResults ;
   } catch (error) {
     console.log(files.length);
     
     if(files) files.forEach(f => fs.unlinkSync(f.path))
-      console.log( '---error-- while uploading files to cloudinary' ,error );
-    throw new ErrorHandler('Error uploading files in cloundinary' , 500)   
+      console.log( '---error-- while uploading files to Cloudinary' ,error );
+    throw new ErrorHandler('Error uploading files in Cloudinary' , 500)   
   }
 }
 
 
 export const deleteFilesFromCloudinary = async(files =[]) => {
-  const promise =  files.map(async(f) => {
-    await cloudinary.uploader.destroy(f.public_id )
+  const promise =  files.map((f) => {
+    return cloudinary.uploader.destroy(f.public_id )
   })
 
   try {
     await Promise.all(promise) ;
   } catch (error) {
     console.log('---error-- while deleting file from the cloudinary' ,error);
-    new ErrorHandler("Error while deleting files in cloudinary");
+    throw new ErrorHandler("Error while deleting files in cloudinary" , 500);
   }
 }

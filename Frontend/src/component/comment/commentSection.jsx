@@ -51,6 +51,7 @@ export default function CommentSection() {
         avatar : {
           url : user?.avatar?.url ,
         } , 
+        fullname : user?.fullname ,
       };
 
       setComments([{...data , author} , ...comments]);
@@ -114,6 +115,7 @@ const removeComment = (id) => {
 
   const handleLike = (id) => {};
 
+console.log(comments);
 
 
   return (

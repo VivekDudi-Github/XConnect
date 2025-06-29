@@ -1,28 +1,37 @@
-import React, { useCallback , useRef } from 'react'
-
-import { useState } from 'react';
-import PostCard from '../post/PostCard';
-import Loader from '../shared/Loader'
-
-import { useLazyGetUserPostsQuery } from '../../redux/api/api';
-import { useEffect } from 'react';
+import React, { useCallback , useRef , useEffect , useState } from 'react'
 import { toast } from 'react-toastify';
+import { useDispatch , useSelector} from 'react-redux';
+
+import { useDeletePostMutation, useLazyGetUserPostsQuery } from '../../redux/api/api';
+
+import DialogBox from '../shared/DialogBox';
+import PostCard from '../post/PostCard';
 import PostCardSkeleton from '../shared/PostCardSkeleton';
 import lastRefFunc from '../specific/LastRefFunc';
+import {setisDeleteDialog} from '../../redux/reducer/miscSlice';
+import { deletePostFunc } from '../shared/SharedFun';
+
+
 
 
 const tabs = ['Posts', 'Media' , 'Replies' , 'Likes' , 'History'];
 
 function ProfileTabs() {
+  const dispatch = useDispatch();
   const observer = useRef(null) ;
-  
+ 
+  const {isDeleteDialog} = useSelector(state => state.misc);
+
   const [activeTab, setActiveTab] = useState('Posts');
 
+  
   const [posts , setPosts] = useState([]);
   const [page , setPage] = useState(1) ;
   const [toatalPages , setTotalPages] = useState(1) ;
 
+  
 
+  const [deleteMutation] = useDeletePostMutation() ;
   const [fetchMorePost , {data , isError , isFetching , isLoading , error}] = useLazyGetUserPostsQuery();
 
   console.log(posts , toatalPages , page , isLoading);
@@ -83,7 +92,7 @@ useEffect(() => {
         ))}
       </div>
         
-      {posts.length === 0 && <div className='h-full dark:bg-black bg-white w-full text-gray-500 text-center'>
+      {!isLoading && posts.length === 0 && <div className='h-full dark:bg-black bg-white w-full text-gray-500 text-center'>
         No Posts found...
       </div>}
 
@@ -97,7 +106,7 @@ useEffect(() => {
         </div>
       )}
       
-      {!posts || isLoading  &&  (
+      {posts.length === 0  && isLoading  &&  (
         <div className='mt-6 mx-2 columns-1 sm:columns-1 lg:columns-3 gap-4 max-w-6xl'>
           {Array.from({length : 6}).map((_  , i) => (
             <PostCardSkeleton key={i}/>
@@ -105,7 +114,11 @@ useEffect(() => {
         </div>
       ) }
       
-      
+      {isDeleteDialog?.isOpen ?
+        (<DialogBox message='Are you sure you want to delete this post?' 
+          onClose={() => dispatch(setisDeleteDialog({isOpen : false , postId : null}))}
+          mainFuction={() => deletePostFunc(isDeleteDialog?.postId , deleteMutation , dispatch)}
+          />) : null }
     </div>
   );
 }

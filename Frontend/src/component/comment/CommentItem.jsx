@@ -9,6 +9,7 @@ import RenderPostContent from "../specific/RenderPostContent";
 import moment from "moment";
 import { useDeleteCommentMutation, useToggleLikeCommentMutation } from "../../redux/api/api";
 import { toast } from "react-toastify";
+import { NavLink } from "react-router-dom";
 
 
 
@@ -124,12 +125,12 @@ export default function CommentItem({ data , removeComment }) {
       </button>
 
       {/* last row */}
-      <div className="mt-2 flex justify-between gap-3 text-xs text-gray-500">
+      <NavLink to={'/comment/'+ data._id} className="mt-2 flex justify-between gap-3 text-xs text-gray-500">
         <button onClick={() => setShowReply(!showReply)} className="flex">
-          10 Replies <ChevronDown size={15}/> 
+          {data?.replyCount } Replies <ChevronDown size={15}/> 
         </button>
         <span className="text-gray-500 text-xs">{moment(data?.createdAt).fromNow()}.</span>
-      </div>
+      </NavLink>
 
 
     </div>

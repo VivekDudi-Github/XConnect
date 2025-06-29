@@ -2,13 +2,21 @@ import { BookmarkCheckIcon, BookmarkIcon, EllipsisVerticalIcon, GlobeIcon, Heart
 import InPostImages from './InPostImages';
 import { NavLink } from 'react-router-dom';
 import moment from 'moment'
-import { useToggleOnPostMutation } from '../../redux/api/api'; 
+import { useDeletePostMutation, useToggleOnPostMutation } from '../../redux/api/api'; 
 import { useEffect, useRef, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector , useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
+
 import RenderPostContent from '../specific/RenderPostContent';
+import DialogBox from '../shared/DialogBox';
+import { setisDeleteDialog } from '../../redux/reducer/miscSlice';
+
+
+
+
 
 export default function PostCard({ post }) {
+  const dispatch = useDispatch();
   const {user} = useSelector(state => state.auth)
   const renderPreRef = useRef(null) ;
 
@@ -23,7 +31,8 @@ export default function PostCard({ post }) {
   const [pinStatus , setPinStatus] = useState(post.isPinned) ;
   const [bookmarkStatus , setBookmarkStatus] = useState(post.isBookmarked) ;
 
-  const [toggleMutation] = useToggleOnPostMutation()
+  const [toggleMutation] = useToggleOnPostMutation() ;
+  const [deleteMutation] = useDeletePostMutation() ;
 
 
   const toggleLiketFunc = async(option) => {
@@ -69,19 +78,16 @@ export default function PostCard({ post }) {
     setOpenOptions(prev => !prev);
   }
 
-  const deleteFunc = () => {
-  }
-
 useEffect(() => {
   if(renderPreRef.current){
     if(renderPreRef.current.scrollHeight > 50 ){
       setExpandable(true)
     }
   }
-} , [post.content])
+} , [post.content , renderPreRef?.current?.scrollHeight])
 
   return (
-    <article className="bg-white w-full mx-auto relative rounded-xl dark:shadow-sm p-4 mb-4 dark:bg-gradient-to-b dark:from-gray-800 dark:to-black dark:text-white shadow-slate-800/50 shadow-lg border-t border-slate-800/50 duration-200 break-inside-avoid  ">
+    <article className="bg-white w-full mx-auto relative rounded-xl dark:shadow-sm p-4 mb-4 dark:bg-gradient-to-b dark:from-gray-800 dark:to-black dark:text-white shadow-slate-400 shadow-lg border-t border-slate-800/50 duration-200 break-inside-avoid  ">
       {/* Header */}
       <div className="flex items-center gap-3 mb-2">
         <NavLink to={`/profile/${post?.author?.username}`}>
@@ -105,8 +111,10 @@ useEffect(() => {
       onClick={() => openOptionsHandler(post._id)}
       className=' absolute top-4 right-2 dark:hover:bg-slate-700 hover:bg-gray-300 rounded-full p-2 duration-200'>
       
+      {/* Options */}
         <EllipsisVerticalIcon size={17}/>
         <div className={`absolute w-40 top-2 right-6 duration-200 bg-white dark:bg-slate-800 shadow-md shadow-black/60 rounded-lg  ${isOpenOptions ? '' : 'scale-0 translate-x-14 -translate-y-14 ' }  `}>
+          
           <div 
           onClick={() => togglePostFunc('pin')}
           className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-300 dark:hover:bg-slate-900 cursor-pointer"
@@ -114,6 +122,7 @@ useEffect(() => {
             {pinStatus ? (<PinOffIcon size={17} />) : (<PinIcon size={17} />)}
             <span>{pinStatus ? 'Unpin' : 'Pin'}</span>
           </div> 
+          
           <div
           onClick={() => togglePostFunc('bookmark')}
           className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-300 dark:hover:bg-slate-900 cursor-pointer"
@@ -121,9 +130,13 @@ useEffect(() => {
             {bookmarkStatus ?  <BookmarkCheckIcon size={17} />  : <BookmarkIcon size={17} />}
             <span>{  bookmarkStatus ? 'Bookmarked' : 'Bookmark' }</span>
           </div>
+          
           {user?._id === post?.author?._id && 
           <div 
-          onClick={() => deleteFunc()}
+          onClick={() => dispatch(setisDeleteDialog({
+            isOpen : true ,
+            postId : post._id
+          }))}
           className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-300 dark:hover:bg-slate-900 cursor-pointer"
           >
             <Trash2Icon size={17} />
@@ -168,6 +181,7 @@ useEffect(() => {
           <MessageCircle className=' text-blue-600 dark:text-white  dark:hover:fill-white hover:fill-blue-600 duration-500 hover:scale-110 active:scale-95' size={18} /> {post.comments}
         </NavLink>
       </div>
+
     </article>
   );
 }

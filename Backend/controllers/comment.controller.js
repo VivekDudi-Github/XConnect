@@ -92,6 +92,28 @@ const getComments = TryCatch(async(req , res) => {
     { $skip : skip} ,
 
     {$lookup : {
+      from : 'comments' ,
+      let : { commentId : '$_id'} ,
+      pipeline : [
+        {$match : {
+          $expr : {
+            $and : [
+              {$eq : ['$post' , new ObjectId(`${id}`)]} ,
+              {$eq : ['$replyTo' , 'comment']} ,
+              {$eq : ['$comment_id' , '$$commentId']} ,
+            ]
+          }
+        }} ,
+        {$project : {
+          content : 0 ,
+          author : 0 ,
+          createdAt : 0 ,
+          isEdited : 0 ,
+        }}
+      ] ,
+      as : 'replyDetails'
+    }} ,
+    {$lookup : {
       from : 'users' ,
       let : { userId : '$user'} ,
       pipeline : [
@@ -114,15 +136,32 @@ const getComments = TryCatch(async(req , res) => {
       localField : '_id' ,
       as : 'totalLike' ,
     }} ,
+    {$lookup : {
+      from : 'likes' ,
+      let : { commentId : '$_id'} ,
+      pipeline : [
+        {$match : {
+          $expr : {
+            $and : [
+              {$eq : ['$comment' , '$$commentId']} ,
+              {$eq : ['$user' , new ObjectId(`${req.user._id}`)]} ,
+            ]
+          }
+        }} ,
+      ] ,
+      as : 'likeStatus' ,
+    }} ,
     {$addFields : {
       author : '$userDetails' ,
-      likeStatus : { $gt : [{ $size : '$totalLike'} , 0 ]}  ,
+      replyCount : {$size : '$replyDetails'} ,
+      likeStatus : { $gt : [{ $size : '$likeStatus'} , 0 ]}  ,
       likeCount : {$size : '$totalLike'} ,
     }} ,
 
     {$unwind: {path: '$author',preserveNullAndEmptyArrays: true} } ,
     
     {$project : {
+      replyDetails : 0 ,
       userDetails : 0 ,
       totalLike : 0 ,
       userLike : 0 ,
@@ -175,10 +214,103 @@ const deleteComment = TryCatch(async (req , res) => {
   return ResSuccess(res , 200 , 'Comment deleted successfully') ;
 
 } , 'delete Comment')
+
+const getSingleComment = TryCatch(async (req , res) => {
+  const {id } = req.params ;
+  const isExistComment = await Comment.exists({_id : id})
+  if(!isExistComment) return  ResError(res , 404 , 'Comment not found') ;
+
+  const comment = await Comment.aggregate([
+    {$match : {
+      _id : new ObjectId(`${id}`) ,
+    }} ,
+
+    //userDetails
+    {$lookup : {
+      from : 'users' ,
+      let : { userId : '$user'} ,
+      pipeline : [
+        {$match : {
+          $expr : {
+            $eq : ['$_id' , '$$userId']
+          }
+        }} ,
+        {$project : {
+          avatar : 1 ,
+          username : 1 ,
+          fullname : 1 ,
+        }}
+      ] ,
+      as : 'userDetails'  
+    }} ,
  
+    //total like
+    {$lookup : {
+      from : 'likes' ,
+      foreignField : 'comment' ,
+      localField : '_id' ,
+      as : 'totalLike' ,
+    }} ,
+
+    //reply count
+    {$lookup : {
+      from : 'comments' ,
+      let : { commentId : '$_id' , postId : '$post'} ,
+      pipeline : [
+        {$match : {
+          $expr : {
+            $and : [
+              {$eq : ['$post' , '$$postId']} ,
+              {$eq : ['$replyTo' , 'comment']} ,
+              {$eq : ['$comment_id' , '$$commentId']} ,
+            ]
+          }
+        }} ,
+        {$project : {
+          content : 0 ,
+          author : 0 ,
+          createdAt : 0 ,
+          isEdited : 0 ,
+        }}
+      ] ,
+      as : 'replyDetails'  
+    }} ,
+
+    //like Status
+    {$lookup : {
+      from : 'likes' ,
+      let : { commentId : '$_id'} ,
+      pipeline : [
+        {$match : {
+          $expr : {
+            $and : [
+              {$eq : ['$comment' , '$$commentId']} ,
+              {$eq : ['$user' , new ObjectId(`${req.user._id}`)]} ,
+            ]
+          }
+        }} ,
+      ] ,
+      as : 'likeStatus' ,
+    }} ,
+
+    {$addFields : {
+      author : '$userDetails' ,
+      replyCount : {$size : '$replyDetails'} ,
+      likeStatus : { $gt : [{ $size : '$likeStatus'} , 0 ]}  ,
+      likeCount : {$size : '$totalLike'} ,
+    }} ,
+    {$unwind : {path : '$author' , preserveNullAndEmptyArrays : true}} 
+  ])
+
+  if(comment.length === 0) return ResError(res , 404 , 'Comment not found') ;
+  return ResSuccess(res , 200 , comment[0]) ;
+
+} , 'get Comment')
+
 export {
   createComment ,
   getComments ,
   toggleLikeComment ,
   deleteComment ,
+  getSingleComment ,
 } 
