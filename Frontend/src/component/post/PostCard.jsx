@@ -152,7 +152,7 @@ useEffect(() => {
         maxHeight : textExpended ? '800px' : '48px' ,
       }}
       >
-        <pre ref={renderPreRef} className="dark:text-gray-300 mb-2 font-sans text-wrap">{RenderPostContent(post.content)}</pre>
+        <pre ref={renderPreRef} className="dark:text-gray-300 mb-2 font-sans text-wrap"><RenderPostContent text={post?.content}/></pre>
       </div>
       <button 
       onClick={() => setTextExpended((prev) => !prev)}

@@ -1,11 +1,17 @@
 import { RectangleEllipsis } from 'lucide-react';
-import React , {useState} from 'react'
+import React , {useEffect, useState} from 'react'
 import { Link } from 'react-router-dom';
 
-export default function RenderPostContent(text) {
+function RenderPostContent({text}) {
   const regex = /(#\w+|@\w+)/g ;
-  const parts = text.split(regex) ;
+  const [parts , setParts] = useState([]);
 
+  useEffect(() => {
+    if(text){
+      const partsArray = text.split(regex) ;
+      setParts(partsArray) ;
+    }
+  } , [text])
 
   if(parts.length > 0){
     return parts.map((part , index) => {
@@ -21,5 +27,6 @@ export default function RenderPostContent(text) {
   
 }
 
+export default RenderPostContent
 
 

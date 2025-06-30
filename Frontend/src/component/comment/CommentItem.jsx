@@ -13,8 +13,7 @@ import { NavLink } from "react-router-dom";
 
 
 
-export default function CommentItem({ data , removeComment }) {
-  const [showReply, setShowReply] = useState(false);
+export default function CommentItem({ data , removeComment , showReply = true}) {
   const [replyInput, setReplyInput] = useState('');
 
   const renderPreRef = useRef(null) ;
@@ -79,7 +78,7 @@ export default function CommentItem({ data , removeComment }) {
 
 
   return (
-    <div className="border p-3 rounded-lg dark:bg-gradient-to-b dark:from-slate-900 dark:to-black dark:text-white shadow-slate-800/50 shadow-lg border-t border-slate-800/50 duration-200 hover:scale-105">
+    <div className="border p-3 rounded-lg dark:bg-gradient-to-t dark:from-slate-900 dark:to-black dark:text-white shadow-slate-800/50 shadow-lg border-t border-slate-800/50 duration-200 hover:scale-105">
       <div className="flex justify-between items-center pb-2">
         <div className="flex gap-2 items-center">
           <img className="size-7 rounded-full" src={data?.author?.avatar?.url || '/avatar-default.svg'} alt="" />
@@ -116,7 +115,7 @@ export default function CommentItem({ data , removeComment }) {
         maxHeight : textExpended ? '800px' : '48px' ,
       }}
       >
-        <pre ref={renderPreRef} className="dark:text-gray-300 text-sm mb-0.5 font-sans text-wrap">{RenderPostContent(data?.content)}</pre>
+        <pre ref={renderPreRef} className="dark:text-gray-300 text-sm mb-0.5 font-sans text-wrap"><RenderPostContent text={data?.content}/></pre>
       </div>
       <button 
       onClick={() => setTextExpended((prev) => !prev)}
@@ -126,7 +125,7 @@ export default function CommentItem({ data , removeComment }) {
 
       {/* last row */}
       <NavLink to={'/comment/'+ data._id} className="mt-2 flex justify-between gap-3 text-xs text-gray-500">
-        <button onClick={() => setShowReply(!showReply)} className="flex">
+        <button  className={`flex ${showReply ? '' : 'hidden'}`}>
           {data?.replyCount } Replies <ChevronDown size={15}/> 
         </button>
         <span className="text-gray-500 text-xs">{moment(data?.createdAt).fromNow()}.</span>

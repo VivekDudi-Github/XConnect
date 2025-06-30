@@ -41,7 +41,7 @@ const createComment  = TryCatch( async (req , res ) => {
 
 const getComments = TryCatch(async(req , res) => {
   const {id} = req.params ;
-  const {page = 1 , limit = 5 , sortBy = 'Top' } = req.query; 
+  const {page = 1 , limit = 5 , sortBy = 'Top' , isComment = false  , comment_id = null} = req.query; 
   const skip = (page - 1) * limit;  
 
   const totalComments  = await Comment.countDocuments({post : id }) ;
@@ -79,12 +79,25 @@ const getComments = TryCatch(async(req , res) => {
       break;
   }
 
+  let CommentQuery = []  ;
+  
+  if(isComment === 'true' && ObjectId.isValid(comment_id)){
+    CommentQuery = [
+      {$eq : ['$replyTo' , 'comment']} ,
+      {$eq : ['$comment_id' , new ObjectId(`${comment_id}`)]} 
+    ]
+  }else if(!isComment){
+    CommentQuery = [
+      {$eq : ['$replyTo' , 'post']} ,
+    ]
+  }
+
   const comments = await Comment.aggregate([
     {$match : 
       {$expr : {
         $and : [
           {$eq : ['$post' , new ObjectId(`${id}`)]} ,
-          {$eq : ['$replyTo' , 'post']} ,
+          ...CommentQuery
         ]
       }}
     } ,

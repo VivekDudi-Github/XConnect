@@ -103,8 +103,8 @@ const api = createApi({
       })
     }) ,
     getComment : builder.query({
-      query : ({id , page , sortBy , }) => ({
-        url : `/comment/post/${id}?page=${page}&sortBy=${sortBy}` ,
+      query : ({id , page , sortBy , isComment = true , comment_id }) => ({
+        url : `/comment/post/${id}?page=${page}&sortBy=${sortBy}&isComment=${isComment}&comment_id=${comment_id}` ,
         credentials : 'include' ,
       })  
     }) ,
@@ -158,5 +158,5 @@ export const {
   useToggleLikeCommentMutation ,
   useDeleteCommentMutation ,
 
-  useGetACommentQuery ,
+  useLazyGetACommentQuery ,
 } = api ;

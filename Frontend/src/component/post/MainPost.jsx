@@ -14,7 +14,7 @@ import {
   BarChart2,
 } from 'lucide-react';
 import InPostImages from './InPostImages';
-import { use, useEffect, useState  } from 'react';
+import {  useEffect, useState  } from 'react';
 import { useSelector } from 'react-redux';
 import {useParams} from 'react-router-dom' ;
 import {useGetPostQuery, useToggleOnPostMutation} from '../../redux/api/api'
@@ -22,7 +22,6 @@ import MainPostSkeleton from '../shared/MainPostSkeleton';
 import moment from 'moment'
 import RenderPostContent from '../specific/RenderPostContent';
 import { toast } from 'react-toastify';
-
 
 export default function PostViewPage() {
   const {user} = useSelector(state => state.auth) ;
@@ -155,7 +154,7 @@ export default function PostViewPage() {
       {/* Post Content */}
       {post?.content && (
         <pre className="dark:text-gray-300 mb-2 font-sans text-wrap">
-          {RenderPostContent(post?.content)}
+          {<RenderPostContent text={post?.content} />} 
         </pre>
       )}
 

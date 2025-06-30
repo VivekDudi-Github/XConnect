@@ -1,42 +1,117 @@
-import React, { useEffect , useState } from 'react'
+import React, { useEffect , useRef, useState , useCallback} from 'react'
 import { useParams } from 'react-router-dom'
-import { useGetACommentQuery, usePostCommentMutation } from '../../redux/api/api';
 import { toast } from 'react-toastify';
-import { SendHorizonal } from 'lucide-react';
+import { SendHorizonal , MessageSquare, ChevronLeftIcon } from 'lucide-react';
+
+
+import CommentItem from './CommentItem';
 import CommentCardSkeleton from '../shared/CommentCardSkeleton';
+
+import lastRefFunc from '../specific/LastRefFunc';
+import { useLazyGetACommentQuery, useLazyGetCommentQuery, usePostCommentMutation } from '../../redux/api/api';
 
 
 function ReplyPage() {
   const {id} = useParams();
+  const observer = useRef() ;
 
   const [commentInput, setCommentInput] = useState('');
   const [comments, setComments] = useState([]);
+  const [mainComment , setMainComment] = useState({});
+
+  const [totalPages , setTotalPages] = useState(0);
+  const [page , setPage] = useState(1);
 
   const [PostCommentMutation] = usePostCommentMutation();
 
-  const {data , isLoading , isError , error} = useGetACommentQuery({id});
-
+  const[ refetchMainComment , {data , isLoading , isError , error}] = useLazyGetACommentQuery();
+  const[fetchReplies , {data : replies , isLoading : isLoadingReplies , isError : isErrorReplies , error : errorReplies}] = useLazyGetCommentQuery();
+ console.log(comments);
+ 
   const handleAddComment = async() => {}
 
+  useEffect(() => {
+    if(mainComment && mainComment?._id){
+      fetchReplies({
+        id , 
+        isComment : true ,
+        comment_id : mainComment?._id ,
+        page : 1 ,
+        limit : 5 ,
+      }) ;
+    }
+  } , [mainComment])
+
+  useEffect(() => {
+    if(replies && replies?.data){
+      setComments(prev => [...prev , ...replies?.data?.comments]) ;
+      setTotalPages(replies?.data?.totalPages) ;
+      setPage(prev => prev + 1) ;
+    }
+  } , [replies])
+
+  useEffect(() => {
+    if(id){
+      refetchMainComment({id}) ;
+    }
+  } , [id]) ;
 
   useEffect(() => {
     if(isError){
       console.log(error);
       toast.error(error?.data?.message || "Couldn't fetch the comment. Please try again.");
     }
-  } , [error , isError])
+    if(isErrorReplies){
+      console.log(errorReplies);
+      toast.error(errorReplies?.data?.message || "Couldn't fetch the comment. Please try again.");
+    }
+  } , [error , isError , isErrorReplies , errorReplies])
 
   useEffect(() => {
-    if(data){
-      console.log(data);
+    if(data && data?.data){
+      setMainComment(data?.data);
     }
   } , [data])
 
+  const lastCommentRef = useCallback(node => {
+    lastRefFunc({
+      observer , 
+      id ,
+      node , 
+      isLoadingReplies , 
+      page ,
+      activeTab : null ,
+      sortBy : '' ,
+      toatalPages : totalPages ,
+      fetchFunc : fetchReplies 
+    })
+  } , [fetchReplies , page , isLoading , totalPages , observer ])
+
+
+  const removeComment = (id) => {} ;
 
   return (
-    <div className='dark:text-white text-black relative pt-7 overflow-auto' >
+    <div className='dark:text-white text-black relative pt- overflow-auto pt-2' >
+      
+      <div className="flex items-center gap-1  mb-2 text-sm font-semibold">
+          <button 
+          onClick={() => window.history.back()}
+          className='  text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 '>
+            <ChevronLeftIcon  /> 
+          </button>
+          <MessageSquare size={16} />
+          {mainComment?.replyCount || ''} Comments
+      </div>
+
+      <div className='hover:scale-95 duration-300 transition-all'>
+        <CommentItem data={mainComment} showReply={false} removeComment={removeComment} />  
+      </div>
+
       <div className="w-full h-full max-w-2xl mx-auto p-4 space-y-4 border-t- dark:border-gray-700 border-gray-300 ">
-        {/* Input Section */}
+        
+        {/* Comments */}
+
+{/* Input Section */}
         <div 
         style={ {
           position : 'sticky' ,
@@ -58,8 +133,6 @@ function ReplyPage() {
           </button>
         </div>
 
-        
-        {/* Comments */}
         <div className="space-y-4">
         {comments.length > 0 && comments.map((c, i) => {
             return (
@@ -78,5 +151,7 @@ function ReplyPage() {
     </div>
   )
 }
+
+
 
 export default ReplyPage
