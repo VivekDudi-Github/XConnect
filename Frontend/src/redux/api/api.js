@@ -37,6 +37,12 @@ const api = createApi({
         credentials : 'include' ,
       }) 
     }) ,
+    getProfile : builder.query({
+      query : (username) => ({
+        url : `/user/${username}` ,
+        credentials : 'include' ,
+      })
+    }) ,
 
 //posts
     getPost: builder.query({
@@ -103,7 +109,7 @@ const api = createApi({
       })
     }) ,
     getComment : builder.query({
-      query : ({id , page , sortBy , isComment = true , comment_id }) => ({
+      query : ({id , page , sortBy , isComment , comment_id }) => ({
         url : `/comment/post/${id}?page=${page}&sortBy=${sortBy}&isComment=${isComment}&comment_id=${comment_id}` ,
         credentials : 'include' ,
       })  
@@ -128,6 +134,15 @@ const api = createApi({
         credentials : 'include' ,
       })
     }) ,
+
+    //follow
+    toggleFollow : builder.mutation({
+      query : ({id}) => ({
+        url : `/user/${id}/follow` ,
+        method : 'POST' ,
+        credentials : 'include' ,
+      })
+    }) ,
   })
 })
 
@@ -139,6 +154,7 @@ export const {
   useRegisterMeMutation ,
   useLoginMeMutation ,
   useUpdateProfileMutation ,
+  useGetProfileQuery ,
 
 //post
   useCreatePostMutation ,
@@ -159,4 +175,7 @@ export const {
   useDeleteCommentMutation ,
 
   useLazyGetACommentQuery ,
+
+  //follow
+  useToggleFollowMutation ,
 } = api ;

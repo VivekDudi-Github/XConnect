@@ -107,11 +107,6 @@ const getPost = TryCatch(async(req , res) => {
   
   if(!id) return ResError(res , 400 , 'Post ID is required.')
 
-//look for author details , 
-//look for repost details ,
-//look for likes & likestatus ,
-//look for bookmarks ,
-
   const postData = await Post.findById(id).select('author visiblity') ;
   
   if(!postData || postData.isDeleted === true) return ResError(res , 404 , 'Post not found.') ;
@@ -481,8 +476,9 @@ const fetchFeedPost = TryCatch( async(req , res) => {
   const hashtags = tags.map(t => t.hashtags )
   
 
+  
   const threeDaysAgo = new Date();
-  threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+  threeDaysAgo.setDate(threeDaysAgo.getDate() - 4);
 
 
   const posts = await Post.aggregate([
@@ -557,7 +553,8 @@ const fetchFeedPost = TryCatch( async(req , res) => {
     }}
 
   ])
-
+  console.log(posts , 'posts');
+  
   return ResSuccess (res , 200 , posts)
 
 } , 'fetchFeedPosts')

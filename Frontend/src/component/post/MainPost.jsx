@@ -97,7 +97,7 @@ export default function PostViewPage() {
   if(isLoading) return <MainPostSkeleton/>
 
   return (
-    <div className="max-w-4xl mx-auto px-4 pt-6 pb-4 dark:text-white shadow-lg shadow-slate-800/50 rounded-lg">
+    <div className="max-w-4xl mx-auto px-4 pt-6 pb-4 dark:text-white shadow-lg shadow-slate-800/50 rounded-lg z-20">
       {/* Author + Timestamp + Options */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3">
@@ -195,7 +195,7 @@ export default function PostViewPage() {
             {post?.bookmarkCount || ''} {bookmarkStatus ? 'Saved' : 'Saves'} 
           </button>
           </div>
-          <div className='  sm:translate-x-full sm:mt-0 mt-3 text-gray-400 font-semibold duration-200 my-1 flex items-center justify-end text-sm'>
+          <div className='  sm:translate-x-full sm:hidden sm:mt-0 mt-3 text-gray-400 font-semibold duration-200 my-1 flex items-center justify-end text-sm'>
             <BarChart2 size={16} className=' text-cyan-600' /> 
             500 views
           </div>

@@ -63,7 +63,7 @@ export default function AuthPage() {
       }
     } catch (error) {
       console.log(error);
-      toast.error(error.data.message || 'Something went wrong😢. Please try again.' )
+      toast.error(error?.data?.message || 'Something went wrong😢. Please try again.' )
     }finally{
       setLoading(false)
     }

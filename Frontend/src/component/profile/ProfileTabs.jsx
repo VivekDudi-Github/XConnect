@@ -75,7 +75,7 @@ useEffect(() => {
 
 
   return (
-    <div className="mt-8 dark:bg-black bg-white overflow-visible h-full">
+    <div className="mt-8 dark:bg-black bg-white overflow-y-auto h-full pb-14 sm:pb-0">
       <div className="flex border-b">
         {tabs.map(tab => (
           <button

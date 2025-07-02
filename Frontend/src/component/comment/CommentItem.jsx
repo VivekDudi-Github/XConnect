@@ -2,6 +2,7 @@ import { useState , useRef , useEffect  } from "react";
 import {
   ChevronDown,
   Heart,
+  ReplyIcon,
   Share2Icon,
   Trash2Icon,
 } from 'lucide-react';
@@ -13,7 +14,7 @@ import { NavLink } from "react-router-dom";
 
 
 
-export default function CommentItem({ data , removeComment , showReply = true}) {
+export default function CommentItem({ data , removeComment , showReply = true , replyButton}) {
   const [replyInput, setReplyInput] = useState('');
 
   const renderPreRef = useRef(null) ;
@@ -23,7 +24,7 @@ export default function CommentItem({ data , removeComment , showReply = true}) 
   const [likeStatus, setLikeStatus] = useState(data?.likeStatus);
   const [totalLikes, setTotalLikes] = useState(data?.likeCount);
 
-  const [LikeMutation] = useToggleLikeCommentMutation() ;
+  const [LikeMutation , {LikeMutationIsLoading}] = useToggleLikeCommentMutation() ;
   const [DeleteMutation] = useDeleteCommentMutation() ;
 
   const handleReply = () => {
@@ -89,11 +90,18 @@ export default function CommentItem({ data , removeComment , showReply = true}) 
         {/* Likes and Shares */}
         <div className="flex gap-2">
         <button
+          disabled = {LikeMutationIsLoading}
           onClick={handleLike}
           className="flex items-center gap-1 text-xs"
         >
           <Heart size={14} className={`${likeStatus ? 'fill-fuchsia-400' : ''} duration-200 hover:scale-110 active:scale-95 text-fuchsia-400`} />
           {totalLikes || ''}
+        </button>
+        <button
+        onClick={() => replyButton(data?.author?.username)}
+          className="flex items-center gap-1 text-xs text-green-500  "
+        >
+          <ReplyIcon size={18} className="fill-green-500"/>
         </button>
         <button
           className="flex items-center gap-1 text-xs text-blue-500  "

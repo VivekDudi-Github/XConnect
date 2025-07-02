@@ -1,4 +1,4 @@
-import React, {useRef , useEffect, useState , useCallback, act} from 'react';
+import React, {useRef , useEffect, useState , useCallback, act, use} from 'react';
 import {
   MessageSquare,
   Heart,
@@ -15,7 +15,6 @@ import { useDeleteCommentMutation, useLazyGetCommentQuery, usePostCommentMutatio
 import { useParams } from 'react-router-dom';
 import lastRefFunc from '../specific/LastRefFunc';
 import { useSelector } from 'react-redux';
-import { set } from 'mongoose';
 
 export default function CommentSection() {
   const {id} = useParams();
@@ -26,10 +25,12 @@ export default function CommentSection() {
   const [totalComments , setTotalComments] = useState(0);
   const [comments, setComments] = useState([]);
   const [commentInput, setCommentInput] = useState('');
+  const [mentions , setMentions] = useState([]) ;
+
   const [isOpenOptions , setIsOpenOptions] = useState(false) ;
   const [sortBy, setSortBy] = useState('top');
 
-  const [totalPages , setTotalPages] = useState(0);
+  const [totalPages , setTotalPages] = useState(1);
   const [page , setPage] = useState(1);
   
 
@@ -70,6 +71,7 @@ export default function CommentSection() {
       node , 
       isLoading , 
       page ,
+      isComment : false ,
       activeTab : null ,
       sortBy ,
       toatalPages : totalPages ,
@@ -78,7 +80,7 @@ export default function CommentSection() {
   } , [getCommentQuery , page , isLoading , totalPages  , sortBy , observer ])
   
 
-useEffect(() => {getCommentQuery({id , page })} , [] ) ;
+useEffect(() => {getCommentQuery({id , page , isComment : false})} , [] ) ;
 
 useEffect(() => {
   if( sortBy !== 'top'){
@@ -88,10 +90,11 @@ useEffect(() => {
   }
 } , [sortBy]) ;
 
-console.log(page , totalPages);
+console.log(data);
 
 
 useEffect(() => {
+  if(page > totalPages) return ;
   if(data && data?.data){
     setComments([...data?.data?.comments , ...comments]) ;
     setTotalComments(data?.data?.totalComments) ;
@@ -107,48 +110,59 @@ useEffect(() => {
   }
 } , [error , isError])
 
+useEffect(() => {
+  const detectMentions = () => {
+    const matches = commentInput.match(/@[\w]+/g);
+    setMentions(matches || []);
+    return matches || [] ;
+  };
+  detectMentions() ;
+} , [commentInput])
+
 
 const removeComment = (id) => {
   setComments(prev => prev.filter(c => c._id !== id)) ;
   setTotalComments(prev => prev - 1) ;
 }
 
-  const handleLike = (id) => {};
+const addToMentions = (username) => {
+  if(mentions.includes('@' + username)) return ;
+  setMentions([...mentions , '@' + username]) ;
+  setCommentInput('') ;
+}
 
-console.log(comments);
+
 
 
   return (
-    <div className="w-full h-full max-w-2xl mx-auto p-4 space-y-4 border-t- dark:border-gray-700 border-gray-300 ">
+    <div className="w-full h-full max-w-2xl mx-auto p-4 sm:pb-0 pb-14 space-y-4 border-t- dark:border-gray-700 border-gray-300 max-h-screen overflow-y-auto">
       {/* Input Section */}
-      <div 
-      style={ {
-        position : 'sticky' ,
-        top : '0' ,
-        zIndex : '10' ,
-      }}
-      className="flex items-start gap-2">
-        <textarea
-          className="w-full p-2 rounded border border-gray-300 dark:border-gray-700 dark:bg-black duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500  dark:focus:ring-gray-300 dark:text-white resize-none"
-          placeholder="Write a comment..."
-          value={commentInput}
-          onChange={(e) => setCommentInput(e.target.value)}
-        />
+      <div className="flex items-start gap-2 sticky top-0 z-20 p-4 rounded-b-lg shadow-md shadow-black/50 filter backdrop-blur-md"> 
+        <div className='w-full'> 
+          <textarea
+            className="w-full p-2 rounded border border-gray-300 dark:border-gray-700 dark:bg-black duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500  dark:focus:ring-gray-300 dark:text-white resize-none"
+            placeholder="Write a comment..."
+            value={commentInput}
+            onChange={(e) => setCommentInput(e.target.value)}
+          />
+          {mentions.length > 0 ? <div className='text-xs text-gray-500 mt-2 '>Replying to : {mentions.join(', ')}</div> : null}
+        </div>
         <button
           onClick={handleAddComment}
           className="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600"
         >
           <SendHorizonal size={18} />
         </button>
+
       </div>
 
       {/* Sorting */}
-      <div className="flex items-center justify-between text-sm text-gray-500">
+      <div className="flex items-center justify-between text-sm text-gray-500 ">
         <div className="flex items-center gap-1 ">
           <MessageSquare size={16} />
           {totalComments || ''} Comments
         </div>
-        <div className="flex items-center gap-1 relative z-20"
+        <div className="flex items-center gap-1 relative z-10"
         onClick={()=> setIsOpenOptions(prev => !prev)}
         >
           Sort by:{" "}
@@ -183,7 +197,7 @@ console.log(comments);
       {comments.length > 0 && comments.map((c, i) => {
           return (
             <div ref={i === comments.length - 1 ? lastCommentRef : null} key={c._id}>
-              <CommentItem data={c} removeComment={removeComment} />
+              <CommentItem data={c} removeComment={removeComment} replyButton={addToMentions} />
             </div>
           );
         })}

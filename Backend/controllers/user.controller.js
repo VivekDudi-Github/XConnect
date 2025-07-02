@@ -2,6 +2,8 @@ import { User } from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import { TryCatch , ResError , ResSuccess } from "../utils/extra.js";
 import { uploadFilesTOCloudinary } from "../utils/cloudinary.js";
+import { Following } from "../models/following.model.js";
+
 
 //update banner & dp left
 const cookieOptions = {
@@ -172,17 +174,19 @@ const deleteUser = TryCatch(async(req , res) => {
 
 } , 'deleteUser')
 
-const getUserById = TryCatch(async(req , res) => {
-    const {id} = req.params ;
+const getAnotherUser = TryCatch(async(req , res) => { 
+    const {username} = req.params ;
     
-    if(!id) return ResError(res , 400 , 'User id is required')
+    if(!username) return ResError(res , 400 , 'User username is required')
 
-    const user = await User.findById(id).select("-password -refreshToken");
+    const user = await User.findOne({username : username}).select("-password -refreshToken");
 
     if(!user) return ResError(res , 404 , 'User not found')
 
-    return ResSuccess(res , 200 , user)
-} ,'getUserById')
+    const isFollowing = await Following.exists({followedTo : user._id , followedBy : req.user._id})
+
+    return ResSuccess(res , 200 , {...user , isFollowing : followStatus ? true : false })   
+} ,'getAnotherUser')
 
 const changePassword = TryCatch(async(req , res) => {
     const {oldPassword , newPassword}  = req.body ;
@@ -209,6 +213,25 @@ const changePassword = TryCatch(async(req , res) => {
 } , 'changePassword')
 
 
+const togglefollow  = TryCatch(async(req , res) => {
+    const {id} = req.params ;
+    
+    if(!id) return ResError(res , 400 , 'User id is required')
+    
+    const isExistFollowing = await Following.exists({followedTo : id , followedBy : req.user._id})
+    
+    if(isExistFollowing){
+        await Following.deleteOne({followedTo : id , followedBy : req.user._id})
+    } else {
+        await Following.create({
+            followedTo : id ,
+            followedBy : req.user._id ,
+        })
+    }
+
+    return ResSuccess(res , 200 , {operation : isExistFollowing ? false : true })
+} , 'Toggle follow')
+
 
 export {
     registerUser ,
@@ -217,6 +240,7 @@ export {
     getMe ,
     updateUser ,
     deleteUser ,
-    getUserById ,
+    getAnotherUser ,
     changePassword ,
+    togglefollow ,
 }

@@ -21,6 +21,7 @@ const createComment  = TryCatch( async (req , res ) => {
   if(!isExistPost) return ResError(res , 400 , 'Post not found')
 
   if(comment_id ){
+    if(!ObjectId.isValid(comment_id)) return  ResError(res , 400 , 'Invalid replying Id') ;
     const isExistComment = await Comment.exists({_id : comment_id})
     if(!isExistComment) return  ResError(res , 400 , 'Invalid replying Id') ;
   }
@@ -34,7 +35,6 @@ const createComment  = TryCatch( async (req , res ) => {
     replyTo : comment_id ? 'comment' : 'post' ,
     comment_id :  comment_id ? comment_id : null ,
   } )
-
   return ResSuccess(res ,200 , comment)
 
 } , 'createComment')
@@ -43,9 +43,9 @@ const getComments = TryCatch(async(req , res) => {
   const {id} = req.params ;
   const {page = 1 , limit = 5 , sortBy = 'Top' , isComment = false  , comment_id = null} = req.query; 
   const skip = (page - 1) * limit;  
+console.log(req.query);
 
-  const totalComments  = await Comment.countDocuments({post : id }) ;
-  const totalPages = Math.ceil(totalComments/limit) ;
+  let totalComments ; 
   
   let sortOptions = [] ;
 
@@ -82,15 +82,19 @@ const getComments = TryCatch(async(req , res) => {
   let CommentQuery = []  ;
   
   if(isComment === 'true' && ObjectId.isValid(comment_id)){
+    totalComments = await Comment.countDocuments({post : id , comment_id : new ObjectId(`${comment_id}`) , replyTo : 'comment' } ) ;
     CommentQuery = [
       {$eq : ['$replyTo' , 'comment']} ,
       {$eq : ['$comment_id' , new ObjectId(`${comment_id}`)]} 
     ]
-  }else if(!isComment){
+  }else {
+    totalComments = await Comment.countDocuments({post : id , replyTo : 'post' }) ;
     CommentQuery = [
       {$eq : ['$replyTo' , 'post']} ,
     ]
   }
+  
+  const totalPages = Math.ceil(totalComments/limit) ;
 
   const comments = await Comment.aggregate([
     {$match : 

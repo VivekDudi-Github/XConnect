@@ -13,7 +13,7 @@ function Layout({children}) {
       </div>
 
       {/* Main content */}
-      <main className=" text-black sm:mb-0 mb-14 md:ml-60 sm:ml-[76px]  h-auto overflow-y-auto w-full duration-200">
+      <main className=" text-black md:ml-60 sm:ml-[76px]  h-auto overflow-y-auto w-full duration-200">
         {children}
       </main>
 

@@ -1,6 +1,6 @@
 import express from "express";
 import { checkUser } from "../utils/chekAuth.js";
-import { changePassword, deleteUser, getMe, getUserById, loginUser, logoutUser, registerUser, updateUser } from "../controllers/user.controller.js";
+import { changePassword, deleteUser, getAnotherUser, getMe, loginUser, logoutUser, registerUser, togglefollow, updateUser } from "../controllers/user.controller.js";
 import { uploadFiles} from "../middlewares/multer.js";
 
 
@@ -22,6 +22,8 @@ router.patch('/me' , checkUser , uploadFiles , updateUser);
 router.delete('/me' , checkUser , deleteUser);
 router.put('/me/password' , checkUser , changePassword);
 
-router.get('/:id' , checkUser , getUserById);
+router.get('/:username' , checkUser , getAnotherUser);
+
+router.post('/:id/follow' , checkUser , togglefollow);
 
 export default router;

@@ -6,7 +6,7 @@ import { ChevronLeft } from 'lucide-react'
 function CommentPage() {
   return (
     <Layout>
-      <div className='dark:bg-black bg-white w-full min-h-screen relative'>
+      <div className='dark:bg-black bg-transparent  w-full min-h-screen overflow-hidden relative'>
         <ReplyPage />
       </div>
     </Layout>
