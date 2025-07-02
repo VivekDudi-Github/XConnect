@@ -10,6 +10,7 @@ import PostCardSkeleton from '../shared/PostCardSkeleton';
 import lastRefFunc from '../specific/LastRefFunc';
 import {setisDeleteDialog} from '../../redux/reducer/miscSlice';
 import { deletePostFunc } from '../shared/SharedFun';
+import { useParams } from 'react-router-dom';
 
 
 
@@ -20,6 +21,8 @@ function ProfileTabs() {
   const dispatch = useDispatch();
   const observer = useRef(null) ;
  
+  const {username} =  useParams() ;
+
   const {isDeleteDialog} = useSelector(state => state.misc);
 
   const [activeTab, setActiveTab] = useState('Posts');
@@ -27,34 +30,35 @@ function ProfileTabs() {
   
   const [posts , setPosts] = useState([]);
   const [page , setPage] = useState(1) ;
-  const [toatalPages , setTotalPages] = useState(1) ;
+  const [totalPages , setTotalPages] = useState(1) ;
 
   
 
   const [deleteMutation] = useDeletePostMutation() ;
   const [fetchMorePost , {data , isError , isFetching , isLoading , error}] = useLazyGetUserPostsQuery();
 
-  console.log(posts , toatalPages , page , isLoading);
   
   const lastPostRef = useCallback(node => {
     lastRefFunc({
       observer , 
       node , 
+      username ,
       isLoading , 
       page ,
       activeTab ,
-      toatalPages : toatalPages ,
+      username ,
+      totalPages : totalPages ,
       fetchFunc : fetchMorePost ,
     })
-  } , [fetchMorePost , page , isLoading ,toatalPages , activeTab]
+  } , [fetchMorePost , page , isLoading ,totalPages , activeTab]
 )
 
 
 useEffect(() =>{ return () => observer.current?.disconnect()} , [])
 
-useEffect(() => {console.log('fetcehed thorugh useEffect');
+useEffect(() => {
   if(page === 1){
-    fetchMorePost({page : 1 , tab : activeTab})
+    fetchMorePost({page : 1 , tab : activeTab , username : username}) ; 
   }
 }, [])
 

@@ -246,17 +246,25 @@ const getPost = TryCatch(async(req , res) => {
   return ResSuccess(res , 200 , post[0])
 }, 'GetPost')
 
-const getMyPosts = TryCatch(async(req , res) => {
-  const {page = 1 , limit = 2 , tab = 'Posts'} = req.query;
+const getUserPosts = TryCatch(async(req , res) => {
+  const {page = 1 , username , limit = 2 , tab = 'Posts'} = req.query;
   const skip = (page - 1) * limit;  
 
-  const totalPost  = await Post.countDocuments({author : req.user._id}) ;
+  const user = await User.exists({username : username}) ;
+  let id ;
+  if(user) {
+    id = user._id ;
+  }else {
+    id = req.user._id ;
+  }
+  
+  const totalPost  = await Post.countDocuments({author : id}) ;
   const totalPages = Math.ceil(totalPost/limit) ;
   
 
   const posts = await Post.aggregate([
     {$match : {
-      author :  new ObjectId(`${req.user._id}`) ,
+      author :  new ObjectId(`${id}`) ,
       isDeleted : false ,
     }} ,
     {$sort : {
@@ -267,7 +275,7 @@ const getMyPosts = TryCatch(async(req , res) => {
 
     {$lookup : {
       from : 'users' ,
-      let : { userId : new ObjectId(`${req.user._id}`)} ,
+      let : { userId : new ObjectId(`${id}`)} ,
       pipeline : [
         {
           $match : {
@@ -309,7 +317,7 @@ const getMyPosts = TryCatch(async(req , res) => {
           $expr : {
             $and : [
               {$eq : ['$post' , '$$postId']} ,
-              {$eq : ['$user' , new ObjectId(`${req.user._id}`)]}
+              {$eq : ['$user' , new ObjectId(`${id}`)]}
             ]
           }
         }}
@@ -326,7 +334,7 @@ const getMyPosts = TryCatch(async(req , res) => {
             $expr : {
               $and : [
                 {$eq : ['$post' , '$$postId']} ,
-                {$eq : ['$user' , new ObjectId(`${req.user._id}`)]}
+                {$eq : ['$user' , new ObjectId(`${id}`)]}
               ]
             }
           }
@@ -367,7 +375,7 @@ const getMyPosts = TryCatch(async(req , res) => {
 
   
   return ResSuccess(res, 200, {posts  , totalPages});
-} , 'get MyPosts')
+} , 'get User Posts')
 
 const toggleOnPost  = TryCatch(async(req , res) => {
   const {id} = req.params ;
@@ -498,6 +506,7 @@ const fetchFeedPost = TryCatch( async(req , res) => {
     } ,
     {$sample : { size : 10}} ,
 
+    //author details
     { $lookup : {
       from : 'users' ,
       let : { userId : '$author'} ,
@@ -515,6 +524,8 @@ const fetchFeedPost = TryCatch( async(req , res) => {
       ] ,
       as : 'authorDetails'
     }} ,
+
+    //userLike
     {$lookup : {
       from : 'likes' ,
       let : { postId : '$_id'} ,
@@ -531,6 +542,7 @@ const fetchFeedPost = TryCatch( async(req , res) => {
       as : 'userLike'
     }} ,
 
+    //totalLike
     {$lookup : {
       from : 'likes' ,
       localField : '_id' ,
@@ -538,12 +550,22 @@ const fetchFeedPost = TryCatch( async(req , res) => {
       as : 'totalLike' ,
     }} ,
 
+    //totalComments
+    {$lookup : {
+      from : 'comments' ,
+      localField : '_id' ,
+      foreignField : 'post' ,
+      as : 'totalComments' ,
+    }} ,
+
     {$addFields : {
       author : '$authorDetails' ,
       likeStatus : { $gt : [{ $size : '$userLike'} , 0 ]}  ,
-      likeCount : {$size : '$totalLike'}
+      likeCount : {$size : '$totalLike'} ,
+      commentCount : {$size : '$totalComments'} ,
     }} ,
 
+    {$unwind: {path: '$totalComments',preserveNullAndEmptyArrays: true} } ,
     {$unwind: {path: '$author',preserveNullAndEmptyArrays: true} } ,
     
     {$project : {
@@ -591,7 +613,7 @@ export {
   deletePost ,
   editPost ,
   getPost ,
-  getMyPosts ,
+  getUserPosts ,
   toggleOnPost ,
 
   fetchFeedPost ,

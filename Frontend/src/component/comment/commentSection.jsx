@@ -74,7 +74,7 @@ export default function CommentSection() {
       isComment : false ,
       activeTab : null ,
       sortBy ,
-      toatalPages : totalPages ,
+      totalPages : totalPages ,
       fetchFunc : getCommentQuery 
     })
   } , [getCommentQuery , page , isLoading , totalPages  , sortBy , observer ])
@@ -90,7 +90,6 @@ useEffect(() => {
   }
 } , [sortBy]) ;
 
-console.log(data);
 
 
 useEffect(() => {
@@ -128,7 +127,6 @@ const removeComment = (id) => {
 const addToMentions = (username) => {
   if(mentions.includes('@' + username)) return ;
   setMentions([...mentions , '@' + username]) ;
-  setCommentInput('') ;
 }
 
 
@@ -145,7 +143,12 @@ const addToMentions = (username) => {
             value={commentInput}
             onChange={(e) => setCommentInput(e.target.value)}
           />
-          {mentions.length > 0 ? <div className='text-xs text-gray-500 mt-2 '>Replying to : {mentions.join(', ')}</div> : null}
+          <div className='flex items-center gap-2'>
+            {mentions.length > 0 ? <div className='text-xs text-gray-500 mt-2 '>Replying to : {mentions.join(', ')}</div> : null}
+            {mentions.length > 0 ? <button className='text-xs text-gray-500 mt-2 rounded-md border-2 border-gray-500 px-1' 
+              onClick={() => setMentions([])}
+            > Clear </button> : null}
+          </div>
         </div>
         <button
           onClick={handleAddComment}

@@ -76,8 +76,8 @@ const api = createApi({
     }) ,
 
     getUserPosts : builder.query({
-      query : ({page , tab}) => ({
-        url : `/post/me/posts/?page=${page}&tab${tab}` ,
+      query : ({page ,username , tab}) => ({
+        url : `/post/user/?page=${page}&tab=${tab}&username=${username}` ,
         credentials : 'include' ,
       })
     }) ,

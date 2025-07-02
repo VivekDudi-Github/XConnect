@@ -3,6 +3,9 @@ import express from "express";
 import dotenv from 'dotenv' ;
 import cors from 'cors'
 
+import {createServer} from 'http' ;
+import {Server} from 'socket.io' ;
+
 import connectDB from "./utils/connectDB.js";
 import userRouter from "./routes/user.routes.js" ;
 import postRouter from './routes/post.routes.js' ;
@@ -12,8 +15,11 @@ import { v2 as cloudinary } from "cloudinary";
 dotenv.config() ;
 
 const app = express() ;
+const newServer = createServer(app)
 
-
+const io = new Server(newServer ,{
+  
+})
 
 // Middleware to parse JSON bodies
 app.use(express.json());

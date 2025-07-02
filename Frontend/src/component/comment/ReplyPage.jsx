@@ -1,7 +1,7 @@
 import React, { useEffect , useRef, useState , useCallback} from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'react-toastify';
-import { SendHorizonal , MessageSquare, ChevronLeftIcon, ReplyIcon } from 'lucide-react';
+import { SendHorizonal , MessageSquare, ChevronLeftIcon, ReplyIcon, XCircleIcon } from 'lucide-react';
 
 
 import CommentItem from './CommentItem';
@@ -129,7 +129,7 @@ console.log(replies);
       page ,
       activeTab : null ,
       sortBy : '' ,
-      toatalPages : totalPages ,
+      totalPages : totalPages ,
       fetchFunc : fetchReplies 
     })
   } , [fetchReplies , page , isLoading , totalPages , observer ])
@@ -138,7 +138,9 @@ console.log(replies);
   useEffect(() => {
     const detectMentions = () => {
       const matches = commentInput.match(/@[\w]+/g);
-      setMentions(matches || []);
+      if(mentions.includes('@' + user?.username)) return ; // Prevent adding own username
+      if(mentions.includes(matches)) return ; // Prevent duplicates
+      if(matches) setMentions(...matches);
       return matches || [] ;
     };
 
@@ -181,7 +183,12 @@ console.log(replies);
               value={commentInput}
               onChange={(e) => setCommentInput(e.target.value)}
             />
+            <div className='flex items-center gap-2'>
             {mentions.length > 0 ? <div className='text-xs text-gray-500 mt-2 '>Replying to : {mentions.join(', ')}</div> : null}
+            {mentions.length > 0 ? <button className='text-xs text-gray-500 mt-2 rounded-md border-2 border-gray-500 px-1' 
+              onClick={() => setMentions([])}
+            > Clear </button> : null}
+            </div>
           </div>
           <button
             onClick={handleAddComment}
@@ -200,7 +207,7 @@ console.log(replies);
         {comments.length > 0 && comments.map((c, i) => {
             return (
               <div ref={i === comments.length - 1 ? lastCommentRef : null} key={c._id}>
-                <CommentItem data={c} removeComment={removeComment} />
+                <CommentItem  data={c} removeComment={removeComment} replyButton={addToMentions}/>
               </div>
             );
           })}

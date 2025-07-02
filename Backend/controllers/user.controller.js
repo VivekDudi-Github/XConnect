@@ -185,7 +185,7 @@ const getAnotherUser = TryCatch(async(req , res) => {
 
     const isFollowing = await Following.exists({followedTo : user._id , followedBy : req.user._id})
 
-    return ResSuccess(res , 200 , {...user , isFollowing : followStatus ? true : false })   
+    return ResSuccess(res , 200 , {...user._doc , isFollowing : isFollowing ? true : false })   
 } ,'getAnotherUser')
 
 const changePassword = TryCatch(async(req , res) => {

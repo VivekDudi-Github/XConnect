@@ -178,7 +178,7 @@ useEffect(() => {
         </button>
 
         <NavLink to={`/post/${post._id}`} className="flex items-center gap-1">
-          <MessageCircle className=' text-blue-600 dark:text-white  dark:hover:fill-white hover:fill-blue-600 duration-500 hover:scale-110 active:scale-95' size={18} /> {post.comments}
+          <MessageCircle className=' text-blue-600 dark:text-white  dark:hover:fill-white hover:fill-blue-600 duration-500 hover:scale-110 active:scale-95' size={18} /> {post?.commentCount}
         </NavLink>
       </div>
 

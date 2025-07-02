@@ -35,7 +35,7 @@ function Feed() {
       isLoading , 
       page ,
       activeTab ,
-      toatalPages : null ,
+      totalPages : null ,
       fetchFunc : fetchMorePost
     })
   } , [fetchMorePost , page , isLoading  , activeTab , ]
