@@ -5,6 +5,7 @@ import { setIsProfileEdit } from '../../redux/reducer/miscSlice';
 import { useGetProfileQuery, useToggleFollowMutation } from '../../redux/api/api';
 import { useEffect , useState } from 'react';
 import { toast } from 'react-toastify';
+import { useSocket } from '../specific/socket';
 
 function ProfileHeader() {
   const {username} = useParams();
@@ -14,7 +15,8 @@ function ProfileHeader() {
   
   const [user , setUser]  = useState({}) ;
   const [followStatus , setFollowStatus] = useState(false) ;
-
+  const socket = useSocket() ;
+  
 
   const [followToggleMutation , {isLoading : followIsLoading} ] = useToggleFollowMutation() ;
   const {data ,isError , error , isLoading}  = useGetProfileQuery(username , {skip : !username})

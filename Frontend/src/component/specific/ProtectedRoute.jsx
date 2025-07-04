@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { Outlet, useNavigate } from 'react-router-dom'
-
+import {io} from 'socket.io-client'
+import { SocketProvider } from './socket'
 
 function ProtectedRoute( {user}) {
     const navigate = useNavigate() ;
@@ -11,7 +12,11 @@ function ProtectedRoute( {user}) {
         }
     } , [user])
     
-    return <Outlet/>
+    return (
+        <SocketProvider user={user} >
+            <Outlet />
+        </SocketProvider>
+    )
   
 }
 

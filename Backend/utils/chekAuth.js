@@ -1,5 +1,6 @@
 import { User } from '../models/user.model.js';
 import jwt from 'jsonwebtoken';
+import cookie from 'cookie'
 
 const cookieOptions = {
     secure : true ,
@@ -72,4 +73,22 @@ const checkUser = (req, res , next) => {
     });
 }
 }
-export {checkUser}
+
+const checkSocketUser = (socket , next) => {
+    const token = cookie.parse(socket.request.headers.cookie || '') ;
+
+    if(!token.accessToken){
+      return next(new Error('No token provided'));
+    }
+
+    jwt.verify(token.accessToken , process.env.ACCESS_TOKEN_SECRET , (err , decoded) => {
+      if(err){
+        return next(new Error('Invalid token'));
+      }
+      socket.user = decoded;
+      console.log(decoded);
+      next();
+    })
+}
+
+export {checkUser , checkSocketUser}

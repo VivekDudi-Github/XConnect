@@ -575,7 +575,6 @@ const fetchFeedPost = TryCatch( async(req , res) => {
     }}
 
   ])
-  console.log(posts , 'posts');
   
   return ResSuccess (res , 200 , posts)
 

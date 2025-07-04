@@ -2,7 +2,8 @@ import cookieParser from "cookie-parser";
 import cookie from 'cookie'
 import express from "express";
 import dotenv from 'dotenv' ;
-import cors from 'cors'
+import cors from 'cors' ;
+import jwt from 'jsonwebtoken' ;
 
 import {createServer} from 'http' ;
 import {Server} from 'socket.io' ;
@@ -12,41 +13,34 @@ import userRouter from "./routes/user.routes.js" ;
 import postRouter from './routes/post.routes.js' ;
 import commentRouter from './routes/comment.routes.js' ;
 import { v2 as cloudinary } from "cloudinary";
+import { checkSocketUser } from "./utils/chekAuth.js";
 
 dotenv.config() ;
 
 const app = express() ;
 const newServer = createServer(app)
+const userSocketIDs = new Map ;
 
 const io = new Server(newServer ,{
    cors : {
      origin: 'http://localhost:5173',
      credentials : true 
    }
-})
+}) ;
 
-io.use((socket , next) => {
-  const token = cookie.parse(socket.request.headers.cookie) ;
+io.use(checkSocketUser) ;
 
-    if(!token.accessToken){
-      return next(new Error('No token provided'));
-    }
 
-    jwt.verify(token.accessToken , process.env.ACCESS_TOKEN_SECRET , (err , decoded) => {
-      if(err){
-        return next(new Error('Invalid token'));
-      }
-      socket.user = decoded;
-      next();
-    })
+
+io.on('connection', (socket) => {
+  userSocketIDs.set(socket.user._id, socket.id) ;
 })
 
 // Middleware to parse JSON bodies
 app.use(express.json());
 app.use(cors({
   origin: 'http://localhost:5173', 
-
-  credentials: true, // Allow cookies to be sent
+  credentials: true, 
 }));
 
 app.use(express.urlencoded({ extended: true }));
@@ -62,7 +56,9 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 })
 
-app.listen(3000, () => {
+newServer.listen(3000, () => {
   connectDB() ;
   console.log("Server is running on port 3000");
 }); 
+
+export {io}
