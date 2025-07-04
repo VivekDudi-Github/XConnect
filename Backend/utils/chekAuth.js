@@ -32,7 +32,6 @@ const checkUser = (req, res , next) => {
                     return jwt.verify(token , process.env.REFRESH_TOKEN_SECRET , async (err , decoded) => {
                         if(err){
                             console.log('error in verifying refresh token');
-                            console.log(err , 'line 36');
     
                             return res.status(401).json({
                                 success : false ,

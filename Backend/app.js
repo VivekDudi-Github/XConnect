@@ -1,4 +1,5 @@
 import cookieParser from "cookie-parser";
+import cookie from 'cookie'
 import express from "express";
 import dotenv from 'dotenv' ;
 import cors from 'cors'
@@ -18,7 +19,26 @@ const app = express() ;
 const newServer = createServer(app)
 
 const io = new Server(newServer ,{
-  
+   cors : {
+     origin: 'http://localhost:5173',
+     credentials : true 
+   }
+})
+
+io.use((socket , next) => {
+  const token = cookie.parse(socket.request.headers.cookie) ;
+
+    if(!token.accessToken){
+      return next(new Error('No token provided'));
+    }
+
+    jwt.verify(token.accessToken , process.env.ACCESS_TOKEN_SECRET , (err , decoded) => {
+      if(err){
+        return next(new Error('Invalid token'));
+      }
+      socket.user = decoded;
+      next();
+    })
 })
 
 // Middleware to parse JSON bodies
