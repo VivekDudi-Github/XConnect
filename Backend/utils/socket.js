@@ -1,7 +1,14 @@
-import { io } from "../app";
+import { io } from "../app.js";
 
-const EventEmitter = ( EventName ,room , data )=> {
-  io.to(room).emit(EventName , data)
-} ;
+const emitEvent = (eventName, room, data) => {
+  if (!eventName || !room) {
+    console.warn("emitEvent: Missing eventName or room.");
+    return;
+  }
+  console.log( eventName ,'emiited');
+  
+  io.to(room).emit(eventName, data);
+};
 
-export { EventEmitter}
+export { emitEvent };
+

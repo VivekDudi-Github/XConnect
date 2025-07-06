@@ -1,9 +1,37 @@
-import React from 'react'
+import React , {useEffect} from 'react'
 import Sidebar from './Sidebar'
 import BottomBar from './BottomBar'
-import CreatePost from '../component/post/CreatePost'
+import { useSocket } from '../component/specific/socket';
+import { useDispatch } from 'react-redux';
+import { addNotification, removeNotification } from '../redux/reducer/notificationSlice';
+
 
 function Layout({children}) {
+const dispatch = useDispatch() ;
+
+  const socket = useSocket();
+  useEffect(() => {
+    if(socket){
+      socket.on('notification:receive' , (data) => {
+        console.log(data);
+        dispatch(addNotification(data))
+      }) ;
+
+      socket.on('notification:retract' , (data) => {
+        console.log(data);
+        dispatch(removeNotification(data))
+      }) ;
+    }
+
+    return () => {
+      if(socket){
+        socket.off('notification:receive');
+        socket.off('notification:retract');
+      }
+    }
+  } , [socket])
+
+
   return (
     <>
       <div className="flex overflow-y-auto dark:bg-black bg-white">

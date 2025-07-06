@@ -8,6 +8,9 @@ import { Bookmark } from '../models/bookmark.model.js';
 import { Preferance } from '../models/prefrence.model.js';
 import { Following } from '../models/following.model.js';
 import { Hashtag } from '../models/hastags.model.js';
+import { emitEvent } from '../utils/socket.js';
+import { POST_LIKED } from '../utils/constants/contant.js';
+import { Notification } from '../models/notifiaction.model.js';
 
 
 const ObjectId = mongoose.Types.ObjectId ;
@@ -424,11 +427,10 @@ const BookmarkPost = async(req , res , postId) => {
 }
 
 const LikePost = async(req , res , postId , ) => {
-  const IsPostExist = await Post.findById({_id : postId})
+  const IsPostExist = await Post.findById({_id : postId}).select('author hashtags').populate('author' , 'username fullname avatar') ;
   if(!IsPostExist) return ResError(res , 400 , 'No such Post exist')
   
-  const hashtags =  IsPostExist.hashtags.slice(0 , 4) || [] ;
-  console.log(hashtags);
+  const hashtags =  IsPostExist?.hashtags.slice(0 , 4) || [] ;
   
   const IsAlreadyLiked = await Likes.exists({post : postId , user : req.user._id})
   
@@ -436,7 +438,20 @@ const LikePost = async(req , res , postId , ) => {
     await Likes.deleteOne({_id : IsAlreadyLiked._id}) ;
     ResSuccess(res , 200 ,{operation : false} )
     
-    
+    const DeletedNotifcation = await Notification.findOneAndDelete({
+      type : 'like' ,
+      post : postId ,
+      sender : req.user._id ,
+      receiver : IsPostExist.author._id 
+    }).select('_id') ;
+  
+    if(DeletedNotifcation){
+    emitEvent('notification:retract' , `user:${IsPostExist.author._id.toString()}` , {
+      type : 'like' ,
+      _id : DeletedNotifcation._id.toString() ,
+    } )
+  }
+  
     if(hashtags.length > 0){
       console.log('removed like');
       const ops = hashtags.map((h) => ({
@@ -448,13 +463,27 @@ const LikePost = async(req , res , postId , ) => {
       })
       ) ;
 
-      await Preferance.bulkWrite(ops , { ordered : false})
+     await Preferance.bulkWrite(ops , { ordered : false})
     }
     return ;
-  }else {
+
+  } else {
     await Likes.create({post : postId , user : req.user._id}) ;
     ResSuccess(res , 200 , {operation : true} )
+    console.log(IsPostExist.author._id.toString() , );
     
+   const notification = await Notification.create({
+      type : 'like' ,
+      post : postId ,
+      sender : req.user._id ,
+      receiver : IsPostExist.author._id 
+    })
+
+    //emit event to socket
+    emitEvent('notification:receive' , `user:${IsPostExist.author._id.toString()}` , notification )
+    
+    
+
     if(hashtags.length > 0){  
       console.log('added like');
       const ops = hashtags.map((h) => ({
@@ -468,7 +497,6 @@ const LikePost = async(req , res , postId , ) => {
     
       await Preferance.bulkWrite(ops , { ordered : false})
     }
-
     return ;
   }
 }

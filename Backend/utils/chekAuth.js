@@ -86,7 +86,6 @@ const checkSocketUser = (socket , next) => {
         return next(new Error('Invalid token'));
       }
       socket.user = decoded;
-      console.log(decoded);
       next();
     })
 }

@@ -83,7 +83,6 @@ const api = createApi({
     }) ,
     toggleOnPost : builder.mutation({
       query : ({id , option}) => {
-        console.log(option , id)
         return ({
         url : `/post/toggle/${id}` ,
         method : 'POST' ,

@@ -33,7 +33,18 @@ io.use(checkSocketUser) ;
 
 
 io.on('connection', (socket) => {
-  userSocketIDs.set(socket.user._id, socket.id) ;
+  console.log(`New client connected: ${socket.id}`);
+  // Store the user's socket ID
+  if (socket.user) {
+    socket.join(`user:${socket.user._id}`)
+  }
+
+  // Handle disconnection
+  socket.on('disconnect', () => {
+    console.log(`Client disconnected: ${socket.id}`)
+  });
+
+  // Handle custom events here, e.g., chat messages, notifications, etc.
 })
 
 // Middleware to parse JSON bodies

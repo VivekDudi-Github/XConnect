@@ -12,10 +12,11 @@ import CommentPage from './pages/CommentPage';
 
 
 const Auth = lazy(() => import('./pages/Auth'));
+const PostPage = lazy(() => import('./pages/PostPage'));
 const HomePage = lazy(() => import('./pages/HomePage'));
 const Profile = lazy(() => import('./pages/ProfilePage'));
+const NotificationPage = lazy(() => import('./pages/NotificationPage'));
 const ExplorePage = lazy(() => import('./pages/ExplorePage')) ;
-const PostPage = lazy(() => import('./pages/PostPage')) ;
 
 
 function App() {
@@ -60,6 +61,7 @@ useEffect(() => {
           <Route path='/explore/' element={<ExplorePage/>} />
           <Route path='/post/:id' element={<PostPage/>} />
           <Route path='/profile' element={<Profile/>} />
+          <Route path='/notifications' element={<NotificationPage/>} />
           
           <Route path='/comment/:id' element ={<CommentPage />} />
           

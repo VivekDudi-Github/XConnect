@@ -2,6 +2,7 @@ import React from 'react'
 import Layout from '../layout/Layout'
 import Feed from '../component/explore/Feed'
 import CreatePost from '../component/post/CreatePost'
+import Notification from '../component/notification/Notification'
 
 function HomePage() {
   return (

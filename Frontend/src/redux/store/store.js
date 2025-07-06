@@ -3,11 +3,13 @@ import authSlice from "../reducer/authSlice";
 
 import api from '../api/api'
 import miscSlice from "../reducer/miscSlice";
+import notificationSlice from "../reducer/notificationSlice";
 
 const store = configureStore({
   reducer: {
     auth: authSlice.reducer,
     misc : miscSlice.reducer ,
+    notification : notificationSlice.reducer ,
     [api.reducerPath] : api.reducer ,
   },
   middleware : (defaultMiddlewares) => [...defaultMiddlewares() , api.middleware ]
