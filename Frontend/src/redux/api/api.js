@@ -149,6 +149,14 @@ const api = createApi({
         credentials : 'include' ,
       })
     }) ,
+    changeNotificationStatus : builder.mutation({
+      query : ({notificationId}) => ({
+        url : `/user/me/notifications` ,
+        method : 'PATCH' ,
+        body : {notificationId : [ ...notificationId]} ,
+        credentials : 'include' ,
+      })
+    }) ,
   })
 })
 
@@ -186,4 +194,6 @@ export const {
   useToggleFollowMutation ,
   //notifcations
   useLazyGetMyNotificationsQuery ,
+  useChangeNotificationStatusMutation ,
+  
 } = api ;

@@ -17,7 +17,7 @@ export const notificationSlice = createSlice({
     addMultipleNotifications: (state, action) => {
       const newNotifications = action.payload;
       state.notifications = [...newNotifications, ...state.notifications];
-      state.unreadCount += newNotifications.filter(n => !n.isRead).length;
+      state.unreadCount += newNotifications.filter(n => n.isRead === false).length;
     },
     markAllAsRead: (state) => {
       state.notifications = state.notifications.map(n => ({ ...n, isRead: true }));

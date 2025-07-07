@@ -4,7 +4,10 @@ import bcrypt from "bcryptjs";
 import { TryCatch , ResError , ResSuccess } from "../utils/extra.js";
 import { uploadFilesTOCloudinary } from "../utils/cloudinary.js";
 import { Following } from "../models/following.model.js";
+import { emitEvent } from "../utils/socket.js";
+import { Types } from "mongoose";
 
+const ObjectId = Types.ObjectId;
 
 //update banner & dp left
 const cookieOptions = {
@@ -107,13 +110,80 @@ const logoutUser = TryCatch(async(req , res) => {
 
 const getMe = TryCatch(async (req ,res) => {
     const userId = req.user._id;
-    const user = await User.findById(userId).select("-password -refreshToken");
+    // const user = await User.findById(userId).select("-password -refreshToken");
+
+    const user = await User.aggregate([
+        {$match : {
+            _id : new ObjectId(`${userId}`) ,
+        }} ,
+        {$project : {
+            refreshToken : 0 ,
+            password : 0 ,
+        }} ,
+        {$lookup : {
+            from : 'following' ,
+            let : { userId : '$_id'} ,
+            pipeline : [
+                {$match : {
+                    $expr : {
+                        $eq : ['$followedTo' , '$$userId']
+                    }
+                }} ,
+                {$project : {
+                    followedTo : 0 ,
+                    followedBy : 0 ,
+                }}
+            ] ,
+            as : 'followers' ,
+        }} ,
+        {$lookup : {
+            from : 'following' ,
+            let : { userId : '$_id'} ,
+            pipeline : [
+                {$match : {
+                    $expr : {
+                        $eq : ['$followedBy' , '$$userId']
+                    }
+                }} ,
+                {$project : {
+                    followedTo : 0 ,
+                    followedBy : 0 ,
+                }}
+            ] ,
+            as : 'following' ,
+        }} ,
+        {$lookup : {
+            from : 'posts' ,
+            let : { userId : '$_id'} ,
+            pipeline : [
+                {$match : {
+                    $expr : {
+                        $eq : ['$author' , '$$userId'] ,
+                        $eq : ['$isDeleted' , false] ,
+                    }
+                }} ,
+                {$project : {
+                    content : 0 ,
+                    author : 0 ,
+                    createdAt : 0 ,
+                    isEdited : 0 ,
+                }}
+            ] ,
+            as : 'posts' ,
+        }} ,
+        {$addFields : {
+            followers : {$size : '$followers'} ,
+            following : {$size : '$following'} ,
+            posts : {$size : '$posts'} ,
+        }}  
+        
+    ]) ;
     
     if (!user) {
         return ResError(res, 404, "User not found");
     }
-
-    return ResSuccess(res, 200, user);
+    
+    return ResSuccess(res, 200, user[0]);
 } , 'GetMe')
 
 const updateUser = TryCatch( async(req , res) => {
@@ -184,13 +254,78 @@ const getAnotherUser = TryCatch(async(req , res) => {
     
     if(!username) return ResError(res , 400 , 'User username is required')
 
-    const user = await User.findOne({username : username}).select("-password -refreshToken");
-
+    const user = await User.aggregate([
+        {$match : {
+            username : username ,
+        }} ,
+        {$project : {
+            refreshToken : 0 ,
+            password : 0 ,
+        }} ,
+        {$lookup : {
+            from : 'following' ,
+            let : { userId : '$_id'} ,
+            pipeline : [
+                {$match : {
+                    $expr : {
+                        $eq : ['$followedTo' , '$$userId']
+                    }
+                }} ,
+                {$project : {
+                    followedTo : 0 ,
+                    followedBy : 0 ,
+                }}
+            ] ,
+            as : 'followers' ,
+        }} ,
+        {$lookup : {
+            from : 'following' ,
+            let : { userId : '$_id'} ,
+            pipeline : [
+                {$match : {
+                    $expr : {
+                        $eq : ['$followedBy' , '$$userId']
+                    }
+                }} ,
+                {$project : {
+                    followedTo : 0 ,
+                    followedBy : 0 ,
+                }}
+            ] ,
+            as : 'following' ,
+        }} ,
+        {$lookup : {
+            from : 'posts' ,
+            let : { userId : '$_id'} ,
+            pipeline : [
+                {$match : {
+                    $expr : {
+                        $eq : ['$author' , '$$userId'] ,
+                        $eq : ['$isDeleted' , false] ,
+                    }
+                }} ,
+                {$project : {
+                    content : 0 ,
+                    author : 0 ,
+                    createdAt : 0 ,
+                    isEdited : 0 ,
+                }}
+            ] ,
+            as : 'posts' ,
+        }} ,
+        {$addFields : {
+            followers : {$size : '$followers'} ,
+            following : {$size : '$following'} ,
+            posts : {$size : '$posts'} ,
+        }}  
+        
+    ])
+    
     if(!user) return ResError(res , 404 , 'User not found')
 
-    const isFollowing = await Following.exists({followedTo : user._id , followedBy : req.user._id})
+    const isFollowing = await Following.exists({followedTo : user[0]._id , followedBy : req.user._id})
 
-    return ResSuccess(res , 200 , {...user._doc , isFollowing : isFollowing ? true : false })   
+    return ResSuccess(res , 200 , {...user[0] , isFollowing : isFollowing ? true : false })   
 } ,'getAnotherUser')
 
 const changePassword = TryCatch(async(req , res) => {
@@ -226,17 +361,45 @@ const togglefollow  = TryCatch(async(req , res) => {
     const isExistFollowing = await Following.exists({followedTo : id , followedBy : req.user._id})
     
     if(isExistFollowing){
-        await Following.deleteOne({followedTo : id , followedBy : req.user._id})
+        await Following.findOneAndDelete({followedTo : id , followedBy : req.user._id})
+        
+        const notify = await Notification.findOneAndDelete({
+            type : 'follow' ,
+            sender : req.user._id ,
+            receiver : id ,
+        })
+        
+        emitEvent('notification:retract' , `user` , [`${id}`] , {
+            type : 'follow' ,
+            _id : notify._id.toString() ,
+        })
     } else {
         await Following.create({
             followedTo : id ,
             followedBy : req.user._id ,
         })
+        const notify = await Notification.create({
+            type : 'follow' ,
+            sender : req.user._id ,
+            receiver : id ,
+            isRead : false ,
+        })
+        
+        emitEvent('notification:receive' , `user` , [`${id}`] , {
+            type : 'follow' ,
+            _id : notify._id.toString() ,
+            sender : {
+                _id : req.user._id.toString() ,
+                avatar : req.user.avatar ,
+                username : req.user.username ,
+            },
+            receiver : id.toString() ,
+            isRead : false ,
+        })
     }
 
     return ResSuccess(res , 200 , {operation : isExistFollowing ? false : true })
 } , 'Toggle follow')
-
 
 const getMyNotifications = TryCatch(async(req , res) => {
     const notifications = await Notification.find({receiver : req.user._id}).populate('sender' , 'avatar fullname username') ;
@@ -244,6 +407,31 @@ const getMyNotifications = TryCatch(async(req , res) => {
     
     return ResSuccess(res , 200 , notifications) ;
 } , 'get notification' )
+
+const changeMYNotificationStatus = TryCatch(async(req , res) => {
+    const {notificationId = []} = req.body ;
+    const notification = await Notification.findById(notificationId) ;
+    console.log(notificationId);
+    
+    if(notificationId.length === 0 || !notification) return ResError(res , 400 , 'Notification id is required')
+    
+    if(!notification.receiver.equals(req.user._id)) return ResError(res , 400 , 'You are not the receiver of this notification')
+
+    const ops = notificationId.map(id => ({
+        updateOne : {
+            filter : {_id : id} ,
+            update : {
+                $set : {
+                    isRead : true ,
+                }
+            }
+        }
+    }))
+
+    await Notification.bulkWrite(ops , { ordered : false})
+    
+    return ResSuccess(res , 200 , 'Notification status changed') ;
+} , 'changeMYNotificationStatus')
 
 
 export {
@@ -256,6 +444,7 @@ export {
     getAnotherUser ,
     changePassword ,
     togglefollow ,
-    getMyNotifications ,
 
+    getMyNotifications ,
+    changeMYNotificationStatus
 }

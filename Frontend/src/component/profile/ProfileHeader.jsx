@@ -21,6 +21,7 @@ function ProfileHeader() {
   const [followToggleMutation , {isLoading : followIsLoading} ] = useToggleFollowMutation() ;
   const {data ,isError , error , isLoading}  = useGetProfileQuery(username , {skip : !username})
 
+
   useEffect(() => {
     if(data && username) {
       setUser(data?.data) ; 
@@ -84,9 +85,9 @@ function ProfileHeader() {
             )}</p>
             <p className="mt-2 text-gray-700 dark:hover:text-gray-200 dark:text-gray-500">{user?.bio}</p>
             <div className="flex gap-6 mt-4 text-sm text-gray-700 dark:text-gray-500">
-              <span><strong className='dark:text-gray-300'>132</strong> Posts</span>
-              <span><strong className='dark:text-gray-300'>1.2k</strong> Followers</span>
-              <span><strong className='dark:text-gray-300'>450</strong> Following</span>
+              <span><strong className='dark:text-gray-300'>{user?.posts}</strong> Posts</span>
+              <span><strong className='dark:text-gray-300'>{user?.followers}</strong> Followers</span>
+              <span><strong className='dark:text-gray-300'>{user?.following}</strong> Following</span>
             </div>
             {user.username === userProfile?.username ? (
               <button 

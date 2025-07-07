@@ -4,6 +4,7 @@ const watchHistorySchema = new mongoose.Schema({
   post : {
     type : mongoose.Types.ObjectId ,
     ref : 'post' ,
+    required : true ,
   } ,
   user : {
     type : mongoose.Types.ObjectId ,
@@ -14,3 +15,5 @@ const watchHistorySchema = new mongoose.Schema({
 
   
 } , {timestamps : true})
+
+export const WatchHistory = mongoose.model('watchHistory' , watchHistorySchema)

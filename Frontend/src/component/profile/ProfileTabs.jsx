@@ -11,6 +11,7 @@ import lastRefFunc from '../specific/LastRefFunc';
 import {setisDeleteDialog} from '../../redux/reducer/miscSlice';
 import { deletePostFunc } from '../shared/SharedFun';
 import { useParams } from 'react-router-dom';
+import { set } from 'mongoose';
 
 
 
@@ -55,11 +56,17 @@ function ProfileTabs() {
 
 useEffect(() =>{ return () => observer.current?.disconnect()} , [])
 
+
+
 useEffect(() => {
-  if(page === 1){
-    fetchMorePost({page : 1 , tab : activeTab , username : username}) ; 
-  }
-}, [])
+  setPage(1);
+  setPosts([]) ;
+  setTotalPages(1);
+  
+  fetchMorePost({page : 1 , tab : activeTab , username : username}) ; 
+  
+}, [activeTab])
+
 
 useEffect(() => {
   if(isError){

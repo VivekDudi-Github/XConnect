@@ -91,13 +91,13 @@ const createComment  = TryCatch( async (req , res ) => {
     .map(u => u._id.toString())
     .filter(id => id !== req.user._id.toString()) ;
     
-    const ops = mentionsIds.map(id => ({
+    const ops = mentionsIds.map(mentionsId => ({
       insertOne: {
         document: {
           type: 'mention',
           post: id,
           sender: req.user._id,
-          receiver: id,
+          receiver: mentionsId,
           comment_Id : comment._id ? comment._id.toString() : null ,
         }
       }

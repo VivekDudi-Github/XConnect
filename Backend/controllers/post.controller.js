@@ -7,10 +7,9 @@ import {ResError , ResSuccess ,TryCatch} from '../utils/extra.js'
 import { Bookmark } from '../models/bookmark.model.js';
 import { Preferance } from '../models/prefrence.model.js';
 import { Following } from '../models/following.model.js';
-import { Hashtag } from '../models/hastags.model.js';
 import { emitEvent } from '../utils/socket.js';
-import { POST_LIKED } from '../utils/constants/contant.js';
 import { Notification } from '../models/notifiaction.model.js';
+import { WatchHistory } from '../models/watchHistory.model.js';
 
 
 const ObjectId = mongoose.Types.ObjectId ;
@@ -48,7 +47,46 @@ const createPost = TryCatch( async(req , res) => {
   })
   if(!post) return ResError(res , 500 , 'Post could not be created.')
     
-  return ResSuccess(res , 200 , post)
+  ResSuccess(res , 200 , post)
+
+
+  if(mentions.length > 0){
+    const user = await User.find({username : {
+      $in : mentions
+    }}).select('_id')
+  
+    const mentionsIds = user
+    .map(u => u._id.toString())
+    .filter(id => id !== req.user._id.toString()) ;
+    
+    const ops = mentionsIds.map(mentionId => ({
+      insertOne: {
+        document: {
+          type: 'mention',
+          post: post._id,
+          sender: req.user._id,
+          receiver: mentionId,
+        }
+      }
+    }));
+  
+    await Notification.bulkWrite(ops , { ordered : false})
+    
+    mentionsIds.forEach(userId => {
+      emitEvent('notification:receive' , `user` , [`${userId}`] , {
+        type : 'mention' ,
+        post : post._id ,
+        sender : {
+          avatar : req.user.avatar ,
+          username : req.user.username ,
+          _id : req.user._id ,
+        } ,
+      })
+    })
+
+  }
+
+  return ;
 
 } , 'CreatePost' ) 
 
@@ -105,7 +143,7 @@ const editPost = TryCatch(async(req , res) => {
 
 } , 'editPost')
 
-const getPost = TryCatch(async(req , res) => {
+const getPost = TryCatch(async(req , res) => { 
   const {id} = req.params;
   
   if(!id) return ResError(res , 400 , 'Post ID is required.')
@@ -246,7 +284,13 @@ const getPost = TryCatch(async(req , res) => {
 
   if(post.length === 0) return ResError(res , 404 , 'Post not found.')
 
-  return ResSuccess(res , 200 , post[0])
+  ResSuccess(res , 200 , post[0])
+
+  await WatchHistory.create({
+    post : post[0]._id ,
+    user : req.user._id ,
+  })
+
 }, 'GetPost')
 
 const getUserPosts = TryCatch(async(req , res) => {
@@ -261,10 +305,26 @@ const getUserPosts = TryCatch(async(req , res) => {
     id = req.user._id ;
   }
   
+  let data ;
+
+ if(tab === 'Replies'){
+  data = await fetchRepliesTab (req  , res , id , tab , limit , skip)
+ }else {
+  data = await fetchPostsTabs(req , res , id , tab , limit , skip) ;
+ }
+ 
+
+ if(!data || !data.posts ){
+  return ResError(res , 400 , 'Something went wrong while fetching posts.')
+ }
+  
+  return ResSuccess(res, 200, {posts : data.posts  , totalPages : data.totalPages});
+} , 'get User Posts')
+
+const fetchPostsTabs = async(req , res ,id , tab , limit , skip) => {
   const totalPost  = await Post.countDocuments({author : id}) ;
   const totalPages = Math.ceil(totalPost/limit) ;
   
-
   const posts = await Post.aggregate([
     {$match : {
       author :  new ObjectId(`${id}`) ,
@@ -376,11 +436,15 @@ const getUserPosts = TryCatch(async(req , res) => {
 
   ])
 
-  
-  return ResSuccess(res, 200, {posts  , totalPages});
-} , 'get User Posts')
+  return {posts , totalPages};
+}
 
-const toggleOnPost  = TryCatch(async(req , res) => {
+const fetchRepliesTab = async(req , res , id , tab , limit , skip) => {
+
+
+}
+
+const toggleOnPost = TryCatch(async(req , res) => {
   const {id} = req.params ;
   const {option} = req.body ;
 
@@ -504,7 +568,6 @@ const LikePost = async(req , res , postId , ) => {
     return ;
   }
 }
-
 
 const fetchFeedPost = TryCatch( async(req , res) => {
   //post from least last 3 days, post from followers , post from preferances
