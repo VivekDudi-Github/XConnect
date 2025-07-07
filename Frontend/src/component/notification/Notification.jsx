@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import NotificationItem from "./NotitficationItem";
 import NotificationSkeleton from "../shared/NotificationSkeleton";
+import { useDispatch, useSelector } from "react-redux";
+import { addMultipleNotifications,  markAllAsRead } from "../../redux/reducer/notificationSlice";
 
 export const mockNotifications = [
   {
@@ -79,37 +81,32 @@ export const mockNotifications = [
 
 
 export default function Notification() {
-  const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(true);
+ const dispatch = useDispatch() ;
+
+  const { notifications } = useSelector(state => state.notification);
+  const [loading, setLoading] = useState(false);
 
   
+  useEffect(() => {
+    const func = () => {
+    if(notifications.length > 0){
+      dispatch(markAllAsRead())
+    }}
+    return func() ;
+  } , []);
 
-  // useEffect(() => {
-  //   const loadNotifications = async () => {
-  //     try {
-  //       // const data = await fetchNotifications();
-  //       setNotifications(data);
-  //     } catch (err) {
-  //       console.error("Failed to load notifications:", err);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   loadNotifications();
-  // }, []);
 
   return (
     <div className="max-w-xl mx-auto p-4 dark:bg-black">
       <h2 className="text-2xl font-bold mb-4">Notifications</h2>
-      {!loading ? (
+      {loading ? (
         <NotificationSkeleton count={5} />
-      ) : mockNotifications.length === 0 ? (
-        <p className="text-gray-500">No notifications yet.</p>
+      ) : notifications.length === 0 ?  (
+        <p className="text-gray-500 w-full text-center">No notifications yet.</p>
       ) : (
-        <ul className="space-y-3 ">
-          {mockNotifications.map((notif) => (
-            <NotificationItem key={notif._id} notification={notif} />
+        <ul className="space-y-4 ">
+          {notifications.map((notif) => (
+            <NotificationItem  key={notif._id} notification={notif} />
           ))}
         </ul>
       )}

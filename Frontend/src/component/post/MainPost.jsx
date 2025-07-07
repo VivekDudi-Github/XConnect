@@ -199,7 +199,6 @@ export default function PostViewPage() {
             <BarChart2 size={16} className=' text-cyan-600' /> 
             500 views
           </div>
-
-    </div>
+      </div>
   );
 }

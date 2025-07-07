@@ -19,7 +19,6 @@ dotenv.config() ;
 
 const app = express() ;
 const newServer = createServer(app)
-const userSocketIDs = new Map ;
 
 const io = new Server(newServer ,{
    cors : {

@@ -2,12 +2,14 @@ import React , {useEffect} from 'react'
 import Sidebar from './Sidebar'
 import BottomBar from './BottomBar'
 import { useSocket } from '../component/specific/socket';
-import { useDispatch } from 'react-redux';
-import { addNotification, removeNotification } from '../redux/reducer/notificationSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { addMultipleNotifications, addNotification, changeIsNotificationfetched, removeNotification } from '../redux/reducer/notificationSlice';
+import {  useLazyGetMyNotificationsQuery } from '../redux/api/api';
 
 
 function Layout({children}) {
 const dispatch = useDispatch() ;
+const {isNotificationfetched} = useSelector(state => state.notification);
 
   const socket = useSocket();
   useEffect(() => {
@@ -31,6 +33,31 @@ const dispatch = useDispatch() ;
     }
   } , [socket])
 
+
+  
+  const [ fetchNotifications , {isError , error , data}] = useLazyGetMyNotificationsQuery() ;
+  
+  useEffect(() => {
+    if(isNotificationfetched === false){
+      fetchNotifications();
+    }
+  } , [])
+
+  useEffect(() => {
+    if(data && data.data){
+      console.log('fectchNotifications');
+      dispatch(changeIsNotificationfetched(true))
+      dispatch(addMultipleNotifications(data.data)) ;
+    }
+  } , [data]) ;
+
+  useEffect(() => {
+    if(isError){
+      setLoading(false);
+      console.error("Error fetching notifications:", error);
+    }
+  } , [isError]) ;
+  
 
   return (
     <>

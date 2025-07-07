@@ -19,4 +19,6 @@ router.get('/:id' , checkUser , getPost);
 router.patch('/:id' , checkUser , uploadFiles , editPost); 
 router.delete('/:id' , checkUser , deletePost);
 
+
+
 export default router;

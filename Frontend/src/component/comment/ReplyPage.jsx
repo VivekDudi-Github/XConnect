@@ -12,7 +12,7 @@ import { useLazyGetACommentQuery, useLazyGetCommentQuery, usePostCommentMutation
 import { useSelector } from 'react-redux';
 
 
-function ReplyPage() {
+function ReplyPage({comment_id}) {
   const {id} = useParams();
   const {user} = useSelector(state => state.auth) ;
   const observer = useRef() ;
@@ -98,8 +98,8 @@ function ReplyPage() {
 console.log(replies);
 
   useEffect(() => {
-    if(id){
-      refetchMainComment({id}) ;
+    if(comment_id || id){
+      refetchMainComment({id : comment_id || id}) ;
     }
   } , [id]) ;
 

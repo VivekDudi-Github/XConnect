@@ -20,7 +20,7 @@ export default function BottomNav() {
         <NavLink
           key={item.name}
           to={item.path}
-          className="flex flex-col items-center relative dark:text-gray-300 text-gray-600 hover:text-purple-600"
+          className="flex flex-col items-center relative dark:text-gray-300 text-slate-600 hover:text-purple-600"
         >
           {item.icon}
           <span className="text-xs">{item.name}</span>

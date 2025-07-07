@@ -39,7 +39,7 @@ const checkUser = (req, res , next) => {
                                 message : "Unauthenticated request , please relogin."
                             });
                         } else{
-                            const user = await User.findById(decoded._id).select("username _id role");
+                            const user = await User.findById(decoded._id).select("username _id avatar role");
                             const accessToken = user.generateAccessToken();
                             const refreshToken = user.generateRefreshToken();
                             user.refreshToken = refreshToken;

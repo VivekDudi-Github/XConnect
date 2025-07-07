@@ -42,7 +42,6 @@ function ProfileTabs() {
     lastRefFunc({
       observer , 
       node , 
-      username ,
       isLoading , 
       page ,
       activeTab ,

@@ -1,4 +1,5 @@
 import { User } from "../models/user.model.js";
+import { Notification } from "../models/notifiaction.model.js";
 import bcrypt from "bcryptjs";
 import { TryCatch , ResError , ResSuccess } from "../utils/extra.js";
 import { uploadFilesTOCloudinary } from "../utils/cloudinary.js";
@@ -151,7 +152,11 @@ const updateUser = TryCatch( async(req , res) => {
         banner : bannerResults ? bannerResults[0] : undefined ,
         hobby ,
     }, { new : true , omitUndefined : true , runValidators: true  }).select("-password -refreshToken");
-
+    
+    if(avatarResults){
+        const accessToken = user.generateAccessToken();
+        res.cookie('accessToken', accessToken, {...cookieOptions , maxAge: 30 * 60 * 1000});
+    }
     return ResSuccess(res , 200 , user)
 
 } , 'updateProfile')
@@ -233,6 +238,14 @@ const togglefollow  = TryCatch(async(req , res) => {
 } , 'Toggle follow')
 
 
+const getMyNotifications = TryCatch(async(req , res) => {
+    const notifications = await Notification.find({receiver : req.user._id}).populate('sender' , 'avatar fullname username') ;
+    console.log(notifications);
+    
+    return ResSuccess(res , 200 , notifications) ;
+} , 'get notification' )
+
+
 export {
     registerUser ,
     loginUser ,
@@ -243,4 +256,6 @@ export {
     getAnotherUser ,
     changePassword ,
     togglefollow ,
+    getMyNotifications ,
+
 }

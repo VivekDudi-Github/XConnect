@@ -1,13 +1,15 @@
 import { io } from "../app.js";
 
-const emitEvent = (eventName, room, data) => {
+const emitEvent = (eventName,  room , id = [] , data) => { 
   if (!eventName || !room) {
     console.warn("emitEvent: Missing eventName or room.");
     return;
   }
   console.log( eventName ,'emiited');
   
-  io.to(room).emit(eventName, data);
+  if (id.length > 0 ){
+    id.forEach( i => io.to(`${room}:${id}`).emit(eventName , data)); 
+  }
 };
 
 export { emitEvent };

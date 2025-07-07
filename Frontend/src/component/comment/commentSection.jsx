@@ -16,7 +16,7 @@ import { useParams } from 'react-router-dom';
 import lastRefFunc from '../specific/LastRefFunc';
 import { useSelector } from 'react-redux';
 
-export default function CommentSection() {
+export default function CommentSection({comment_Id}) {
   const {id} = useParams();
   const observer = useRef();
 

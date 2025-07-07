@@ -16,16 +16,16 @@ const notificationSchema = new Schema(
     },
     type: {
       type: String,
-      enum: ['like', 'comment', 'follow', 'repost'],
+      enum: ['like', 'comment', 'follow', 'repost' ,'mention'],
       required: true,
     },
     post: {
       type: Schema.Types.ObjectId,
       ref: 'Post',
     },
-    reply: {
+    comment_Id: {
       type: Schema.Types.ObjectId,
-      ref: 'Reply',
+      ref: 'Comment',
     },
     isRead: {
       type: Boolean,

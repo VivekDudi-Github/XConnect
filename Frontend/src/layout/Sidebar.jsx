@@ -20,9 +20,6 @@ const navItems = [
 
 export default function Sidebar() {
   const {unreadCount} = useSelector(state => state.notification) ;
-console.log(unreadCount);
-  // const unreadCount = '9' ; 
-
   return (
     <nav className="p-4 space-y-3 dark:bg-black dark:text-gray-200 shadow-lg h-full shadow-black">
       {navItems.map(item => (

@@ -142,6 +142,13 @@ const api = createApi({
         credentials : 'include' ,
       })
     }) ,
+    //notification 
+    getMyNotifications : builder.query({
+      query : () => ({
+        url : '/user/me/notifications' ,
+        credentials : 'include' ,
+      })
+    }) ,
   })
 })
 
@@ -177,4 +184,6 @@ export const {
 
   //follow
   useToggleFollowMutation ,
+  //notifcations
+  useLazyGetMyNotificationsQuery ,
 } = api ;

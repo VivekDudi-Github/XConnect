@@ -3,6 +3,9 @@ import {Comment} from '../models/comment.model.js' ;
 import { Post } from '../models/post.model.js';
 import { Likes } from '../models/likes.modal.js';
 import mongoose from 'mongoose';
+import { User } from '../models/user.model.js';
+import { Notification } from '../models/notifiaction.model.js';
+import { emitEvent } from '../utils/socket.js';
 
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -17,15 +20,16 @@ const createComment  = TryCatch( async (req , res ) => {
   if(content && typeof content !== 'string') return ResError(res , 400 ,'Content data is invalid')  
   if(mentions && !Array.isArray(mentions)) return ResError(res , 400 , 'Mention data is invalid ')  
     
-  const isExistPost = await Post.exists({_id : id})
+  const isExistPost = await Post.findOne({_id : id}).select('author').populate('author' , 'username fullname avatar') ;
   if(!isExistPost) return ResError(res , 400 , 'Post not found')
+
+  let isExistComment = null ;
 
   if(comment_id ){
     if(!ObjectId.isValid(comment_id)) return  ResError(res , 400 , 'Invalid replying Id') ;
-    const isExistComment = await Comment.exists({_id : comment_id})
+    isExistComment = await Comment.findOne({_id : comment_id}).select('user')
     if(!isExistComment) return  ResError(res , 400 , 'Invalid replying Id') ;
   }
-
 
   const comment = await Comment.create({
     post : id ,
@@ -35,7 +39,88 @@ const createComment  = TryCatch( async (req , res ) => {
     replyTo : comment_id ? 'comment' : 'post' ,
     comment_id :  comment_id ? comment_id : null ,
   } )
-  return ResSuccess(res ,200 , comment)
+
+  ResSuccess(res ,200 , comment) ;
+
+  if(!comment_id){
+    const notif = await Notification.create({
+      type : 'comment' ,
+      post : id ,
+      sender : req.user._id , 
+      receiver : isExistPost.author._id ,
+      comment_Id : comment._id.toString()
+    })
+    emitEvent('notification:receive' , `user` , [`${isExistPost.author._id.toString()}`] , {
+      _id : notif._id ,
+      type : 'comment' ,
+      post : id ,
+      comment_Id : comment._id.toString() ,
+      sender : {
+        avatar : req.user.avatar ,
+        username : req.user.username ,
+        _id : req.user._id ,
+      } ,
+    })
+  } else {
+    const notif = await Notification.create({
+      type : 'reply' ,
+      post : id ,
+      sender : req.user._id ,
+      comment_Id : comment._id ,
+      receiver : isExistComment.user ,
+    })
+    emitEvent('notification:receive' , `user` , [`${isExistComment.user.toString()}`] , {
+      _id : notif._id ,
+      type : 'reply' ,
+      post : id ,
+      comment_Id : comment._id.toString() ,
+      sender : {
+        avatar : req.user.avatar ,
+        username : req.user.username ,
+        _id : req.user._id ,
+      } ,
+    })
+  }
+  
+  if(mentions.length > 0){
+    const user = await User.find({username : {
+      $in : mentions
+    }}).select('_id')
+  
+    const mentionsIds = user
+    .map(u => u._id.toString())
+    .filter(id => id !== req.user._id.toString()) ;
+    
+    const ops = mentionsIds.map(id => ({
+      insertOne: {
+        document: {
+          type: 'mention',
+          post: id,
+          sender: req.user._id,
+          receiver: id,
+          comment_Id : comment._id ? comment._id.toString() : null ,
+        }
+      }
+    }));
+  
+    await Notification.bulkWrite(ops , { ordered : false})
+    
+    mentionsIds.forEach(userId => {
+      emitEvent('notification:receive' , `user` , [`${userId}`] , {
+        type : 'mention' ,
+        post : id ,
+        comment_Id : comment._id? comment._id.toString() : null ,
+        sender : {
+          avatar : req.user.avatar ,
+          username : req.user.username ,
+          _id : req.user._id ,
+        } ,
+      })
+    })
+
+  }
+
+  return ;
 
 } , 'createComment')
 
@@ -322,7 +407,7 @@ const getSingleComment = TryCatch(async (req , res) => {
   if(comment.length === 0) return ResError(res , 404 , 'Comment not found') ;
   return ResSuccess(res , 200 , comment[0]) ;
 
-} , 'get Comment')
+} , 'get single Comment')
 
 export {
   createComment ,

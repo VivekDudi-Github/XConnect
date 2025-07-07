@@ -442,11 +442,11 @@ const LikePost = async(req , res , postId , ) => {
       type : 'like' ,
       post : postId ,
       sender : req.user._id ,
-      receiver : IsPostExist.author._id 
+      receiver : IsPostExist.author._id ,  
     }).select('_id') ;
   
     if(DeletedNotifcation){
-    emitEvent('notification:retract' , `user:${IsPostExist.author._id.toString()}` , {
+    emitEvent('notification:retract' , `user` , [`${IsPostExist.author._id.toString()}`] , {
       type : 'like' ,
       _id : DeletedNotifcation._id.toString() ,
     } )
@@ -471,16 +471,20 @@ const LikePost = async(req , res , postId , ) => {
     await Likes.create({post : postId , user : req.user._id}) ;
     ResSuccess(res , 200 , {operation : true} )
     console.log(IsPostExist.author._id.toString() , );
-    
+
    const notification = await Notification.create({
       type : 'like' ,
       post : postId ,
       sender : req.user._id ,
-      receiver : IsPostExist.author._id 
+      receiver : IsPostExist.author._id ,
     })
 
     //emit event to socket
-    emitEvent('notification:receive' , `user:${IsPostExist.author._id.toString()}` , notification )
+    emitEvent('notification:receive' , `user` , [`${IsPostExist.author._id.toString()}`] , {...notification._doc , sender : {
+      _id : req.user._id ,
+      username : req.user.username ,
+      avatar : req.user.avatar ,
+    }} ) 
     
     
 
@@ -607,7 +611,7 @@ const fetchFeedPost = TryCatch( async(req , res) => {
   return ResSuccess (res , 200 , posts)
 
 } , 'fetchFeedPosts')
-
+ 
 const fetchExplorePost = TryCatch(async(req , res) => {
 
   const posts = await Post.aggregate([
