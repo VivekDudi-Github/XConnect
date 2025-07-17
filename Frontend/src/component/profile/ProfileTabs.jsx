@@ -11,8 +11,6 @@ import lastRefFunc from '../specific/LastRefFunc';
 import {setisDeleteDialog} from '../../redux/reducer/miscSlice';
 import { deletePostFunc } from '../shared/SharedFun';
 import { useParams } from 'react-router-dom';
-import { set } from 'mongoose';
-
 
 
 

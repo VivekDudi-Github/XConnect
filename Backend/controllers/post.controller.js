@@ -187,7 +187,7 @@ const getPost = TryCatch(async(req , res) => {
     }} ,
     //repost
     {$lookup : {
-      from : 'reposts' ,
+      from : 'posts' ,
       let : {'repostsId' : '$repost' } ,
       pipeline : [
         {$match : {
@@ -198,6 +198,33 @@ const getPost = TryCatch(async(req , res) => {
               {$eq : ['$visiblity' , 'public']} ,
             ]
           }
+        }} ,
+        //repost-author
+        {
+          $lookup: {
+            from: 'users',
+            let: { userId: '$author' },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $eq: ['$_id', '$$userId'],
+                  },
+                },
+              },
+              {
+                $project: {
+                  avatar: 1,
+                  username: 1,
+                  fullname: 1,
+                },
+              },
+            ],
+            as: 'authorDetails',
+          },
+        },
+        {$addFields : {
+          author : {$arrayElemAt: ['$authorDetails' , 0]} ,
         }} ,
         {$project : {
           author : 1 ,
@@ -286,16 +313,18 @@ const getPost = TryCatch(async(req , res) => {
 
   ResSuccess(res , 200 , post[0])
 
-  await WatchHistory.create({
-    post : post[0]._id ,
-    user : req.user._id ,
-  })
+  if( !post[0].author._id.equals(req.user._id)){
+    await WatchHistory.create({
+      post : post[0]._id ,
+      user : req.user._id ,
+    }) ;
+  }
 
 }, 'GetPost')
 
 const getUserPosts = TryCatch(async(req , res) => {
   const {page = 1 , username , limit = 2 , tab = 'Posts'} = req.query;
-  const skip = (page - 1) * limit;  
+  const skip = (page - 1) * limit;
 
   const user = await User.exists({username : username}) ;
   let id ;
@@ -304,17 +333,29 @@ const getUserPosts = TryCatch(async(req , res) => {
   }else {
     id = req.user._id ;
   }
-  
+   
   let data ;
 
- if(tab === 'Replies'){
-  data = await fetchRepliesTab (req  , res , id , tab , limit , skip)
- }else {
-  data = await fetchPostsTabs(req , res , id , tab , limit , skip) ;
- }
- 
+  switch (tab) {
+    case 'Posts':
+      data = await fetchPostsTabs(req , res , id , tab , limit , skip) ;
+      break;
+    case 'Replies':
+      data = await fetchReplies(req , res , id , tab , limit , skip) ;
+      break ;
+    case 'Likes':
+      data = await fetchLikes(req , res , id , tab , limit , skip) ;
+      break;
+    case 'History':
+      data = await fetchHistory(req , res , id , tab , limit , skip) ;
+      break;
+    default:
+      return ResError(res , 400 , 'Invalid tab option provided.') ;
+      break;
+  }
 
- if(!data || !data.posts ){
+
+ if(!data || !data.posts || data.posts.length === 0 ){
   return ResError(res , 400 , 'Something went wrong while fetching posts.')
  }
   
@@ -335,7 +376,7 @@ const fetchPostsTabs = async(req , res ,id , tab , limit , skip) => {
     }} ,
     { $skip : skip} ,
     { $limit : limit} ,
-
+    //author details
     {$lookup : {
       from : 'users' ,
       let : { userId : new ObjectId(`${id}`)} ,
@@ -356,8 +397,8 @@ const fetchPostsTabs = async(req , res ,id , tab , limit , skip) => {
         }
       ] ,
       as : 'authorDetails'
-    }} ,
-
+    }} , 
+    //repost
     {$lookup : {
       from : 'reposts' ,
       let : {'repostsId' : '$repost' } ,
@@ -367,7 +408,32 @@ const fetchPostsTabs = async(req , res ,id , tab , limit , skip) => {
             $eq : [ '$_id' , '$$repostsId']
           }
         }} ,
-      ] , 
+        {$lookup : {
+          from : 'users' ,
+          let : { userId : '$author' } ,
+          pipeline : [
+            {
+              $match : {
+                $expr : {
+                  $eq : [ '$_id' , '$$userId']
+                }
+              }
+            } ,
+            {
+              $project : {
+                avatar : 1 ,
+                username : 1 ,
+                fullname : 1 ,
+              }
+            }
+          ] ,
+          as : 'authorDetails'
+        }} ,
+        {$addFields : {
+          author : $authorDetails 
+        }} ,
+        {$unwind : '$author'}
+      ] ,
       as : 'repostDetails'
     }} ,
 
@@ -438,10 +504,91 @@ const fetchPostsTabs = async(req , res ,id , tab , limit , skip) => {
 
   return {posts , totalPages};
 }
+const fetchReplies = async(req , res , id , limit , skip) => {
+  const totalPost  = await Comment.countDocuments({author : id}) ;
+  const totalPages = Math.ceil(totalPost/limit) ;
+  
 
-const fetchRepliesTab = async(req , res , id , tab , limit , skip) => {
 
+}
+const fetchHistory = async(req , res , id , limit , skip) => {
+  const totalPost  = await Post.countDocuments({author : id}) ;
+  const totalPages = Math.ceil(totalPost/limit) ;
+  
+  const posts = await WatchHistory.aggregate([
+    {$match : {
+      user : new ObjectId(`${id}`) ,
+    }} ,
+    {$sort : {
+      createdAt : -1 
+    }} ,
+    { $skip : skip} ,
+    { $limit : limit} ,
 
+    {$lookup : {
+      from : 'posts' ,
+      localField : 'post' ,
+      foreignField : '_id' ,
+      as : 'postDetails' ,
+    }} ,
+
+    {$unwind: { path: "$postDetails", preserveNullAndEmptyArrays: true } },
+
+    {$project : {
+      postDetails : 1 ,
+      createdAt : 1 ,
+    }}
+  ])
+
+  return {posts , totalPages} ;
+}
+const fetchLikes = async(req , res , id , limit , skip) => {
+  const totalPost  = await Post.countDocuments({author : id}) ;
+  const totalPages = Math.ceil(totalPost/limit) ;
+  
+  const posts = await Likes.aggregate([
+    {$match : {
+      user : new ObjectId(`${id}`) ,
+      post : {$ne : null} , 
+    }} ,
+    {$sort : {
+      createdAt : -1 
+    }} ,
+    { $skip : skip} ,
+    { $limit : limit} ,
+
+    {$lookup : {
+      from : 'posts' ,
+      let : { postId : '$post'} ,
+      pipeline : [
+        {$match : {
+          $expr : {
+            $eq : [ '$_id' , '$$postId']
+          }
+        }} ,
+      ] ,
+      as : 'postDetails' ,
+    }} ,
+
+    {$unwind: { path: "$postDetails", preserveNullAndEmptyArrays: true } },
+
+    {$lookup : {
+      from : 'users' ,
+      localField : 'postDetails.author' ,
+      foreignField : '_id' ,
+      as : 'authorDetails' ,
+    }} ,
+
+    {$addFields : {
+      author : {$arrayElemAt: ['$authorDetails' , 0]} ,
+    }} ,
+
+    {$project : {
+      postDetails : 1 ,
+      author : 1 ,
+      createdAt : 1 ,
+    }}
+  ])
 }
 
 const toggleOnPost = TryCatch(async(req , res) => {
@@ -712,4 +859,5 @@ export {
 
   fetchFeedPost ,
   fetchExplorePost ,
+
 }
