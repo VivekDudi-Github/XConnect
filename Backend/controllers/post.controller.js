@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { Comment } from '../models/comment.model.js';
 import { Likes } from '../models/likes.modal.js';
 import {Post} from '../models/post.model.js'
 import {User} from '../models/user.model.js'
@@ -322,6 +323,7 @@ const getPost = TryCatch(async(req , res) => {
 
 }, 'GetPost')
 
+
 const getUserPosts = TryCatch(async(req , res) => {
   const {page = 1 , username , limit = 2 , tab = 'Posts'} = req.query;
   const skip = (page - 1) * limit;
@@ -341,13 +343,13 @@ const getUserPosts = TryCatch(async(req , res) => {
       data = await fetchPostsTabs(req , res , id , tab , limit , skip) ;
       break;
     case 'Replies':
-      data = await fetchReplies(req , res , id , tab , limit , skip) ;
+      data = await fetchReplies(req , res , id , limit , skip) ;
       break ;
     case 'Likes':
-      data = await fetchLikes(req , res , id , tab , limit , skip) ;
+      data = await fetchLikes(req , res , id , limit , skip) ;
       break;
     case 'History':
-      data = await fetchHistory(req , res , id , tab , limit , skip) ;
+      data = await fetchHistory(req , res , id , limit , skip) ;
       break;
     default:
       return ResError(res , 400 , 'Invalid tab option provided.') ;
@@ -356,8 +358,9 @@ const getUserPosts = TryCatch(async(req , res) => {
 
 
  if(!data || !data.posts || data.posts.length === 0 ){
-  return ResError(res , 400 , 'Something went wrong while fetching posts.')
+  return ;
  }
+  console.log(data.posts[0]);
   
   return ResSuccess(res, 200, {posts : data.posts  , totalPages : data.totalPages});
 } , 'get User Posts')
@@ -430,7 +433,7 @@ const fetchPostsTabs = async(req , res ,id , tab , limit , skip) => {
           as : 'authorDetails'
         }} ,
         {$addFields : {
-          author : $authorDetails 
+          author : '$authorDetails' 
         }} ,
         {$unwind : '$author'}
       ] ,
@@ -453,7 +456,7 @@ const fetchPostsTabs = async(req , res ,id , tab , limit , skip) => {
       ] ,
       as : 'userLike'
     }} ,
-
+    //userBookmark
     {$lookup : {
       from : 'bookmarks' ,
       let : {'postId' : '$_id'} ,
@@ -471,13 +474,21 @@ const fetchPostsTabs = async(req , res ,id , tab , limit , skip) => {
       ] , 
       as : 'userBookmark'
     }} ,
-
+    //totalLike
     {$lookup : {
       from : 'likes' ,
       localField : '_id' ,
       foreignField : 'post' ,
       as : 'likesArray' ,
     }} ,
+    //totalComments
+    {$lookup : {
+      from : 'comments' ,
+      localField : '_id' ,
+      foreignField : 'post' ,
+      as : 'totalComments' ,
+    }} ,
+
 
     {$addFields : {
       isBookmarked : { $gt : [{ $size : '$userBookmark'} , 0 ]} ,
@@ -485,6 +496,7 @@ const fetchPostsTabs = async(req , res ,id , tab , limit , skip) => {
       likeCount :{ $size : '$likesArray'} , 
       repost : '$repostDetails' , 
       author : '$authorDetails' ,
+      commentCount : {$size : '$totalComments'} ,
     }} ,
     
     {$project : {
@@ -525,19 +537,82 @@ const fetchHistory = async(req , res , id , limit , skip) => {
     { $skip : skip} ,
     { $limit : limit} ,
 
+    //main-post
     {$lookup : {
       from : 'posts' ,
-      localField : 'post' ,
-      foreignField : '_id' ,
+      let : { postId : '$post'} ,
+      pipeline : [
+        {$match : {
+          $expr : {
+            $eq : [ '$_id' , '$$postId']
+          }
+        }} ,
+        //author
+        {$lookup : {
+          from : 'users' , 
+          let : {userId : '$author'} ,
+          pipeline : [
+            {$match : {
+              $expr : {
+                $eq : ['$_id' , '$$userId']
+              }
+            }} , 
+            {$project : {
+              avatar : 1 ,
+              username : 1 ,
+              fullname : 1
+            }}
+          ] , 
+          as : 'authorDetails'
+        }} , 
+        //repost
+        {$lookup : {
+          from : 'posts' ,
+          let : {postId : '$repost'} ,
+          pipeline : [
+            {$match : {
+              $expr : {
+                $eq : ['$_id' , '$$postId']
+              }
+            }} , 
+            //repost author
+            {$lookup : {
+              from : 'users' , 
+              let : {userId : '$author'} ,
+              pipeline : [
+                {$match : {
+                  $expr : {
+                    $eq : ['$_id' , '$$userId']
+                  }
+                }} , 
+                {$project : {
+                  avatar : 1 ,
+                  username : 1 ,
+                  fullname : 1
+                }}
+              ] , 
+              as : 'repostAuthorDetails'
+            }} , 
+            {$addFields : {
+              author : { $arrayElemAt: ['$repostAuthorDetails' , 0]} ,
+            }} ,
+          ] ,
+          as : 'repostDetails'
+        }} ,
+        {$addFields : {
+          author : { $arrayElemAt: ['$authorDetails' , 0]} ,
+          repost : { $arrayElemAt: ['$repostDetails' , 0]} 
+        }}
+      ] ,
       as : 'postDetails' ,
     }} ,
 
     {$unwind: { path: "$postDetails", preserveNullAndEmptyArrays: true } },
 
     {$project : {
-      postDetails : 1 ,
-      createdAt : 1 ,
-    }}
+      user : 0 ,
+      post : 0
+     }} ,
   ])
 
   return {posts , totalPages} ;
@@ -556,7 +631,8 @@ const fetchLikes = async(req , res , id , limit , skip) => {
     }} ,
     { $skip : skip} ,
     { $limit : limit} ,
-
+    
+    //post
     {$lookup : {
       from : 'posts' ,
       let : { postId : '$post'} ,
@@ -566,30 +642,134 @@ const fetchLikes = async(req , res , id , limit , skip) => {
             $eq : [ '$_id' , '$$postId']
           }
         }} ,
+        //author
+        {$lookup : {
+          from : 'users' , 
+          let : {userId : '$author'} ,
+          pipeline : [
+            {$match : {
+              $expr : {
+                $eq : ['$_id' , '$$userId']
+              }
+            }} , 
+            {$project : {
+              avatar : 1 ,
+              username : 1 ,
+              fullname : 1
+            }}
+          ] , 
+          as : 'authorDetails'
+        }} , 
+        //repost
+        {$lookup : {
+          from : 'posts' ,
+          let : {postId : '$repost'} ,
+          pipeline : [
+            {$match : {
+              $expr : {
+                $eq : ['$_id' , '$$postId']
+              }
+            }} , 
+            //repost author
+            {$lookup : {
+              from : 'users' , 
+              let : {userId : '$author'} ,
+              pipeline : [
+                {$match : {
+                  $expr : {
+                    $eq : ['$_id' , '$$userId']
+                  }
+                }} , 
+                {$project : {
+                  avatar : 1 ,
+                  username : 1 ,
+                  fullname : 1
+                }}
+              ] , 
+              as : 'repostAuthorDetails'
+            }} , 
+            {$addFields : {
+              author : { $arrayElemAt: ['$repostAuthorDetails' , 0]} ,
+            }} ,
+          ] ,
+          as : 'repostDetails'
+        }} ,
+        //userlike
+        {$lookup : {
+          from : 'likes' ,
+          let : {'postId' : '$_id'} ,
+          pipeline : [
+            {$match : {
+              $expr : {
+                $and : [
+                  {$eq : ['$post' , '$$postId']} ,
+                  {$eq : ['$user' , new ObjectId(`${id}`)]}
+                ]
+              }
+            }}
+          ] ,
+          as : 'userLike'
+        }} ,
+        //userBookmark
+        {$lookup : {
+          from : 'bookmarks' ,
+          let : {'postId' : '$_id'} ,
+          pipeline : [
+            {
+              $match : {
+                $expr : {
+                  $and : [
+                    {$eq : ['$post' , '$$postId']} ,
+                    {$eq : ['$user' , new ObjectId(`${id}`)]}
+                  ]
+                }
+              }
+            }
+          ] , 
+          as : 'userBookmark'
+        }} ,
+        //totalLike
+        {$lookup : {
+          from : 'likes' ,
+          localField : '_id' ,
+          foreignField : 'post' ,
+          as : 'likesArray' ,
+        }} ,
+        //totalComments
+        {$lookup : {
+          from : 'comments' ,
+          localField : '_id' ,
+          foreignField : 'post' ,
+          as : 'totalComments' ,
+        }} ,
+    
+
+        {$addFields : {
+          author : { $arrayElemAt: ['$authorDetails' , 0]} ,
+          repost : { $arrayElemAt: ['$repostDetails' , 0]} ,
+          isBookmarked : { $gt : [{ $size : '$userBookmark'} , 0 ]} ,
+          likeStatus : { $gt : [{ $size : '$userLike'} , 0 ]} ,
+          likeCount :{ $size : '$likesArray'} , 
+          commentCount : {$size : '$totalComments'} ,
+        }}
       ] ,
       as : 'postDetails' ,
     }} ,
 
     {$unwind: { path: "$postDetails", preserveNullAndEmptyArrays: true } },
 
-    {$lookup : {
-      from : 'users' ,
-      localField : 'postDetails.author' ,
-      foreignField : '_id' ,
-      as : 'authorDetails' ,
-    }} ,
+    {$replaceRoot: { 
+      newRoot: {
+        $mergeObjects: ['$postDetails', '$$ROOT']
+      }
+    }},
+    {$unset : 'postDetails'},
 
-    {$addFields : {
-      author : {$arrayElemAt: ['$authorDetails' , 0]} ,
-    }} ,
-
-    {$project : {
-      postDetails : 1 ,
-      author : 1 ,
-      createdAt : 1 ,
-    }}
   ])
+
+  return { posts ,totalPages} ;
 }
+
 
 const toggleOnPost = TryCatch(async(req , res) => {
   const {id} = req.params ;
@@ -621,7 +801,6 @@ const toggleOnPost = TryCatch(async(req , res) => {
 
 } , 'toggleOnPost')
 
-
 const BookmarkPost = async(req , res , postId) => {
   const IsPostExist = await Post.exists({_id : postId})
   if(!IsPostExist) return ResError(res , 400 , 'No such Post exist')
@@ -636,7 +815,6 @@ const BookmarkPost = async(req , res , postId) => {
      return ResSuccess(res , 200 , {operation : true} )
   }
 }
-
 const LikePost = async(req , res , postId , ) => {
   const IsPostExist = await Post.findById({_id : postId}).select('author hashtags').populate('author' , 'username fullname avatar') ;
   if(!IsPostExist) return ResError(res , 400 , 'No such Post exist')
@@ -807,7 +985,7 @@ const fetchFeedPost = TryCatch( async(req , res) => {
       commentCount : {$size : '$totalComments'} ,
     }} ,
 
-    {$unwind: {path: '$totalComments',preserveNullAndEmptyArrays: true} } ,
+    // {$unwind: {path: '$totalComments',preserveNullAndEmptyArrays: true} } ,
     {$unwind: {path: '$author',preserveNullAndEmptyArrays: true} } ,
     
     {$project : {
