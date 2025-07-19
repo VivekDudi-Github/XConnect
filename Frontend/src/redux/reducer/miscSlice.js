@@ -6,6 +6,12 @@ const initialState = {
     isOpen : false ,
     postId : null ,
   } ,
+  chatName : {
+    username : null,
+    fullname : null,
+    _id : null ,
+    profilePic : null,
+  }
 };
 
 const miscSlice = createSlice({
@@ -17,10 +23,21 @@ const miscSlice = createSlice({
     } ,
     setisDeleteDialog : (state , action) => {
       state.isDeleteDialog = action.payload ;
+    } , 
+    setChatName : (state , action) => {
+      state.chatName = action.payload ;
+    } ,
+    emptyChatName : (state ,action ) =>{
+      state.chatName = {
+        username : null,
+        fullname : null,
+        _id : null ,
+        profilePic : null,
+      }
     }
   },
 });
 
-export const { setIsProfileEdit , setisDeleteDialog} = miscSlice.actions;
+export const { setIsProfileEdit , setisDeleteDialog , setChatName , emptyChatName} = miscSlice.actions;
 
 export default miscSlice;

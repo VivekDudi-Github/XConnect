@@ -15,8 +15,10 @@ const Auth = lazy(() => import('./pages/Auth'));
 const PostPage = lazy(() => import('./pages/PostPage'));
 const HomePage = lazy(() => import('./pages/HomePage'));
 const Profile = lazy(() => import('./pages/ProfilePage'));
-const NotificationPage = lazy(() => import('./pages/NotificationPage'));
+const MessagesPage = lazy(() => import('./pages/MessagesPage'));
 const ExplorePage = lazy(() => import('./pages/ExplorePage')) ;
+// const MessagingPage = lazy(() => import('./pages/MessagingPage'));
+const NotificationPage = lazy(() => import('./pages/NotificationPage'));
 
 
 function App() {
@@ -63,6 +65,10 @@ useEffect(() => {
           <Route path='/profile' element={<Profile/>} />
           <Route path='/notifications' element={<NotificationPage/>} />
           
+          {/* <Route path='/settings' element={<SettingsPage/>} /> */}
+          <Route path='messages' element={<MessagesPage />} />
+          <Route path='messages/chat/:username' element={<MessagesPage />} />
+
           <Route path='/comment/:id' element ={<CommentPage />} />
           
         </Route>

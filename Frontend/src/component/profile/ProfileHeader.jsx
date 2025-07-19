@@ -108,7 +108,7 @@ function ProfileHeader() {
                 </button>
                 
                 <button
-                // onClick={() => navigate(`/messages/${profile._id}`)}
+                // onClick={() => navigate(`/messages/${profile.username}`)}
                 className="mt-4 mr-3 px-2 py-[3px] font-sm flex gap-1 items-center justify-center font-semibold  dark:text-black dark:bg-white rounded-md text-cyan-500 duration-200 hover:bg-gray-200 hover:scale-105 active:scale-95 shadow-sm shadow-black/40"
                 >
                   <Send size={17}/> <p>Message</p>
