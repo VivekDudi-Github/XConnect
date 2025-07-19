@@ -87,24 +87,24 @@ useEffect(() => {
 } , [post.content , renderPreRef?.current?.scrollHeight])
 
   return (
-    <article className="bg-white w-full mx-auto relative rounded-xl dark:shadow-sm p-4 mb-4 dark:bg-gradient-to-b dark:from-gray-800 dark:to-black dark:text-white shadow-slate-400 shadow-lg border-t border-slate-800/50 duration-200 break-inside-avoid  ">
+    <article className="bg-white w-full mx-auto relative rounded-xl dark:shadow-sm p-2 mb-4 dark:bg-black  dark:from-slate-900 dark:to-black dark:text-white shadow-slate-400 shadow-lg border-t dark:border-y dark:border-white dark:border-b-gray-600 border-slate-800/50 duration-200 break-inside-avoid  ">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-2">
-        <NavLink to={`/profile/${post?.author?.username}`}>
-          <img
-            src={post?.author?.avatar?.url || post.avatar || '/avatar-default.svg'}
-            alt="avatar"
-            className="w-10 h-10 rounded-full object-cover "
-          />
-        </NavLink>
-        <NavLink to={`/profile/${post?.author?.username}`}>
-          <h2 className="font-semibold">{post.author.fullname}
-          <div className='text-sm text-gray-500 hover:text-blue-400'> @{post.author.username} </div>
-          </h2>
-          <span className="text-xs text-gray-500">
-            • {moment(post.updatedAt).fromNow()}
-          </span>
-        </NavLink>
+      <div className="flex items-center justify-between gap-3 mb-2 pr-7">
+        <div className='flex justify-between gap-2'>
+          <NavLink to={`/profile/${post?.author?.username}`}>
+            <img
+              src={post?.author?.avatar?.url || post.avatar || '/avatar-default.svg'}
+              alt="avatar"
+              className="w-10 h-10 rounded-full object-cover "
+            />
+          </NavLink>
+          <NavLink to={`/profile/${post?.author?.username}`}>
+            <h2 className="font-semibold">{post.author.fullname}
+            <div className='text-sm text-gray-500 hover:text-blue-400'> @{post.author.username} </div>
+            </h2>
+          </NavLink>
+        </div>
+
       </div>
 
       <div 
@@ -166,22 +166,26 @@ useEffect(() => {
       )}
 
       {/* Actions */}
-      <div className="flex gap-6 text-sm text-gray-600 mt-2">
-        <button 
-        className="flex items-center gap-1" 
-        onClick={() => toggleLiketFunc('like')}
-        >
-          <Heart 
-          className={ ` text-pink-600  dark:hover:fill-white hover:fill-pink-600 duration-500 hover:scale-110 active:scale-95 ${ likeStatus ? ' fill-pink-600' : 'dark:text-white'} `} 
-          size={18} /> 
-          {totalLikes}
-        </button>
+      <div className="flex justify-between text-sm text-gray-600 mt-2">
+        <div className='flex gap-2 items-center'>
+          <button 
+          className="flex items-center gap-1" 
+          onClick={() => toggleLiketFunc('like')}
+          >
+            <Heart 
+            className={ ` text-pink-600  dark:hover:fill-white hover:fill-pink-600 duration-500 hover:scale-110 active:scale-95 ${ likeStatus ? ' fill-pink-600' : 'dark:text-white'} `} 
+            size={18} /> 
+            {totalLikes}
+          </button>
 
-        <NavLink to={`/post/${post._id}`} className="flex items-center gap-1">
-          <MessageCircle className=' text-blue-600 dark:text-white  dark:hover:fill-white hover:fill-blue-600 duration-500 hover:scale-110 active:scale-95' size={18} /> {post?.commentCount}
-        </NavLink>
+          <NavLink to={`/post/${post._id}`} className="flex items-center gap-1">
+            <MessageCircle className=' text-blue-600 dark:text-white  dark:hover:fill-white hover:fill-blue-600 duration-500 hover:scale-110 active:scale-95' size={18} /> {post?.commentCount}
+          </NavLink>
+        </div>
+        <span className="text-xs text-gray-500">
+            • {moment(post.updatedAt).fromNow()}
+        </span>
       </div>
-
     </article>
   );
 }

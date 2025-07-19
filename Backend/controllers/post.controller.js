@@ -315,6 +315,7 @@ const getPost = TryCatch(async(req , res) => {
   ResSuccess(res , 200 , post[0])
 
   if( !post[0].author._id.equals(req.user._id)){
+    await WatchHistory.deleteOne({post : post[0]._id , user : req.user._id}) ;
     await WatchHistory.create({
       post : post[0]._id ,
       user : req.user._id ,
@@ -360,7 +361,7 @@ const getUserPosts = TryCatch(async(req , res) => {
  if(!data || !data.posts || data.posts.length === 0 ){
   return ;
  }
-  console.log(data.posts[0]);
+
   
   return ResSuccess(res, 200, {posts : data.posts  , totalPages : data.totalPages});
 } , 'get User Posts')
@@ -517,14 +518,277 @@ const fetchPostsTabs = async(req , res ,id , tab , limit , skip) => {
   return {posts , totalPages};
 }
 const fetchReplies = async(req , res , id , limit , skip) => {
-  const totalPost  = await Comment.countDocuments({author : id}) ;
+  const totalPost  = await Comment.countDocuments({user : id}) ;
   const totalPages = Math.ceil(totalPost/limit) ;
   
 
+const posts = await Comment.aggregate([
+  {$match : {
+    user : new ObjectId(`${id}`) 
+  }} ,
+  {$sort : {
+    createdAt : -1 
+  }} ,
+  { $skip : skip} ,
+  { $limit : limit} ,
+  
+  //mycomment author
+  {$lookup : {
+    from : 'users' ,
+    let : { userId : '$user'} ,
+    pipeline : [
+      {$match : {
+        $expr : {
+          $eq : ['$_id' , '$$userId']
+        }
+      }} ,
+      {$project : {
+        avatar : 1 ,
+        username : 1 ,
+        fullname : 1 ,
+      }}
+    ] ,
+    as : 'myCommentAuthorDetails'
+  }} ,
 
+  //comment
+  {$lookup : {
+    from : 'comments' ,
+    let : { commentId : '$comment_id'} ,
+    pipeline : [
+      {$match : {
+        $expr : {
+          $eq : [ '$_id' , '$$commentId']
+        }
+      }} ,
+      //author
+      {$lookup : {
+        from : 'users' , 
+        let : {userId : '$user'} ,
+        pipeline : [
+          {$match : {
+            $expr : {
+              $eq : ['$_id' , '$$userId']
+            }
+          }} , 
+          {$project : {
+            avatar : 1 ,
+            username : 1 ,
+            fullname : 1
+          }}
+        ] , 
+        as : 'authorDetails'
+      }} ,
+      //likes , like status , comment count
+      {$lookup : {
+        from : 'likes' ,
+        let : { commentId : '$_id'} ,
+        pipeline : [
+          {$match : {
+            $expr : {
+              $and : [
+                {$eq : ['$comment' , '$$commentId']} ,
+                {$eq : ['$user' , new ObjectId(`${id}`)]}
+              ]
+            }
+          }}
+        ] ,
+        as : 'userLike'
+      }} ,
+      //totalLike
+      {$lookup : {
+        from : 'likes' ,
+        localField : '_id' ,
+        foreignField : 'comment' ,
+        as : 'totalLike' ,
+      }} ,
+      //totalComments
+      {$lookup : {
+        from : 'comments' ,
+        localField : '_id' ,
+        foreignField : 'comment_id' ,
+        as : 'totalComments' ,
+      }} ,
+
+      {$addFields : {
+        author : { $arrayElemAt: ['$authorDetails' , 0]} ,
+        commentCount : {$size : '$totalComments'} ,
+        likeCount : {$size : '$totalLike'} ,
+        likeStatus : { $gt : [{ $size : '$userLike'} , 0 ]} ,
+      }} ,
+      {$project : { 
+        userLike : 0 ,
+        totalLike : 0 ,
+        authorDetails : 0 ,
+        totalComments : 0 ,
+      }}
+    ] , 
+    as : 'commentDetailsRaw'
+  }} ,
+  //post 
+  {$lookup : {
+    from : 'posts' ,
+    let : { postId : '$post'} ,
+    pipeline : [
+      {$match : {
+        $expr : {
+          $eq : [ '$_id' , '$$postId']
+        }
+      }} ,
+      //author
+      {$lookup : {
+        from : 'users' , 
+        let : {userId : '$author'} ,
+        pipeline : [
+          {$match : {
+            $expr : {
+              $eq : ['$_id' , '$$userId']
+            }
+          }} , 
+          {$project : {
+            avatar : 1 ,
+            username : 1 ,
+            fullname : 1
+          }}
+        ] , 
+        as : 'authorDetails'
+      }} , 
+      //repost
+      {$lookup : {
+        from : 'posts' ,
+        let : {postId : '$repost'} ,
+        pipeline : [
+          {$match : {
+            $expr : {
+              $eq : ['$_id' , '$$postId']
+            }
+          }} , 
+          //repost author
+          {$lookup : {
+            from : 'users' , 
+            let : {userId : '$author'} ,
+            pipeline : [
+              {$match : {
+                $expr : {
+                  $eq : ['$_id' , '$$userId']
+                }
+              }} , 
+              {$project : {
+                avatar : 1 ,
+                username : 1 ,
+                fullname : 1
+              }}
+            ] , 
+            as : 'repostAuthorDetails'
+          }} , 
+          {$addFields : {
+            author : { $arrayElemAt: ['$repostAuthorDetails' , 0]} ,
+          }} ,
+        ] ,
+        as : 'repostDetails'
+      }} ,
+      //userlike
+      {$lookup : {
+        from : 'likes' ,
+        let : {'postId' : '$_id'} ,
+        pipeline : [
+          {$match : {
+            $expr : {
+              $and : [
+                {$eq : ['$post' , '$$postId']} ,
+                {$eq : ['$user' , new ObjectId(`${id}`)]}
+              ]
+            }
+          }}
+        ] ,
+        as : 'userLike'
+      }} ,
+      //userBookmark
+      {$lookup : {
+        from : 'bookmarks' ,
+        let : {'postId' : '$_id'} ,
+        pipeline : [
+          {
+            $match : {
+              $expr : {
+                $and : [
+                  {$eq : ['$post' , '$$postId']} ,
+                  {$eq : ['$user' , new ObjectId(`${id}`)]}
+                ]
+              }
+            }
+          }
+        ] , 
+        as : 'userBookmark'
+      }} ,
+      //totalLike
+      {$lookup : {
+        from : 'likes' ,
+        localField : '_id' ,
+        foreignField : 'post' ,
+        as : 'likesArray' ,
+      }} ,
+      //totalComments
+      {$lookup : {
+        from : 'comments' ,
+        localField : '_id' ,
+        foreignField : 'post' ,
+        as : 'totalComments' ,
+      }} ,
+  
+
+      {$addFields : {
+        author : { $arrayElemAt: ['$authorDetails' , 0]} ,
+        repost : { $arrayElemAt: ['$repostDetails' , 0]} ,
+        isBookmarked : { $gt : [{ $size : '$userBookmark'} , 0 ]} ,
+        likeStatus : { $gt : [{ $size : '$userLike'} , 0 ]} ,
+        likeCount :{ $size : '$likesArray'} , 
+        commentCount : {$size : '$totalComments'} ,
+      }} , 
+      {$project : { 
+        userLike : 0 ,
+        isDeleted : 0 ,
+        likesArray : 0 ,
+        userBookmark : 0 ,
+        authorDetails : 0 ,
+        repostDetails : 0 ,
+        totalComments : 0 ,
+      }}
+    ] ,
+    as : 'postDetailsRaw' ,
+  }} ,
+
+
+
+  {$addFields: {
+      author : { $arrayElemAt: ['$myCommentAuthorDetails' , 0]} ,
+      postDetails: {
+        $cond: {
+          if: { $eq: ["$replyTo", "post"] },
+          then: { $arrayElemAt: ["$postDetailsRaw", 0] },
+          else: null
+        }
+      },
+      commentDetails: {
+        $cond: {
+          if: { $eq: ["$replyTo", "comment"] },
+          then: { $arrayElemAt: ["$commentDetailsRaw", 0] },
+          else: null
+        }
+      }
+    }
+  } ,
+  {$project : {
+    postDetailsRaw : 0 ,
+    commentDetailsRaw : 0 ,
+  }}
+
+
+]) ;
+ return {posts , totalPages} ;
 }
 const fetchHistory = async(req , res , id , limit , skip) => {
-  const totalPost  = await Post.countDocuments({author : id}) ;
+  const totalPost  = await WatchHistory.countDocuments({ user : id}) ;
   const totalPages = Math.ceil(totalPost/limit) ;
   
   const posts = await WatchHistory.aggregate([
@@ -599,9 +863,61 @@ const fetchHistory = async(req , res , id , limit , skip) => {
           ] ,
           as : 'repostDetails'
         }} ,
+        //user like
+        {$lookup : {
+          from : 'likes' ,
+          let : {'postId' : '$_id'} ,
+          pipeline : [
+            {$match : {
+              $expr : {
+                $and : [
+                  {$eq : ['$post' , '$$postId']} ,
+                  {$eq : ['$user' , new ObjectId(`${id}`)]}
+                ]
+              }
+            }}
+          ] ,
+          as : 'userLike'
+        }} ,
+        //userBookmark
+        {$lookup : {
+          from : 'bookmarks' ,
+          let : {'postId' : '$_id'} ,
+          pipeline : [
+            {
+              $match : {
+                $expr : {
+                  $and : [
+                    {$eq : ['$post' , '$$postId']} ,
+                    {$eq : ['$user' , new ObjectId(`${id}`)]}
+                  ]
+                }
+              }
+            }
+          ] , 
+          as : 'userBookmark'
+        }} ,
+        //totalLike
+        {$lookup : {
+          from : 'likes' ,
+          localField : '_id' ,
+          foreignField : 'post' ,
+          as : 'likesArray' ,
+        }} ,
+        //totalComments
+        {$lookup : {
+          from : 'comments' ,
+          localField : '_id' ,
+          foreignField : 'post' ,
+          as : 'totalComments' ,
+        }} ,
         {$addFields : {
           author : { $arrayElemAt: ['$authorDetails' , 0]} ,
-          repost : { $arrayElemAt: ['$repostDetails' , 0]} 
+          repost : { $arrayElemAt: ['$repostDetails' , 0]} ,
+          isBookmarked : { $gt : [{ $size : '$userBookmark'} , 0 ]} ,
+          likeStatus : { $gt : [{ $size : '$userLike'} , 0 ]} ,
+          likeCount :{ $size : '$likesArray'} , 
+          commentCount : {$size : '$totalComments'} ,
         }}
       ] ,
       as : 'postDetails' ,
@@ -609,16 +925,28 @@ const fetchHistory = async(req , res , id , limit , skip) => {
 
     {$unwind: { path: "$postDetails", preserveNullAndEmptyArrays: true } },
 
-    {$project : {
-      user : 0 ,
-      post : 0
-     }} ,
+    {$replaceRoot : {
+      newRoot : {
+        $mergeObjects: ['$$ROOT' , '$postDetails']
+      }
+    }},
+    {$unset : 'postDetails'},
+
+    {$project : { 
+      userLike : 0 ,
+      isDeleted : 0 ,
+      likesArray : 0 ,
+      userBookmark : 0 ,
+      authorDetails : 0 ,
+      repostDetails : 0 ,
+      totalComments : 0 ,
+    }}
   ])
 
   return {posts , totalPages} ;
 }
 const fetchLikes = async(req , res , id , limit , skip) => {
-  const totalPost  = await Post.countDocuments({author : id}) ;
+  const totalPost  = await Likes.countDocuments({user : id}) ; 
   const totalPages = Math.ceil(totalPost/limit) ;
   
   const posts = await Likes.aggregate([
@@ -760,11 +1088,21 @@ const fetchLikes = async(req , res , id , limit , skip) => {
 
     {$replaceRoot: { 
       newRoot: {
-        $mergeObjects: ['$postDetails', '$$ROOT']
+        $mergeObjects: ['$$ROOT' , '$postDetails']
       }
     }},
-    {$unset : 'postDetails'},
+    
+    {$unset : 'postDetails'} ,
 
+    {$project : { 
+      userLike : 0 ,
+      isDeleted : 0 ,
+      likesArray : 0 ,
+      userBookmark : 0 ,
+      authorDetails : 0 ,
+      repostDetails : 0 ,
+      totalComments : 0 ,
+    }} ,
   ])
 
   return { posts ,totalPages} ;

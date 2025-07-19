@@ -25,9 +25,12 @@ export default function Notification() {
 
 
   useEffect(() => {
-    if(notifications.length > 0){
-      dispatch(markAllAsRead())
+    const func = () => {
+      if(notifications.length > 0){
+        dispatch(markAllAsRead())
+      }
     }
+    return func();
   } , []);
 
   return (

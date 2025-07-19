@@ -53,7 +53,6 @@ const {isNotificationfetched} = useSelector(state => state.notification);
 
   useEffect(() => {
     if(isError){
-      setLoading(false);
       console.error("Error fetching notifications:", error);
     }
   } , [isError]) ;

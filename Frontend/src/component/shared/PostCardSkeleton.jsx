@@ -3,7 +3,7 @@ import React from 'react'
 
 function PostCardSkeleton() {
   return (
-    <div className='bg-white w-full mx-auto relative rounded-xl dark:shadow-sm p-4 mb-4 dark:bg-gradient-to-b dark:from-gray-800 dark:to-black dark:text-white shadow-slate-800/50 shadow-lg border-t border-slate-800/50 duration-200 break-inside-avoid  animate-pulse '>
+    <div className='bg-white w-full mx-auto relative rounded-xl dark:shadow-sm p-4 mb-4 dark:bg-black dark:border-t dark:border-white -gradient-to-b dark:from-gray-800 dark:to-black dark:text-white shadow-slate-800/50 shadow-lg border-t border-slate-800/50 duration-200 break-inside-avoid  animate-pulse '>
       <div className="flex items-center gap-3 mb-2">
         <img
           src='/avatar-default.svg'

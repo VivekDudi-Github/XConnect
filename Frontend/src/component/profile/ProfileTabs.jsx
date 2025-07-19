@@ -11,6 +11,7 @@ import lastRefFunc from '../specific/LastRefFunc';
 import {setisDeleteDialog} from '../../redux/reducer/miscSlice';
 import { deletePostFunc } from '../shared/SharedFun';
 import { useParams } from 'react-router-dom';
+import CommentItem from '../comment/CommentItem';
 
 
 
@@ -25,7 +26,6 @@ function ProfileTabs() {
   const {isDeleteDialog} = useSelector(state => state.misc);
 
   const [activeTab, setActiveTab] = useState('Posts');
-
   
   const [posts , setPosts] = useState([]);
   const [page , setPage] = useState(1) ;
@@ -34,7 +34,7 @@ function ProfileTabs() {
   
 
   const [deleteMutation] = useDeletePostMutation() ;
-  const [fetchMorePost , {data , isError , isFetching , isLoading , error}] = useLazyGetUserPostsQuery();
+  const [fetchMorePost , {data , isError , isLoading , isFetching , error}] = useLazyGetUserPostsQuery();
 
   
   const lastPostRef = useCallback(node => {
@@ -84,11 +84,14 @@ useEffect(() => {
 
   return (
     <div className="mt-8 dark:bg-black bg-white overflow-y-auto h-full pb-14 sm:pb-0">
-      <div className="flex border-b">
+      <div className="flex border-b overflow-y-clip overflow-x-auto pb-1 ">
         {tabs.map(tab => (
           <button
             key={tab}
-            onClick={() => setActiveTab(tab)}
+            onClick={() => {
+              setActiveTab(tab) ;
+              setPosts([]) ;
+            }}
             className={`px-4 py-2 -mb-px border-b-2 text-sm hover:scale-110 duration-150  ${
               activeTab === tab
                 ? 'border-blue-600  font-bold dark:text-black dark:bg-white rounded-t-xl text-cyan-500 '
@@ -100,11 +103,29 @@ useEffect(() => {
         ))}
       </div>
         
-      {!isLoading && posts.length === 0 && <div className='h-full dark:bg-black bg-white w-full text-gray-500 text-center'>
+      {!isLoading && !isFetching && posts.length === 0 && <div className='h-full dark:bg-black bg-white w-full text-gray-500 text-center'>
         No Posts found...
       </div>}
 
-      {posts && (
+      {posts && activeTab === 'Replies' && (
+        <div className="mt-6 mx-2 gap-4 max-w-6xl">
+          {posts.map((post, i) => (
+            <div ref={ i === posts.length - 1 ? lastPostRef : null }  key={i}
+              className=' mb-3 border-b- dark:border-gray-700 border-gray-600 '
+            >
+              {post.replyTo === 'post' && <PostCard post={post.postDetails}  />}
+              {post.replyTo === 'comment' && <CommentItem data={post.commentDetails} showReply={false} replyButton={null}/>}
+              
+              <div className='flex justify-start gap-1 w-full'>
+                <div className='border-2 self-stretch m-4 mr-0 dark:border-gray-700 border-gray-400 rounded-lg' />
+                <div className='w-full scale-90'><CommentItem data={post} showReply={false} replyButton={null}/></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {posts && activeTab !== 'Replies' && (
         <div className="mt-6 mx-2 columns-1 sm:columns-1 lg:columns-3 gap-4 max-w-6xl">
           {posts.map((post, i) => (
             <div ref={ i === posts.length - 1 ? lastPostRef : null }  key={i} >
@@ -114,8 +135,8 @@ useEffect(() => {
         </div>
       )}
       
-      {posts.length === 0  && isLoading  &&  (
-        <div className='mt-6 mx-2 columns-1 sm:columns-1 lg:columns-3 gap-4 max-w-6xl'>
+      {posts.length === 0  && (isLoading || isFetching) &&  (
+        <div className=' mx-2 columns-1 sm:columns-1 lg:columns-3 gap-4 max-w-6xl'>
           {Array.from({length : 6}).map((_  , i) => (
             <PostCardSkeleton key={i}/>
           ))}

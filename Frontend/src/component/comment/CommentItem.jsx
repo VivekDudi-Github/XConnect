@@ -37,7 +37,6 @@ export default function CommentItem({ data , removeComment , showReply = true , 
       replies: [],
     });
     setReplyInput('');
-    setShowReply(false);
   };
 
   const handleLike = async() => {
@@ -79,7 +78,7 @@ export default function CommentItem({ data , removeComment , showReply = true , 
 
 
   return (
-    <div className="border p-3 rounded-lg dark:bg-gradient-to-t dark:from-slate-900 dark:to-black dark:text-white shadow-slate-800/50 shadow-lg border-t border-slate-800/50 duration-200 hover:scale-105">
+    <div className="p-3 rounded-lg dark:bg-black gradient-to-t dark:from-slate-900 dark:to-black dark:text-white shadow-slate-800/50 shadow-lg dark:border-x dark:border-white border-slate-800/50 duration-200 hover:scale-105">
       <div className="flex justify-between items-center pb-2">
         <div className="flex gap-2 items-center">
           <img className="size-7 rounded-full" src={data?.author?.avatar?.url || '/avatar-default.svg'} alt="" />
@@ -97,12 +96,14 @@ export default function CommentItem({ data , removeComment , showReply = true , 
           <Heart size={14} className={`${likeStatus ? 'fill-fuchsia-400' : ''} duration-200 hover:scale-110 active:scale-95 text-fuchsia-400`} />
           {totalLikes || ''}
         </button>
-        <button
-        onClick={() => replyButton(data?.author?.username)}
-          className="flex items-center gap-1 text-xs text-green-500  "
-        >
-          <ReplyIcon size={18} className="fill-green-500"/>
-        </button>
+        {typeof replyButton === 'function' && (
+          <button
+          onClick={() => replyButton(data?.author?.username)}
+            className="flex items-center gap-1 text-xs text-green-500  "
+          >
+            <ReplyIcon size={18} className="fill-green-500"/>
+          </button>
+        )}
         <button
           className="flex items-center gap-1 text-xs text-blue-500  "
         >
