@@ -1,4 +1,4 @@
-import { lazy } from 'react';
+import { lazy, Suspense } from 'react';
 import {Routes , Route, Navigate, useNavigate} from 'react-router-dom'
 
 import { ToastContainer , Slide } from 'react-toastify';
@@ -54,39 +54,41 @@ useEffect(() => {
   
   return (
     <>
-      <Routes>
-        <Route path='/login' element={!user ?  <Auth/> : <Navigate to={'/'} /> } />
+      <Suspense fallback={<Loader message={'Loading..'} />}>
+        <Routes>
+          <Route path='/login' element={!user ?  <Auth/> : <Navigate to={'/'} /> } />
 
-        <Route element={<ProtectedRoute user={user} /> } >
-          <Route path='/' element={<HomePage/>} />
-          <Route path='/profile/:username' element={<Profile/>} />
-          <Route path='/explore/' element={<ExplorePage/>} />
-          <Route path='/post/:id' element={<PostPage/>} />
-          <Route path='/profile' element={<Profile/>} />
-          <Route path='/notifications' element={<NotificationPage/>} />
-          
-          {/* <Route path='/settings' element={<SettingsPage/>} /> */}
-          <Route path='messages' element={<MessagesPage />} />
-          <Route path='messages/chat/:username' element={<MessagesPage />} />
+          <Route element={<ProtectedRoute user={user} /> } >
+            <Route path='/' element={<HomePage/>} />
+            <Route path='/profile/:username' element={<Profile/>} />
+            <Route path='/explore/' element={<ExplorePage/>} />
+            <Route path='/post/:id' element={<PostPage/>} />
+            <Route path='/profile' element={<Profile/>} />
+            <Route path='/notifications' element={<NotificationPage/>} />
+            
+            {/* <Route path='/settings' element={<SettingsPage/>} /> */}
+            <Route path='messages' element={<MessagesPage />} />
+            <Route path='messages/chat/:username' element={<MessagesPage />} />
 
-          <Route path='/comment/:id' element ={<CommentPage />} />
-          
-        </Route>
-      </Routes>
-      <ToastContainer
-        position="top-center"
-        autoClose={2000}
-        closeButton={false}
-        hideProgressBar={true}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        theme={isDarkMode ? 'dark' : 'light'}
-        transition={Slide}
-        pauseOnHover 
-        />
+            <Route path='/comment/:id' element ={<CommentPage />} />
+            
+          </Route>
+        </Routes>
+        <ToastContainer
+          position="top-center"
+          autoClose={2000}
+          closeButton={false}
+          hideProgressBar={true}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          theme={isDarkMode ? 'dark' : 'light'}
+          transition={Slide}
+          pauseOnHover 
+          />
+      </Suspense>
     </>
   )
 }

@@ -1,4 +1,4 @@
-import { ChevronLeftIcon } from 'lucide-react'
+import { ChevronLeftIcon, Eclipse, EllipsisIcon, EllipsisVerticalIcon } from 'lucide-react'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { emptyChatName } from '../../redux/reducer/miscSlice';
@@ -18,7 +18,7 @@ export default function MessagingPage({username}) {
   }
 
   return (
-    <div className='dark:text-white  h-full pb-16'>
+    <div className='dark:text-white  h-full sm:p b-16 pb-32 text-black '>
       <div className='text-white flex items-center gap-2 p-2 w-full border-b-2 border-b-gray-700 '>
         <button onClick={BackButton}><ChevronLeftIcon /></button>
         <img
@@ -28,14 +28,15 @@ export default function MessagingPage({username}) {
 
       {/* User Info */}
       <div className="flex flex-col flex-1">
-        <div className="flex justify-between items-center">
+        <div className="flex sm:flex-row flex-col justify-between sm:items-center items-start gap-1">
           <div className='flex gap-2 items-center'>
             <p className="dark:text-white font-semibold">{fullName}</p>
             <p className="text-sm text-gray-100 bg-cyan-600 dark:bg-white rounded-xl dark:text-black px-1.5 p-[2px] duration-100 font-semibold">@{username}</p>
           </div>
           {/* Last Online */}
-          <span className="text-xs text-gray-500">
-            • 2hrs ago
+          <span className="text-xs flex flex-row-reverse  justify-between items-center sm:block text-gray-500 w-full sm:w-fit ">
+            <div className='w-fit sm:w-full rotate-180 p-2 pb-0'> <EllipsisVerticalIcon size={17} /></div>
+            Last online • 2hrs ago
           </span>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {  SendIcon , PaperclipIcon } from "lucide-react";
+import TextareaAutosize from "react-textarea-autosize";
 
 export default function ChatInput() {
   const [message, setMessage] = useState("");
@@ -12,13 +13,14 @@ export default function ChatInput() {
   };
 
   return (
-    <div className="flex items-center p-2 gap-2 bg-[#111] rounded-xl border border-gray-700 mt-4 absolute bottom-1 w-[99%]">
-      <input
+    <div className="flex items-center p-2 gap-2 bg-[#111] rounded-xl mt-4 absolute sm:bottom-1 bottom-16 w-[99%] focus-within:border-2 border-0 border-white duration-200">   
+      <TextareaAutosize
         type="text"
         value={message}
+        maxRows={4}
         onChange={(e) => setMessage(e.target.value)}
         placeholder="Type a message..."
-        className="flex-1 bg-transparent text-white outline-none px-3 py-2"
+        className="flex-1 bg-transparent resize-none text-white outline-none px-3 py-2"
       />
       <button
         onClick={handleSend}
