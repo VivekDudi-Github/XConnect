@@ -9,7 +9,7 @@ export default function MessagingPage({username}) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const {_id , fullName , avatar } = useSelector(state => state.misc.chatName) ;
+  const {fullName , avatar } = useSelector(state => state.misc.chatName) ;
 
 
   const BackButton =()=>{
@@ -20,7 +20,7 @@ export default function MessagingPage({username}) {
   return (
     <div className='dark:text-white  h-full sm:p b-16 pb-32 text-black '>
       <div className='text-white flex items-center gap-2 p-2 w-full border-b-2 border-b-gray-700 '>
-        <button onClick={BackButton}><ChevronLeftIcon /></button>
+        <button onClick={BackButton}><ChevronLeftIcon className='text-black dark:text-white'/></button>
         <img
         src={avatar?.url}
         className="w-12 h-12 rounded-full object-cover mr-2 ring-1"
@@ -30,7 +30,7 @@ export default function MessagingPage({username}) {
       <div className="flex flex-col flex-1">
         <div className="flex sm:flex-row flex-col justify-between sm:items-center items-start gap-1">
           <div className='flex gap-2 items-center'>
-            <p className="dark:text-white font-semibold">{fullName}</p>
+            <p className="dark:text-white text-black font-bold">{fullName}</p>
             <p className="text-sm text-gray-100 bg-cyan-600 dark:bg-white rounded-xl dark:text-black px-1.5 p-[2px] duration-100 font-semibold">@{username}</p>
           </div>
           {/* Last Online */}

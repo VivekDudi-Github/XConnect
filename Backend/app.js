@@ -11,7 +11,9 @@ import {Server} from 'socket.io' ;
 import connectDB from "./utils/connectDB.js";
 import userRouter from "./routes/user.routes.js" ;
 import postRouter from './routes/post.routes.js' ;
+import roomRouter from './routes/room.routes.js' ;
 import commentRouter from './routes/comment.routes.js' ;
+import messageRouter from './routes/message.routes.js' ;
 import { v2 as cloudinary } from "cloudinary";
 import { checkSocketUser } from "./utils/chekAuth.js";
 
@@ -42,8 +44,7 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log(`Client disconnected: ${socket.id}`)
   });
-
-  // Handle custom events here, e.g., chat messages, notifications, etc.
+  
 })
 
 // Middleware to parse JSON bodies
@@ -59,6 +60,8 @@ app.use(cookieParser()) ;
 app.use('/api/v1/user' , userRouter )
 app.use('/api/v1/post' , postRouter) ;
 app.use('/api/v1/comment' , commentRouter) ;
+app.use('/api/v1/message' , messageRouter ) ;  
+app.use('/api/v1/room' , roomRouter ) ;
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,

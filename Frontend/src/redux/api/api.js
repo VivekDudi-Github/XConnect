@@ -1,9 +1,10 @@
 import {createApi , fetchBaseQuery} from '@reduxjs/toolkit/query/react'
 
+
 const api = createApi({
   reducerPath : 'api' ,
   baseQuery : fetchBaseQuery({baseUrl : 'http://localhost:3000/api/v1'}),
-  tagTypes : ['Group' , 'Messages' , 'User' , 'Post' , ] ,
+  tagTypes : ['Room' , 'Messages' , 'User' , 'Post' , ] ,
 
   endpoints : (builder) => ({
 //users
@@ -49,7 +50,7 @@ const api = createApi({
       query : (id) => ({
         url : `/post/${id}` ,
         credentials : 'include' ,
-      })
+      }) ,
     }) ,
     createPost : builder.mutation({
       query : (data) => ({
@@ -157,6 +158,23 @@ const api = createApi({
         credentials : 'include' ,
       })
     }) ,
+    
+    //room
+    getRooms : builder.query({
+      query : () => ({
+        url : '/room/get' ,
+        credentials : 'include' ,
+      }) ,
+       providesTags : ['Room'] ,
+    }) ,
+    createRoom : builder.mutation({
+      query : (data) => ({
+        url : '/room/create' ,
+        method : 'POST' ,
+        body : data ,
+        credentials : 'include' ,
+      })
+    }) ,
   })
 })
 
@@ -192,8 +210,12 @@ export const {
 
   //follow
   useToggleFollowMutation ,
+  
   //notifcations
   useLazyGetMyNotificationsQuery ,
   useChangeNotificationStatusMutation ,
   
+  //room 
+  useGetRoomsQuery ,
+  useCreateRoomMutation ,
 } = api ;

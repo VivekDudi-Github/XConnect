@@ -1,7 +1,11 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { Navigate, NavLink } from 'react-router-dom'
 import { setChatName } from '../../redux/reducer/miscSlice';
+import { useGetRoomsQuery } from '../../redux/api/api';
+
+import {toast} from 'react-toastify'
+import ChatCardSekelton from '../shared/ChatCardSekelton';
 
 const chats = [
   {_id : 152 ,
@@ -30,11 +34,27 @@ function MessageHome() {
   const dispatch = useDispatch() ;
   const [activeTab , setActiveTab] = useState('Chats')
 
+  const [rooms , setRooms] = useState(chats) ;
+
   const setChatData =(_id , username , fullName , avatar) => {
     dispatch(setChatName({
       _id , username , fullName ,avatar 
     }))
   }
+
+  const {data , isError , isLoading , error} = useGetRoomsQuery() ;
+
+
+
+  useEffect(() => {
+    if(data && data?.data && !isLoading){
+      setRooms(data.data.rooms) ;
+    }
+  } , [data]) 
+
+  useEffect(() => {
+    if(isError) toast.error(error || 'Something went wrong.')
+  } , [error , isError])
 
   return (
     <div className="max-w-3xl mx-auto mt-4 px-2 sm:px-0 dark:bg-black  rounded-xl dark:text-white ">
@@ -64,13 +84,18 @@ function MessageHome() {
           </button>
         </div>
         <div className='mt-6 mx-2 gap-4 max-w-6xl'>
-          {chats.map((chat) => (
+          {rooms.length > 0 && rooms.map((room) => (
             <NavLink
-            onClick={() => setChatData(chat._id , chat.username , chat.fullName , chat.avatar)}
-            to={`/messages/chat/${chat.username}`} key={chat._id} className="flex items-center justify-between p-2 ">
-              <ChatCard avatar={chat.avatar} username={chat.username} fullName={chat.fullName} lastMessage={chat.lastMessage} lastOnline={chat?.lastOnline} unreadCount={chat.unreadMessage} onClick={() => {}} />
+            onClick={() => setChatData(room._id , room.username , room.fullName , room.avatar)}
+            to={`/messages/chat/${room.username}`} key={room._id} className="flex items-center justify-between p-2 ">
+              <ChatCard avatar={room.avatar} username={room.username} fullName={room.fullName} lastMessage={room.lastMessage} lastOnline={room?.lastOnline} unreadCount={room.unreadMessage} onClick={() => {}} />
             </NavLink>
           ))}
+          {!isLoading && 
+            Array.from({length : 6}).map((item , i) => (
+              <ChatCardSekelton  />
+            ))
+          }
         </div>
     </div>
   )

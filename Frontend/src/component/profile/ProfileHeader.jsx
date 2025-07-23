@@ -1,14 +1,15 @@
 import { EditIcon, Loader2Icon, Send, SettingsIcon, UserCheck2, UserPenIcon, UserPlus2Icon } from 'lucide-react';
-import {useParams} from 'react-router-dom'
+import {useNavigate, useParams} from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux';
-import { setIsProfileEdit } from '../../redux/reducer/miscSlice';
-import { useGetProfileQuery, useToggleFollowMutation } from '../../redux/api/api';
+import { setChatName, setIsProfileEdit } from '../../redux/reducer/miscSlice';
+import { useCreateRoomMutation, useGetProfileQuery, useToggleFollowMutation } from '../../redux/api/api';
 import { useEffect , useState } from 'react';
 import { toast } from 'react-toastify';
 import { useSocket } from '../specific/socket';
 
 function ProfileHeader() {
   const {username} = useParams();
+  const navigate = useNavigate();
 
   const dispatch = useDispatch() ;
   const {user : userProfile} = useSelector(state => state.auth) ;
@@ -21,6 +22,7 @@ function ProfileHeader() {
   const [followToggleMutation , {isLoading : followIsLoading} ] = useToggleFollowMutation() ;
   const {data ,isError , error , isLoading}  = useGetProfileQuery(username , {skip : !username})
 
+  const [createRoomMutation] = useCreateRoomMutation() ;
 
   useEffect(() => {
     if(data && username) {
@@ -56,6 +58,26 @@ function ProfileHeader() {
       toast.error('Error while doing the follow operations.')
     }
   }
+
+  const messageHandler = async() => { 
+    if(user._id === userProfile._id) return ;
+    
+    try {
+      const room = await createRoomMutation({type : 'one-on-one' , members : [user._id]}).unwrap() ;
+      dispatch(setChatName({
+        _id : room._id , 
+        username : user.username , 
+        fullName : user.fullname ,  
+        avatar : user.avatar ,
+      }))
+      navigate('/messages/chat/'+user.username) ;
+    } catch (error) {
+      console.log(error);
+      
+      return toast.error('Error while creating the room.')
+    }
+  }
+
   
   return (
       <>
@@ -108,7 +130,7 @@ function ProfileHeader() {
                 </button>
                 
                 <button
-                // onClick={() => navigate(`/messages/${profile.username}`)}
+                onClick={messageHandler}
                 className="mt-4 mr-3 px-2 py-[3px] font-sm flex gap-1 items-center justify-center font-semibold  dark:text-black dark:bg-white rounded-md text-cyan-500 duration-200 hover:bg-gray-200 hover:scale-105 active:scale-95 shadow-sm shadow-black/40"
                 >
                   <Send size={17}/> <p>Message</p>

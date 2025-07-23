@@ -13,14 +13,14 @@ export default function ChatInput() {
   };
 
   return (
-    <div className="flex items-center p-2 gap-2 bg-[#111] rounded-xl mt-4 absolute sm:bottom-1 bottom-16 w-[99%] focus-within:border-2 border-0 border-white duration-200">   
+    <div className="flex items-center p-2 gap-2  rounded-xl mt-4 absolute sm:bottom-1 bottom-16 w-[99%]  duration-200">   
       <TextareaAutosize
         type="text"
         value={message}
         maxRows={4}
         onChange={(e) => setMessage(e.target.value)}
         placeholder="Type a message..."
-        className="flex-1 bg-transparent resize-none text-white outline-none px-3 py-2"
+        className="w-full p-2 rounded dark:bg-gradient-to-b dark:bg-black duration-200 focus:outline-none focus:ring-4 focus:ring-gray-300 dark:text-white  shadow-sm shadow-black/60 dark:hover:text-black resize-none"
       />
       <button
         onClick={handleSend}
