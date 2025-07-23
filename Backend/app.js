@@ -8,14 +8,18 @@ import jwt from 'jsonwebtoken' ;
 import {createServer} from 'http' ;
 import {Server} from 'socket.io' ;
 
+import { v2 as cloudinary } from "cloudinary";
+
 import connectDB from "./utils/connectDB.js";
 import userRouter from "./routes/user.routes.js" ;
 import postRouter from './routes/post.routes.js' ;
 import roomRouter from './routes/room.routes.js' ;
 import commentRouter from './routes/comment.routes.js' ;
 import messageRouter from './routes/message.routes.js' ;
-import { v2 as cloudinary } from "cloudinary";
 import { checkSocketUser } from "./utils/chekAuth.js";
+
+
+import { User } from "./models/user.model.js";
 
 dotenv.config() ;
 
@@ -39,12 +43,13 @@ io.on('connection', (socket) => {
   if (socket.user) {
     socket.join(`user:${socket.user._id}`)
   }
+  require('./utils/listners/message.listener.js')(socket , io)
 
   // Handle disconnection
-  socket.on('disconnect', () => {
+  socket.on('disconnect', async() => {
+    await User.findByIdAndUpdate(socket.user._id , {$set : {lastOnline : Date.now()}})
     console.log(`Client disconnected: ${socket.id}`)
   });
-  
 })
 
 // Middleware to parse JSON bodies

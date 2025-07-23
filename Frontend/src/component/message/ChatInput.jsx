@@ -1,13 +1,18 @@
 import { useState } from "react";
 import {  SendIcon , PaperclipIcon } from "lucide-react";
 import TextareaAutosize from "react-textarea-autosize";
+import { useSocket } from "../specific/socket";
 
-export default function ChatInput() {
+export default function ChatInput({members , setMessages}) {
   const [message, setMessage] = useState("");
+
+  const socket =  useSocket() ;
+
+  const memberIds = members.map(member => member._id) ;
 
   const handleSend = () => {
     if (!message.trim()) return;
-    // TODO: handle send logic
+    socket.emit('SEND_MESSAGE' , {message , memberIds}); 
     console.log("Sending:", message);
     setMessage("");
   };
@@ -20,10 +25,9 @@ export default function ChatInput() {
         maxRows={4}
         onChange={(e) => setMessage(e.target.value)}
         placeholder="Type a message..."
-        className="w-full p-2 rounded dark:bg-gradient-to-b dark:bg-black duration-200 focus:outline-none focus:ring-4 focus:ring-gray-300 dark:text-white  shadow-sm shadow-black/60 dark:hover:text-black resize-none"
+        className="w-full p-2  rounded dark:bg-gradient-to-b dark:bg-black duration-200 focus:outline-none focus:ring-4 focus:ring-gray-300 dark:text-white text-black  shadow-sm shadow-black/60 resize-none"
       />
       <button
-        onClick={handleSend}
         className=" p-2 text-cyan-600 bg-gray-100 hover:bg-gray-300 rounded-lg dark:bg-black  dark:text-white   dark:hover:bg-white shadow-sm shadow-black/60 dark:hover:text-black transition-colors duration-300 active:scale-95" 
       >
         <PaperclipIcon className="" />

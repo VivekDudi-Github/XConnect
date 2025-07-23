@@ -1,15 +1,27 @@
 import { ChevronLeftIcon, Eclipse, EllipsisIcon, EllipsisVerticalIcon } from 'lucide-react'
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { emptyChatName } from '../../redux/reducer/miscSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import ChatInput from './ChatInput';
+import { useSocket } from '../specific/socket';
+import moment from 'moment';
+
+
+const dummyMessages = [
+  { from: "other", text: "Hey, what's up?" },
+  { from: "me", text: "All good! You?" },
+  { from: "other", text: "Just building XConnect 🚀" },
+];
 
 export default function MessagingPage({username}) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const {fullName , avatar } = useSelector(state => state.misc.chatName) ;
+  const [messages , setMessages] = useState(dummyMessages) ;
+
+  const {title , avatar , username : userIdentifier  , lastOnline , type , _id } = useSelector(state => state.misc.chatName) ;
+  const socket =  useSocket() ;
 
 
   const BackButton =()=>{
@@ -30,33 +42,28 @@ export default function MessagingPage({username}) {
       <div className="flex flex-col flex-1">
         <div className="flex sm:flex-row flex-col justify-between sm:items-center items-start gap-1">
           <div className='flex gap-2 items-center'>
-            <p className="dark:text-white text-black font-bold">{fullName}</p>
-            <p className="text-sm text-gray-100 bg-cyan-600 dark:bg-white rounded-xl dark:text-black px-1.5 p-[2px] duration-100 font-semibold">@{username}</p>
+            <p className="dark:text-white text-black font-bold">{title}</p>
+            <p className="text-sm text-gray-100 bg-cyan-600 dark:bg-white rounded-xl dark:text-black px-1.5 p-[2px] duration-100 font-semibold">@{userIdentifier }</p>
           </div>
           {/* Last Online */}
           <span className="text-xs flex flex-row-reverse  justify-between items-center sm:block text-gray-500 w-full sm:w-fit ">
             <div className='w-fit sm:w-full rotate-180 p-2 pb-0'> <EllipsisVerticalIcon size={17} /></div>
-            Last online • 2hrs ago
+            Last online • {moment(lastOnline).fromNow()}
           </span>
           </div>
         </div>
       </div>
-      <MessageBox/>
-      <ChatInput />
+      <MessageBox messages={messages}/>
+      <ChatInput members={[userIdentifier]} setMessages={setMessages} />
     </div>
   )
 }
 
-const dummyMessages = [
-  { from: "other", text: "Hey, what's up?" },
-  { from: "me", text: "All good! You?" },
-  { from: "other", text: "Just building XConnect 🚀" },
-];
 
-function MessageBox() {
+function MessageBox({messages}) {
   return (
     <div className="flex-1 overflow-y-auto space-y-4 p-2">
-      {dummyMessages.map((msg, i) => (
+      {messages.map((msg, i) => (
         <div key={i} className={`flex ${msg.from === "me" ? "justify-end" : "justify-start"}`}>
           <div
             className={`px-4 py-2 rounded-2xl max-w-xs font-medium text-sm ${

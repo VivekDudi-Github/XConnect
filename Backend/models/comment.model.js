@@ -3,7 +3,7 @@ import mongoose from 'mongoose'
 const commentSchema = new mongoose.Schema({
   post : {
     type : mongoose.Types.ObjectId ,
-    ref : 'post' ,
+    ref : 'Post' ,
     required : true ,
     index : true
   } ,
@@ -14,7 +14,7 @@ const commentSchema = new mongoose.Schema({
   } ,
   comment_id : {
     type : mongoose.Types.ObjectId ,
-    ref : 'comment' ,
+    ref : 'Comment' ,
     index : true ,
     default : null ,
   } ,
@@ -35,7 +35,7 @@ const commentSchema = new mongoose.Schema({
   } ,
   user : {
     type : mongoose.Types.ObjectId ,
-    ref : 'user' ,
+    ref : 'User' ,
     required : true ,
     index : true
   } ,

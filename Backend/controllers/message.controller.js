@@ -28,7 +28,7 @@ const createMessage = TryCatch(async (req , res) => {
     message : message ,
   })
 
-  return ResSuccess(res , 200 ,'Message created successfully')
+  return ResSuccess(res , 200 ,messageObj)
 
 } , 'createMessage')
 

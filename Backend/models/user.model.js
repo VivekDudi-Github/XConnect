@@ -60,8 +60,11 @@ const userSchema = new mongoose.Schema({
     } ,
     refreshToken : {
         type : String 
+    } , 
+    lastOnline : {
+        type : Date ,
+        default : null ,
     }
-
 } , { timestamps : true})
 
 userSchema.methods.generateAccessToken = function(){

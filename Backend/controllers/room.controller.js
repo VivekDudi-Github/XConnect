@@ -34,7 +34,7 @@ const createRoom = TryCatch(async (req , res) => {
         $all : [...validMemberIds , req.user._id] , 
       } , 
     });
-    if(roomExists && roomExists.members.length === 2) return ResError(res , 400 , roomExists)
+    if(roomExists && roomExists.members.length === 2) return ResSuccess(res , 200 , roomExists)
   }
 
   const users = await User.find({_id : {$in : validMemberIds}}) ;
@@ -126,6 +126,7 @@ const getRooms = TryCatch(async (req , res) => {
   const rooms = await Room
   .find({members : req.user._id})
   .sort({createdAt : -1})
+  .populate('members' , 'fullname avatar username lastOnline') 
 
 
   return ResSuccess( res , 200 , rooms)

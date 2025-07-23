@@ -8,14 +8,28 @@ const roomSchema = new mongoose.Schema({
     description : {
         type : String ,
     } ,
+    avatar : {
+        type : {
+            type : String ,
+            default : '' ,
+        } ,
+        url : {
+            type : String ,
+            default : '' ,
+        } ,
+        public_id : {
+            type : String ,
+            default : '' ,
+        }
+    } ,
     owner : {
         type : mongoose.Schema.Types.ObjectId ,
-        ref : 'user' ,
+        ref : 'User' ,
         required : true
     } ,
     admins : [{
         type : mongoose.Schema.Types.ObjectId ,
-        ref : 'user' ,
+        ref : 'User' ,
         unique : true ,
         required : true ,
     }] ,
@@ -26,13 +40,13 @@ const roomSchema = new mongoose.Schema({
     } ,
     members : [{
         type : mongoose.Schema.Types.ObjectId ,
-        ref : 'user' ,
+        ref : 'User' ,
         unique : true ,
         required : true 
     }] ,
     archievedBy : [{
       type : mongoose.Schema.Types.ObjectId ,
-      ref : 'user' ,
+      ref : 'User' ,
       required : true
     }] 
 } , {

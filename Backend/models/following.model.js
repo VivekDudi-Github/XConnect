@@ -4,12 +4,12 @@ const followingSchema = new mongoose.Schema({
   followedTo : {
     type : mongoose.Types.ObjectId ,
     required : true ,
-    ref : 'user'
+    ref : 'User'
   } ,
   followedBy : {
     type : mongoose.Types.ObjectId ,
     required : true ,
-    ref : 'user' 
+    ref : 'User' 
   } ,
 
 } , {timestamps : true})

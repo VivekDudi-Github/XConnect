@@ -2,7 +2,8 @@ import React from 'react'
 
 function ChatCardSekelton() {
   return (
-    <div className="flex bg-white w-full mb-3 rounded-xl dark:shadow-sm p-4 dark:bg-black  dark:from-slate-900 dark:to-black dark:text-white shadow-slate-400 shadow-lg border-t dark:border-2 dark:border-white dark:border- border-slate-800/50  animate-pulse duration-200" >
+    <div 
+    className="flex bg-white w-full mb-3 rounded-xl dark:shadow-sm p-4 dark:bg-black  dark:from-slate-900 dark:to-black dark:text-white shadow-slate-400 shadow-lg border-t dark:border-2 dark:border-white dark:border- border-slate-800/50  animate-pulse duration-200 " >
       {/* Avatar */}
       <img
         src={'/avatar-default.svg'}

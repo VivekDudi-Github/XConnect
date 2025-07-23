@@ -8,9 +8,11 @@ const initialState = {
   } ,
   chatName : {
     username : null,
-    fullname : null,
+    title : null,
     _id : null ,
-    profilePic : null,
+    avatar : null,
+    lastOnline : null ,
+    type : null ,
   }
 };
 

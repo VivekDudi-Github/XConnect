@@ -3,12 +3,12 @@ import mongoose from "mongoose";
 const watchHistorySchema = new mongoose.Schema({
   post : {
     type : mongoose.Types.ObjectId ,
-    ref : 'post' ,
+    ref : 'Post' ,
     required : true ,
   } ,
   user : {
     type : mongoose.Types.ObjectId ,
-    ref : "user" ,
+    ref : "User" ,
     required : true ,
     index : true ,
   } ,

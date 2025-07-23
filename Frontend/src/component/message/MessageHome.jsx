@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { Navigate, NavLink } from 'react-router-dom'
 import { setChatName } from '../../redux/reducer/miscSlice';
 import { useGetRoomsQuery } from '../../redux/api/api';
 
 import {toast} from 'react-toastify'
 import ChatCardSekelton from '../shared/ChatCardSekelton';
+import '../../assets/styles.css'
 
 const chats = [
   {_id : 152 ,
@@ -32,15 +33,12 @@ const chats = [
 
 function MessageHome() {
   const dispatch = useDispatch() ;
+  const User = useSelector(state => state.auth.user) ;
+
+
   const [activeTab , setActiveTab] = useState('Chats')
+  const [rooms , setRooms] = useState([]) ;
 
-  const [rooms , setRooms] = useState(chats) ;
-
-  const setChatData =(_id , username , fullName , avatar) => {
-    dispatch(setChatName({
-      _id , username , fullName ,avatar 
-    }))
-  }
 
   const {data , isError , isLoading , error} = useGetRoomsQuery() ;
 
@@ -48,13 +46,26 @@ function MessageHome() {
 
   useEffect(() => {
     if(data && data?.data && !isLoading){
-      setRooms(data.data.rooms) ;
+      console.log(data.data);
+      
+      setRooms(data.data) ;
     }
   } , [data]) 
 
   useEffect(() => {
     if(isError) toast.error(error || 'Something went wrong.')
   } , [error , isError])
+
+  const setSingleChatData =(member) => {
+    dispatch(setChatName({
+      _id : member._id ,
+      username : member.username ,
+      title : member.fullname ,
+      avatar : member.avatar ,
+      type : 'one-on-one' ,
+      lastOnline : member.lastOnline ,
+    }))
+  }
 
   return (
     <div className="max-w-3xl mx-auto mt-4 px-2 sm:px-0 dark:bg-black  rounded-xl dark:text-white ">
@@ -84,16 +95,19 @@ function MessageHome() {
           </button>
         </div>
         <div className='mt-6 mx-2 gap-4 max-w-6xl'>
-          {rooms.length > 0 && rooms.map((room) => (
-            <NavLink
-            onClick={() => setChatData(room._id , room.username , room.fullName , room.avatar)}
-            to={`/messages/chat/${room.username}`} key={room._id} className="flex items-center justify-between p-2 ">
-              <ChatCard avatar={room.avatar} username={room.username} fullName={room.fullName} lastMessage={room.lastMessage} lastOnline={room?.lastOnline} unreadCount={room.unreadMessage} onClick={() => {}} />
+          {/* // for onr-on-one */}
+          {rooms.length > 0 && activeTab === 'Chats' && rooms.map((room , i) => {
+            const member = room.members.filter(member => member._id !== User._id)  
+            return (
+            <NavLink style={{padding : '0px'}}
+            onClick={() => setSingleChatData(member[0]) }
+            to={`/messages/chat/${member[0].username}`} key={room._id} className="flex items-center justify-between p-2 ">
+              <ChatCard i={i} avatar={member[0].avatar} username={member[0].username} fullName={member[0].fullname} lastMessage={room.lastMessage} lastOnline={room?.lastOnline} unreadCount={room.unreadMessage} onClick={() => {}} />
             </NavLink>
-          ))}
-          {!isLoading && 
+          )})}
+          {isLoading && 
             Array.from({length : 6}).map((item , i) => (
-              <ChatCardSekelton  />
+              <ChatCardSekelton key={i}  />
             ))
           }
         </div>
@@ -111,12 +125,13 @@ function ChatCard({
   lastOnline,
   unreadCount,
   onClick,
+  i ,
 }){
   return (
     <div
+      style={{animationDelay : `${i*0.15}s`}}
       onClick={onClick}
-      // className="flex items-center w-full gap-4 p-4 hover:bg-[#1f1f1f] cursor-pointer border-b border-gray-800"
-      className="flex bg-white w-full rounded-xl dark:shadow-sm p-4 dark:bg-black  dark:from-slate-900 dark:to-black dark:text-white shadow-slate-400 shadow-lg border-t dark:border-2 dark:border-white dark:border- border-slate-800/50 duration-200 break-inside-avoid " 
+      className="flex bg-white w-full mb-3 rounded-xl dark:shadow-sm p-4 dark:bg-black  dark:from-slate-900 dark:to-black dark:text-white shadow-slate-400 shadow-lg border-t dark:border-2 dark:border-white dark:border- border-slate-800/50 duration-200 break-inside-avoid fade-in " 
     >
       {/* Avatar */}
       <img
