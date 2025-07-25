@@ -56,8 +56,9 @@ function MessageHome() {
     if(isError) toast.error(error || 'Something went wrong.')
   } , [error , isError])
 
-  const setSingleChatData =(member) => {
+  const setSingleChatData =(member , room) => {
     dispatch(setChatName({
+      room_id : room._id ,
       _id : member._id ,
       username : member.username ,
       title : member.fullname ,
@@ -96,11 +97,12 @@ function MessageHome() {
         </div>
         <div className='mt-6 mx-2 gap-4 max-w-6xl'>
           {/* // for onr-on-one */}
-          {rooms.length > 0 && activeTab === 'Chats' && rooms.map((room , i) => {
+          {rooms.length > 0 && activeTab === 'Chats' && 
+          rooms.map((room , i) => {
             const member = room.members.filter(member => member._id !== User._id)  
             return (
             <NavLink style={{padding : '0px'}}
-            onClick={() => setSingleChatData(member[0]) }
+            onClick={() => setSingleChatData(member[0] , room) }
             to={`/messages/chat/${member[0].username}`} key={room._id} className="flex items-center justify-between p-2 ">
               <ChatCard i={i} avatar={member[0].avatar} username={member[0].username} fullName={member[0].fullname} lastMessage={room.lastMessage} lastOnline={room?.lastOnline} unreadCount={room.unreadMessage} onClick={() => {}} />
             </NavLink>

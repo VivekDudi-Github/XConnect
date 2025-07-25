@@ -18,6 +18,7 @@ import commentRouter from './routes/comment.routes.js' ;
 import messageRouter from './routes/message.routes.js' ;
 import { checkSocketUser } from "./utils/chekAuth.js";
 
+import messageListener from "./utils/listners/message.listener.js";
 
 import { User } from "./models/user.model.js";
 
@@ -43,7 +44,7 @@ io.on('connection', (socket) => {
   if (socket.user) {
     socket.join(`user:${socket.user._id}`)
   }
-  require('./utils/listners/message.listener.js')(socket , io)
+  messageListener(socket , io) ;
 
   // Handle disconnection
   socket.on('disconnect', async() => {

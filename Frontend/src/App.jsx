@@ -67,8 +67,8 @@ useEffect(() => {
             <Route path='/notifications' element={<NotificationPage/>} />
             
             {/* <Route path='/settings' element={<SettingsPage/>} /> */}
-            <Route path='messages' element={<MessagesPage />} />
-            <Route path='messages/chat/:username' element={<MessagesPage />} />
+            <Route path='/messages' element={<MessagesPage />} />
+            <Route path='/messages/chat/:username' element={<MessagesPage />} />
 
             <Route path='/comment/:id' element ={<CommentPage />} />
             

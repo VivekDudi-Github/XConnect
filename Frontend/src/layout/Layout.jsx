@@ -5,12 +5,15 @@ import { useSocket } from '../component/specific/socket';
 import { useDispatch, useSelector } from 'react-redux';
 import { addMultipleNotifications, addNotification, changeIsNotificationfetched, removeNotification } from '../redux/reducer/notificationSlice';
 import {  useLazyGetMyNotificationsQuery } from '../redux/api/api';
+import { useNavigate } from 'react-router-dom';
 
 
 function Layout({children}) {
 const dispatch = useDispatch() ;
+const navigate = useNavigate() ;
 const {isNotificationfetched} = useSelector(state => state.notification);
 
+u
   const socket = useSocket();
   useEffect(() => {
     if(socket){
@@ -18,11 +21,21 @@ const {isNotificationfetched} = useSelector(state => state.notification);
         console.log(data);
         dispatch(addNotification(data))
       }) ;
-
+      socket?.on('RECEIVE_MESSAGE' , ({message , sender}) => {
+        // setMessages([...messages , {from : sender.username , text : message}])
+        console.log(message , sender);
+      }) ;
+      
       socket.on('notification:retract' , (data) => {
         console.log(data);
         dispatch(removeNotification(data))
       }) ;
+
+      return () => {
+        socket.off('notification:receive');
+        socket.off('RECEIVE_MESSAGE');
+        socket.off('notification:retract');
+      }
     }
 
     return () => {

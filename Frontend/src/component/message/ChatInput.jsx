@@ -8,11 +8,10 @@ export default function ChatInput({members , setMessages}) {
 
   const socket =  useSocket() ;
 
-  const memberIds = members.map(member => member._id) ;
 
   const handleSend = () => {
     if (!message.trim()) return;
-    socket.emit('SEND_MESSAGE' , {message , memberIds}); 
+    socket.emit('SEND_MESSAGE' , {message , memberIds : members}); 
     console.log("Sending:", message);
     setMessage("");
   };

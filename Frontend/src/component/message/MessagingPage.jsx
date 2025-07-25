@@ -1,5 +1,5 @@
 import { ChevronLeftIcon, Eclipse, EllipsisIcon, EllipsisVerticalIcon } from 'lucide-react'
-import React, { useState } from 'react'
+import React, { use, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { emptyChatName } from '../../redux/reducer/miscSlice';
 import { useDispatch, useSelector } from 'react-redux';
@@ -20,8 +20,18 @@ export default function MessagingPage({username}) {
 
   const [messages , setMessages] = useState(dummyMessages) ;
 
-  const {title , avatar , username : userIdentifier  , lastOnline , type , _id } = useSelector(state => state.misc.chatName) ;
+  const {title , avatar , username : userIdentifier  , lastOnline , type , _id , room_id } = useSelector(state => state.misc.chatName) ;
+  
   const socket =  useSocket() ;
+
+
+  useEffect(() => {
+    setTimeout(() => {
+      if(!room_id){
+        navigate('/messages') ;
+      }
+    } , 1000)
+  }, [room_id])
 
 
   const BackButton =()=>{
@@ -54,7 +64,7 @@ export default function MessagingPage({username}) {
         </div>
       </div>
       <MessageBox messages={messages}/>
-      <ChatInput members={[userIdentifier]} setMessages={setMessages} />
+      <ChatInput members={[_id]} setMessages={setMessages} />
     </div>
   )
 }
