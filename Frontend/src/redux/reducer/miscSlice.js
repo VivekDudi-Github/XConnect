@@ -7,6 +7,7 @@ const initialState = {
     postId : null ,
   } ,
   chatName : {
+    room_id : null ,
     username : null,
     title : null,
     _id : null ,
@@ -35,6 +36,7 @@ const miscSlice = createSlice({
         fullname : null,
         _id : null ,
         profilePic : null,
+        room_id : null ,
       }
     }
   },

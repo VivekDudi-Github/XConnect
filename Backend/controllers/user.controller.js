@@ -403,7 +403,6 @@ const togglefollow  = TryCatch(async(req , res) => {
 
 const getMyNotifications = TryCatch(async(req , res) => {
     const notifications = await Notification.find({receiver : req.user._id}).populate('sender' , 'avatar fullname username') ;
-    console.log(notifications);
     
     return ResSuccess(res , 200 , notifications) ;
 } , 'get notification' )
@@ -411,7 +410,6 @@ const getMyNotifications = TryCatch(async(req , res) => {
 const changeMYNotificationStatus = TryCatch(async(req , res) => {
     const {notificationId = []} = req.body ;
     const notification = await Notification.findById(notificationId) ;
-    console.log(notificationId);
     
     if(notificationId.length === 0 || !notification) return ResError(res , 400 , 'Notification id is required')
     

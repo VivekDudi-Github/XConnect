@@ -2,17 +2,30 @@ import { useState } from "react";
 import {  SendIcon , PaperclipIcon } from "lucide-react";
 import TextareaAutosize from "react-textarea-autosize";
 import { useSocket } from "../specific/socket";
+import {v4 as uuidv4} from 'uuid';
 
-export default function ChatInput({members , setMessages}) {
+
+export default function ChatInput({members ,user , setLiveMessages , room_id}) {
   const [message, setMessage] = useState("");
 
   const socket =  useSocket() ;
-
+ 
 
   const handleSend = () => {
     if (!message.trim()) return;
-    socket.emit('SEND_MESSAGE' , {message , memberIds : members}); 
-    console.log("Sending:", message);
+    socket.emit('SEND_MESSAGE' , {message , memberIds : members , room_id }); 
+    setLiveMessages(prev => [...prev , 
+      {
+        _id : uuidv4() ,
+        sender : {
+          _id : user._id ,
+          username : user.username ,
+          avatar : user.avatar ,
+        } ,
+        message ,
+        room_id ,
+        createdAt : new Date()
+      }]) ;
     setMessage("");
   };
 

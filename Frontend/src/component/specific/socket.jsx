@@ -13,6 +13,8 @@ export const SocketProvider = ({ children , user }) => {
 
   useEffect(() => {
     const newSocket = io("http://localhost:3000", {
+      autoConnect : true ,
+      reconnection : true , 
       withCredentials : true 
     });
     setSocket(newSocket);
