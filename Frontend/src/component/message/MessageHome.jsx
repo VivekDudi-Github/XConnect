@@ -46,7 +46,7 @@ function MessageHome() {
 
   useEffect(() => {
     if(data && data?.data && !isLoading){
-      console.log(data.data);
+      // console.log(data.data);
       
       setRooms(data.data) ;
     }

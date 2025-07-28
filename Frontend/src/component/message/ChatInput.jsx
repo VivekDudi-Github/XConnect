@@ -7,6 +7,7 @@ import {v4 as uuidv4} from 'uuid';
 
 export default function ChatInput({members ,user , setLiveMessages , room_id}) {
   const [message, setMessage] = useState("");
+console.log(message);
 
   const socket =  useSocket() ;
  
@@ -24,7 +25,7 @@ export default function ChatInput({members ,user , setLiveMessages , room_id}) {
         } ,
         message ,
         room_id ,
-        createdAt : new Date()
+        createdAt : new Date().toUTCString()
       }]) ;
     setMessage("");
   };

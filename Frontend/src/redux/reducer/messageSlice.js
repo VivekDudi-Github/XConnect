@@ -34,13 +34,15 @@ const messageSlice = createSlice({
       state.byUnreadMessage[room_id] = [...state.byUnreadMessage[room_id] , message] ;
     } ,
     clearUnreadMessage : (state , action) => {
-      const {room_id} = action.payload ;
-      state.byUnreadMessage[room_id] = [] ;
+      const room_id = action.payload ;
+      if(state.byUnreadMessage[room_id]){
+        state.byUnreadMessage[room_id] = [] ;
+      }
     } ,
     clearAllUnreadMessage : (state , payload) => {
       const room_id = payload.room_id ;
-      if(state.byUnreadMessage.room_id){
-        state.byUnreadMessage.room_id = [] ;
+      if(state.byUnreadMessage[room_id]){
+        state.byUnreadMessage[room_id] = [] ;
       }
     }
   }
