@@ -1,5 +1,5 @@
 import { ChevronLeftIcon, Eclipse, EllipsisIcon, EllipsisVerticalIcon } from 'lucide-react'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { emptyChatName } from '../../redux/reducer/miscSlice';
 import { useDispatch, useSelector } from 'react-redux';
@@ -10,7 +10,9 @@ import '../../assets/styles.css'
 
 import RenderPostContent from '../specific/RenderPostContent'
 import { clearUnreadMessage, storeSocketMessage } from '../../redux/reducer/messageSlice';
-import { current } from '@reduxjs/toolkit';
+// import { current } from '@reduxjs/toolkit';
+import { useGetMessagesQuery } from '../../redux/api/api';
+import lastRefFunc from '../specific/LastRefFunc';
 
 
 const dummyMessages = [
@@ -27,28 +29,54 @@ const dummyMessages = [
   // { from: "me", text: "All good! You?" },
   // { from: "other", text: "Just building XConnect 🚀" },
 ];
-
+//add the api and the data addition and also the auto scroll
 export default function MessagingPage({username}) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const {user} = useSelector(state => state.auth)
-  const {byUnreadMessage , byRoom} = useSelector(state => state.messagesBuffer)
+  const socket =  useSocket() ;
+  const {user} = useSelector(state => state.auth) ;
+  const {byUnreadMessage , byRoom} = useSelector(state => state.messagesBuffer) ;
 
+  const observer = useRef() ;
+  
   const liveMessagesRef = useRef() ;
   const messagesRef = useRef() ;
 
+  const [earliestMessage_id , setEarliestMessage_id ] = useState('initial') ;
+
+  const [oldChunkMessages , setOldChunkMessages] = useState([]) ;
   const [messages , setMessages] = useState([]) ;
   const [liveMessages , setLiveMessages] = useState([]) ;
-console.log(messages);
 
 
   const {title , avatar , username : userIdentifier  , lastOnline , type , _id , room_id } = useSelector(state => state.misc.chatName) ;
   
+  const {isLoading , isSuccess , isError , data} = useGetMessagesQuery({
+    room : room_id ,
+    _id : earliestMessage_id ,
+    limit : 2} , 
+    {skip : !room_id}
+  ) ;
+
+  const changeEaliestId = () => {
+    setEarliestMessage_id(oldChunkMessages?.[0]?._id)
+  }
+  
+  const topMessageRef = useCallback((node) => {
+    lastRefFunc({
+      observer , 
+      node , 
+      page : 2 ,
+      fetchFunc : changeEaliestId ,
+    })
+  } , [oldChunkMessages] )
+
   useEffect(() => {
-    const timeOut = setTimeout(() => {
+    const timeOut = setTimeout(async() => {
       if(room_id){
         const byRoomsMessages = byRoom?.[room_id] || [] ;
         const ureadMessages = byUnreadMessage?.[room_id] || [] ;
+        
         console.log('timeout' , room_id , byRoomsMessages?.length , ureadMessages?.length) ;
         
         setMessages(prev => [
@@ -71,6 +99,7 @@ console.log(messages);
         dispatch(storeSocketMessage({room_id , messages : [...messagesRef.current , ...liveMessagesRef.current ]})) ;      
       }
       dispatch(clearUnreadMessage(room_id || '')) ;
+      setOldChunkMessages([])
       setMessages([]) ;
       setLiveMessages([]) ;
       dispatch(emptyChatName()) ;
@@ -78,13 +107,20 @@ console.log(messages);
   } , [])
 
   useEffect(() => {
+    if(isSuccess && data?.data?.length > 0 && data.data[0]._id !== earliestMessage_id){
+      console.log(data);
+      setOldChunkMessages(prev => [...data.data , ...prev]) ;
+    }
+  } , [isSuccess , data]) ;
+
+  useEffect(() => {
     liveMessagesRef.current = liveMessages ;
   } , [liveMessages])
   useEffect(() => {
     messagesRef.current = messages ; 
-  } , [messages])
+  } , [messages]) ;
 
-  const socket =  useSocket() ;
+
   useEffect(() => {
     if(!socket) return ;
     
@@ -99,7 +135,7 @@ console.log(messages);
     return () => {
       socket.off('RECEIVE_MESSAGE' , receiveMessageListener);
     }
-  } , [username])
+  } , [username]) ;
 
   useEffect(() => {
     setTimeout(() => {
@@ -107,13 +143,13 @@ console.log(messages);
         navigate('/messages') ;
       }
     } , 500)
-  }, [room_id])
+  }, [room_id]) ;
 
 
-  const BackButton =()=>{
+  const BackButton =() => {
     dispatch(emptyChatName()) ;
     navigate(-1) ;
-  }
+  } ;
 
   return (
     <div className='dark:text-white  h-screen sm:pb-16 pb-32 text-black '>
@@ -141,16 +177,31 @@ console.log(messages);
           </div>
         </div>
       </div>
-      <MessageBox messages={messages} liveMessages={liveMessages} user={user}/>
+      <MessageBox messages={messages} liveMessages={liveMessages} oldChunkMessages={oldChunkMessages} user={user} topMessageRef={topMessageRef}/>
       <ChatInput user={user} members={[_id]} setLiveMessages={setLiveMessages} room_id={room_id} />
     </div>
   )
 }
 
 
-function MessageBox({messages , liveMessages, user}) {
+function MessageBox({messages , liveMessages , oldChunkMessages, user , topMessageRef}) {
   return (
     <div className="flex-1 overflow-y-auto space-y-2 sm:pb-16 pb-16 p-2 h-full duration-200l">
+      {oldChunkMessages.map((msg, i) => {
+        let meSender = msg.sender._id === user._id 
+        return (
+        <div key={msg._id} ref={i === 0 ? topMessageRef : null} className={`flex ${meSender ? "justify-end" : "justify-start"}`}>
+          <div
+            className={`px-4 py-2 fade-in rounded-2xl max-w-xs font-medium text-sm ${
+              meSender
+                ? "bg-sky-600 text-white"
+                : "bg-gray-700 text-gray-100"
+            }`}
+          >
+            <pre className="dark:text-gray-300 font-sans text-wrap"><RenderPostContent text={msg?.message}/></pre>
+          </div>
+        </div>
+      )})}
       {messages.map((msg, i) => {
         let meSender = msg.sender._id === user._id 
         return (

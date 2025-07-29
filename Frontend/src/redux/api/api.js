@@ -175,6 +175,15 @@ const api = createApi({
         credentials : 'include' ,
       })
     }) ,
+    getMessages : builder.query({
+      query : ({room , _id , limit}) => ({
+        url : `/message/get?room=${room}&_id=${_id}&limit=${limit}` ,
+        credentials : 'include' ,
+      }) ,
+      providesTags : (result , error , arg) => [
+        {type : 'Messages' , id : `${arg.room}-${arg._id}`} ,
+      ] ,
+    })
   })
 })
 
@@ -218,4 +227,8 @@ export const {
   //room 
   useGetRoomsQuery ,
   useCreateRoomMutation ,
+
+  //messages
+  // useLazyGetMessagesQuery ,
+  useGetMessagesQuery 
 } = api ;

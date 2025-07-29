@@ -25,13 +25,15 @@ const MessageListener = (socket , io) => {
       memberIds.forEach(member => {
         io.to(`user:${member}`).emit('RECEIVE_MESSAGE' ,messageObj )
       })
+      await Message.create({
+        sender : socket.user._id ,
+        message ,
+        room : room_id ,
+      })
+
       return ;
     }
-    await Message.create({
-      from : socket.user._id ,
-      message ,
-      room : room_id ,
-    })
+    
 
     } ) ;
 }

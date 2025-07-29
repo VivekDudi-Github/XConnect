@@ -7,7 +7,7 @@ import {v4 as uuidv4} from 'uuid';
 
 export default function ChatInput({members ,user , setLiveMessages , room_id}) {
   const [message, setMessage] = useState("");
-console.log(message);
+// console.log(message);
 
   const socket =  useSocket() ;
  
