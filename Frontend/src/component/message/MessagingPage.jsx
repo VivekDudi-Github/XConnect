@@ -1,5 +1,5 @@
-import { ChevronLeftIcon, Eclipse, EllipsisIcon, EllipsisVerticalIcon } from 'lucide-react'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { ChevronLeftIcon, Eclipse, EllipsisIcon, EllipsisVerticalIcon, Loader2Icon } from 'lucide-react'
+import React, { useCallback, useEffect, useRef, useState , forwardRef} from 'react'
 import { useNavigate } from 'react-router-dom'
 import { emptyChatName } from '../../redux/reducer/miscSlice';
 import { useDispatch, useSelector } from 'react-redux';
@@ -11,7 +11,7 @@ import '../../assets/styles.css'
 import RenderPostContent from '../specific/RenderPostContent'
 import { clearUnreadMessage, storeSocketMessage } from '../../redux/reducer/messageSlice';
 // import { current } from '@reduxjs/toolkit';
-import { useGetMessagesQuery } from '../../redux/api/api';
+import api, { useGetMessagesQuery } from '../../redux/api/api';
 import lastRefFunc from '../specific/LastRefFunc';
 
 
@@ -29,7 +29,7 @@ const dummyMessages = [
   // { from: "me", text: "All good! You?" },
   // { from: "other", text: "Just building XConnect 🚀" },
 ];
-//add the api and the data addition and also the auto scroll
+// and also the auto scroll
 export default function MessagingPage({username}) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -42,8 +42,11 @@ export default function MessagingPage({username}) {
   const liveMessagesRef = useRef() ;
   const messagesRef = useRef() ;
 
-  const [earliestMessage_id , setEarliestMessage_id ] = useState('initial') ;
+  const containerRef = useRef() ;
+  const bottomRef = useRef() ;
 
+  const [earliestMessage_id , setEarliestMessage_id ] = useState('initial') ;
+  
   const [oldChunkMessages , setOldChunkMessages] = useState([]) ;
   const [messages , setMessages] = useState([]) ;
   const [liveMessages , setLiveMessages] = useState([]) ;
@@ -51,14 +54,14 @@ export default function MessagingPage({username}) {
 
   const {title , avatar , username : userIdentifier  , lastOnline , type , _id , room_id } = useSelector(state => state.misc.chatName) ;
   
-  const {isLoading , isSuccess , isError , data} = useGetMessagesQuery({
+  const {isFetching , isSuccess , isError , data} = useGetMessagesQuery({
     room : room_id ,
     _id : earliestMessage_id ,
-    limit : 2} , 
+    limit : 15} , 
     {skip : !room_id}
   ) ;
 
-  const changeEaliestId = () => {
+  const changeEarliestId = () => {
     setEarliestMessage_id(oldChunkMessages?.[0]?._id)
   }
   
@@ -67,9 +70,15 @@ export default function MessagingPage({username}) {
       observer , 
       node , 
       page : 2 ,
-      fetchFunc : changeEaliestId ,
+      fetchFunc : changeEarliestId ,
     })
   } , [oldChunkMessages] )
+
+  const updateUserMeta = () => {
+    setTimeout(() => {
+      console.log('updated');
+    } , 2000)
+  }
 
   useEffect(() => {
     const timeOut = setTimeout(async() => {
@@ -84,7 +93,7 @@ export default function MessagingPage({username}) {
           ...ureadMessages ,
           ...prev ,
         ]);
-      }
+       }
     } , 500)
     
     return () => {
@@ -94,7 +103,6 @@ export default function MessagingPage({username}) {
 
   useEffect(() => {
     return () => {
-      console.log('done');
       if(liveMessagesRef?.current?.length > 0){
         dispatch(storeSocketMessage({room_id , messages : [...messagesRef.current , ...liveMessagesRef.current ]})) ;      
       }
@@ -102,28 +110,45 @@ export default function MessagingPage({username}) {
       setOldChunkMessages([])
       setMessages([]) ;
       setLiveMessages([]) ;
+      dispatch(api.util.updateQueryData('getRooms' , undefined , (draft) => {
+        const roomDraft = draft.data.find(r => r._id === room_id) ;
+        roomDraft.unseenMessages = 0 ;
+      }))
       dispatch(emptyChatName()) ;
+      socket.emit('User_Room_Meta_Update' , {room_id}) ; // update user meta
     }
   } , [])
 
   useEffect(() => {
     if(isSuccess && data?.data?.length > 0 && data.data[0]._id !== earliestMessage_id){
+      const prevScrollHeight = containerRef.current.scrollHeight;
+      const prevScrollTop = containerRef.current.scrollTop;
+  
       console.log(data);
       setOldChunkMessages(prev => [...data.data , ...prev]) ;
+      requestAnimationFrame(() => {
+        const newScrollHeight = containerRef.current.scrollHeight;
+        containerRef.current.scrollTop = prevScrollTop + (newScrollHeight - prevScrollHeight);
+        })
     }
   } , [isSuccess , data]) ;
 
   useEffect(() => {
+    requestAnimationFrame(() => {
+      containerRef.current.scrollTo({
+        top : containerRef.current.scrollTop + 150 ,
+        behavior : 'smooth'
+      })  
+      })
     liveMessagesRef.current = liveMessages ;
   } , [liveMessages])
   useEffect(() => {
     messagesRef.current = messages ; 
   } , [messages]) ;
 
-
+//socket & listener
   useEffect(() => {
     if(!socket) return ;
-    
     const receiveMessageListener = (data) => {
       if(data.room_id === room_id){
         setLiveMessages(prev => [...prev , data]) ; 
@@ -177,16 +202,21 @@ export default function MessagingPage({username}) {
           </div>
         </div>
       </div>
-      <MessageBox messages={messages} liveMessages={liveMessages} oldChunkMessages={oldChunkMessages} user={user} topMessageRef={topMessageRef}/>
+      <MessageBox ref={containerRef} messages={messages} liveMessages={liveMessages} oldChunkMessages={oldChunkMessages} user={user} topMessageRef={topMessageRef} />
       <ChatInput user={user} members={[_id]} setLiveMessages={setLiveMessages} room_id={room_id} />
     </div>
   )
 }
 
 
-function MessageBox({messages , liveMessages , oldChunkMessages, user , topMessageRef}) {
+const MessageBox =  forwardRef(({messages , liveMessages , oldChunkMessages, user , topMessageRef , isFetching} , ref) => {
   return (
-    <div className="flex-1 overflow-y-auto space-y-2 sm:pb-16 pb-16 p-2 h-full duration-200l">
+    <div ref={ref} className="flex-1 overflow-y-auto space-y-2 sm:pb-16 pb-16 p-2 h-full duration-200l">
+      {isFetching ? (
+        <div className='width-full flex justify-center ' ><Loader2Icon className='animate-spin' size={20}/></div>  
+        ) : (
+        <div></div>
+        )}
       {oldChunkMessages.map((msg, i) => {
         let meSender = msg.sender._id === user._id 
         return (
@@ -234,4 +264,4 @@ function MessageBox({messages , liveMessages , oldChunkMessages, user , topMessa
       )})}
     </div>
   );
-}
+})

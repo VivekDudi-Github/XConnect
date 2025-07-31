@@ -3,8 +3,9 @@ import {TryCatch , ResError , ResSuccess} from '../utils/extra.js'
 
 import { User } from '../models/user.model.js'
 import { Room } from '../models/Room.model.js';
+import { UserRoomMeta } from '../models/UserRoomMeta.model.js';
 
-
+const ObjectId = mongoose.Types.ObjectId ;
 
 const createRoom = TryCatch(async (req , res) => {
   const {name , description , type , members} = req.body ;
@@ -123,11 +124,95 @@ const deleteRoom = TryCatch(async (req , res) => {
 } , 'deleteRoom')
 
 const getRooms = TryCatch(async (req , res) => {
-  const rooms = await Room
-  .find({members : req.user._id})
-  .sort({createdAt : -1})
-  .populate('members' , 'fullname avatar username lastOnline') 
+  // const rooms = await Room
+  // .find({members : req.user._id})
+  // .sort({createdAt : -1})
+  // .populate('members' , 'fullname avatar username lastOnline') 
 
+  // const UserMeta = await UserRoomMeta.findOne({
+  //   user : req.user._id ,
+  //   room : {$exists : true}
+  // })
+
+  const rooms = await Room.aggregate([
+    {$match : {
+      members : {$in : [ new ObjectId(`${req.user._id}`)]}
+    }} , 
+    {$lookup : {
+      from : 'messages' ,
+      let : {roomId : '$_id'},
+      pipeline : [
+        {$lookup : {
+          from : 'userroommetas' ,
+          let : {roomId : '$$roomId'} ,
+          pipeline : [
+            {$match : {
+              $expr : {
+                $and : [
+                  {$eq : ['$room' , '$$roomId']} ,
+                  {$eq : ['$user' , new ObjectId(`${req.user._id}`)]}
+                ]
+              }
+            }} ,
+          ] ,
+          as : 'userMeta' 
+        }} ,
+        {
+          $unwind: {
+            path: '$userMeta',
+            preserveNullAndEmptyArrays: true
+          }
+        },
+        {$match : {
+          $expr : {
+            $and : [
+              {$eq : ['$room' , '$$roomId']} ,
+              {$eq : ['$isDeleted' , false]} ,
+              
+              {$cond: {
+                if: { $ifNull: ['$userMeta.lastVisit', false] },
+                then: { $gt: ['$createdAt', '$userMeta.lastVisit'] },
+                else: false ,
+              }}
+            ]
+          }
+        }} ,
+        {$project : {
+          message : 1 ,
+          createdAt : 1 ,
+        }}, 
+        {$sort : {createdAt : -1}} ,
+      ] , 
+      as : 'lastMessages'
+    }} ,
+    {$addFields : {
+      lastMessage : {$arrayElemAt : ['$lastMessages' , 0]} ,
+      unseenMessages : {$size : '$lastMessages'}
+    }} ,
+    {$sort : {'unseenMessages' : -1}} ,
+    {$lookup: {
+        from: 'users',
+        let: { memberIds: '$members' },
+        pipeline: [
+          { $match: { $expr: { $in: ['$_id', '$$memberIds'] } } },
+          { $project: { username: 1, avatar: 1, fullname: 1 , lastOnline : 1} }
+        ],
+        as: 'members'
+      }
+    } , 
+    {$project : {
+      name : 1 ,
+      description : 1 ,
+      type : 1 ,
+      owner : 1 ,
+      members : 1 ,
+      admins : 1 ,
+      lastMessage : 1 ,
+      unseenMessages : 1 ,
+      createdAt : 1 ,
+    }}
+  ])
+console.log(rooms);
 
   return ResSuccess( res , 200 , rooms)
 } , 'getRooms')

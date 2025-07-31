@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Navigate, NavLink } from 'react-router-dom'
 import { setChatName } from '../../redux/reducer/miscSlice';
-import { useGetRoomsQuery } from '../../redux/api/api';
+import api, { endpoints, useGetRoomsQuery } from '../../redux/api/api';
 
 import {toast} from 'react-toastify'
 import ChatCardSekelton from '../shared/ChatCardSekelton';
@@ -34,11 +34,12 @@ const chats = [
 function MessageHome() {
   const dispatch = useDispatch() ;
   const User = useSelector(state => state.auth.user) ;
-
+  const {byUnreadMessage} = useSelector(state => state.messagesBuffer) ;
 
   const [activeTab , setActiveTab] = useState('Chats')
   const [rooms , setRooms] = useState([]) ;
 
+console.log((byUnreadMessage));
 
   const {data , isError , isLoading , error} = useGetRoomsQuery() ;
 
@@ -46,8 +47,6 @@ function MessageHome() {
 
   useEffect(() => {
     if(data && data?.data && !isLoading){
-      // console.log(data.data);
-      
       setRooms(data.data) ;
     }
   } , [data]) 
@@ -66,6 +65,15 @@ function MessageHome() {
       type : 'one-on-one' ,
       lastOnline : member.lastOnline ,
     }))
+  }
+
+  const lastUnseenMessageHandler = (room) => {
+    const totalUnreadMessage = byUnreadMessage[room._id]?.length || 0 ;
+    const totalUnseenMessage = room?.unseenMessages || 0 ;
+    
+    const lastMessage = byUnreadMessage?.[room._id]?.[0] || room?.lastMessage ;
+
+    return {unseenMessages : totalUnseenMessage + totalUnreadMessage , lastMessage  }
   }
 
   return (
@@ -104,7 +112,7 @@ function MessageHome() {
             <NavLink style={{padding : '0px'}}
             onClick={() => setSingleChatData(member[0] , room) }
             to={`/messages/chat/${member[0].username}`} key={room._id} className="flex items-center justify-between p-2 ">
-              <ChatCard i={i} avatar={member[0].avatar} username={member[0].username} fullName={member[0].fullname} lastMessage={room.lastMessage} lastOnline={room?.lastOnline} unreadCount={room.unreadMessage} onClick={() => {}} />
+              <ChatCard i={i} avatar={member[0].avatar} username={member[0].username} fullName={member[0].fullname} lastMessage={lastUnseenMessageHandler(room).lastMessage} lastOnline={room?.lastOnline} unreadCount={lastUnseenMessageHandler(room).unseenMessages} onClick={() => {}} />
             </NavLink>
           )})}
           {isLoading && 
@@ -159,7 +167,7 @@ function ChatCard({
           {/* Last Message */}
           <p className={`text-sm truncate max-w-[70%] ${unreadCount > 0 ? 'text-gray-300' : 'text-gray-500'} `}>
           {unreadCount > 0 ? '• ' : ''}
-          {lastMessage || "No messages yet"}
+          {lastMessage?.message || "No messages yet"}
           </p>
 
           {/* Unread Badge */}

@@ -21,6 +21,7 @@ import { checkSocketUser } from "./utils/chekAuth.js";
 import messageListener from "./utils/listners/message.listener.js";
 
 import { User } from "./models/user.model.js";
+import { UserListener } from "./utils/listners/user.listener.js";
 
 dotenv.config() ;
 
@@ -45,6 +46,7 @@ io.on('connection', (socket) => {
     socket.join(`user:${socket.user._id}`)
   }
   messageListener(socket , io) ;
+  UserListener(socket , io) ;
 
   // Handle disconnection
   socket.on('disconnect', async() => {

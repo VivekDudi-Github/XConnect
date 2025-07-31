@@ -35,7 +35,7 @@ const MessageListener = (socket , io) => {
     }
     
 
-    } ) ;
+    }) ;
 }
 
 export default MessageListener ;

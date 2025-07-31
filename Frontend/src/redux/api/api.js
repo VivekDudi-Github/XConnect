@@ -190,6 +190,7 @@ const api = createApi({
 export default api ;
 
 export const {
+  endpoints ,
 // profile-user
   useLazyFetchMeQuery ,
   useRegisterMeMutation ,
