@@ -15,6 +15,7 @@ export default function ChatInput({members ,user , setLiveMessages , room_id}) {
   const handleSend = () => {
     if (!message.trim()) return;
     socket.emit('SEND_MESSAGE' , {message , memberIds : members , room_id }); 
+    socket?.emit('User_Room_Meta_Update' , {room_id}) ;
     setLiveMessages(prev => [...prev , 
       {
         _id : uuidv4() ,
@@ -24,7 +25,7 @@ export default function ChatInput({members ,user , setLiveMessages , room_id}) {
           avatar : user.avatar ,
         } ,
         message ,
-        room_id ,
+        room : room_id ,
         createdAt : new Date().toUTCString()
       }]) ;
     setMessage("");

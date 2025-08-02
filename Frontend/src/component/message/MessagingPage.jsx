@@ -10,9 +10,9 @@ import '../../assets/styles.css'
 
 import RenderPostContent from '../specific/RenderPostContent'
 import { clearUnreadMessage, storeSocketMessage } from '../../redux/reducer/messageSlice';
-// import { current } from '@reduxjs/toolkit';
 import api, { useGetMessagesQuery } from '../../redux/api/api';
 import lastRefFunc from '../specific/LastRefFunc';
+import { set } from 'mongoose';
 
 
 const dummyMessages = [
@@ -38,14 +38,14 @@ export default function MessagingPage({username}) {
   const {byUnreadMessage , byRoom} = useSelector(state => state.messagesBuffer) ;
 
   const observer = useRef() ;
-  
+  const allMessagesIdsRef = useRef(new Set()) ;
+
   const liveMessagesRef = useRef() ;
   const messagesRef = useRef() ;
 
   const containerRef = useRef() ;
-  const bottomRef = useRef() ;
 
-  const [earliestMessage_id , setEarliestMessage_id ] = useState('initial') ;
+  const [earliestMessage_id , setEarliestMessage_id ] = useState(null) ;
   
   const [oldChunkMessages , setOldChunkMessages] = useState([]) ;
   const [messages , setMessages] = useState([]) ;
@@ -57,8 +57,12 @@ export default function MessagingPage({username}) {
   const {isFetching , isSuccess , isError , data} = useGetMessagesQuery({
     room : room_id ,
     _id : earliestMessage_id ,
-    limit : 15} , 
-    {skip : !room_id}
+    limit : 30} , 
+    {skip : !room_id || earliestMessage_id === undefined, 
+    refetchOnFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMountOrArgChange: false,
+    }
   ) ;
 
   const changeEarliestId = () => {
@@ -80,19 +84,33 @@ export default function MessagingPage({username}) {
     } , 2000)
   }
 
+
   useEffect(() => {
     const timeOut = setTimeout(async() => {
       if(room_id){
-        const byRoomsMessages = byRoom?.[room_id] || [] ;
-        const ureadMessages = byUnreadMessage?.[room_id] || [] ;
+        let roomMessages = byRoom?.[room_id] || [] ;
+        let unreadMessages = byUnreadMessage?.[room_id] || [] ;
         
-        console.log('timeout' , room_id , byRoomsMessages?.length , ureadMessages?.length) ;
-        
-        setMessages(prev => [
-          ...byRoomsMessages ,
-          ...ureadMessages ,
-          ...prev ,
-        ]);
+        console.log('timeout' , room_id , roomMessages?.length , unreadMessages?.length) ;
+        roomMessages = roomMessages.filter(m => {
+          if(!allMessagesIdsRef.current.has(m._id)){
+            allMessagesIdsRef.current.add(m._id) ;
+            return true ;
+          } ;
+          return false ;
+        }) ;
+        unreadMessages = unreadMessages.filter(m => {
+          if(!allMessagesIdsRef.current.has(m._id)){
+            allMessagesIdsRef.current.add(m._id) ;
+            return true ;
+          } ;
+          return false ;
+        }) ;
+
+
+        setMessages([...roomMessages , ...unreadMessages]) ;
+
+        messagesRef.current = [...roomMessages , ...unreadMessages ] ;
        }
     } , 500)
     
@@ -103,19 +121,20 @@ export default function MessagingPage({username}) {
 
   useEffect(() => {
     return () => {
-      if(liveMessagesRef?.current?.length > 0){
-        dispatch(storeSocketMessage({room_id , messages : [...messagesRef.current , ...liveMessagesRef.current ]})) ;      
-      }
+      dispatch(storeSocketMessage({room_id , messages : [...messagesRef.current , ...liveMessagesRef.current ]})) ;      
+
       dispatch(clearUnreadMessage(room_id || '')) ;
       setOldChunkMessages([])
       setMessages([]) ;
       setLiveMessages([]) ;
       dispatch(api.util.updateQueryData('getRooms' , undefined , (draft) => {
         const roomDraft = draft.data.find(r => r._id === room_id) ;
-        roomDraft.unseenMessages = 0 ;
+        if (roomDraft) {
+          roomDraft.unseenMessages = 0 ;
+          roomDraft.lastMessage = liveMessagesRef.current[liveMessagesRef.current.length - 1] || roomDraft.lastMessage ;
+        }
       }))
       dispatch(emptyChatName()) ;
-      socket.emit('User_Room_Meta_Update' , {room_id}) ; // update user meta
     }
   } , [])
 
@@ -125,7 +144,14 @@ export default function MessagingPage({username}) {
       const prevScrollTop = containerRef.current.scrollTop;
   
       console.log(data);
-      setOldChunkMessages(prev => [...data.data , ...prev]) ;
+      let OldMessages = data.data.filter(m => {
+        if(!allMessagesIdsRef.current.has(m._id)){
+          allMessagesIdsRef.current.add(m._id) ;
+          return true ;
+        } ;
+        return false ;
+      }) ;
+      setOldChunkMessages(prev => [...OldMessages , ...prev]) ;
       requestAnimationFrame(() => {
         const newScrollHeight = containerRef.current.scrollHeight;
         containerRef.current.scrollTop = prevScrollTop + (newScrollHeight - prevScrollHeight);
@@ -134,14 +160,14 @@ export default function MessagingPage({username}) {
   } , [isSuccess , data]) ;
 
   useEffect(() => {
+    liveMessagesRef.current = liveMessages ;
     requestAnimationFrame(() => {
       containerRef.current.scrollTo({
         top : containerRef.current.scrollTop + 150 ,
         behavior : 'smooth'
       })  
       })
-    liveMessagesRef.current = liveMessages ;
-  } , [liveMessages])
+  } , [liveMessages ])
   useEffect(() => {
     messagesRef.current = messages ; 
   } , [messages]) ;
@@ -150,17 +176,20 @@ export default function MessagingPage({username}) {
   useEffect(() => {
     if(!socket) return ;
     const receiveMessageListener = (data) => {
-      if(data.room_id === room_id){
+      if(data.room === room_id){
+
         setLiveMessages(prev => [...prev , data]) ; 
+        socket.emit('User_Room_Meta_Update' , {room_id}) ; // update user meta
       }
     }
-    
     socket.on('RECEIVE_MESSAGE' , receiveMessageListener )
+    socket.emit('User_Room_Meta_Update' , {room_id}) ; // update user meta
     
     return () => {
       socket.off('RECEIVE_MESSAGE' , receiveMessageListener);
+      socket?.emit('User_Room_Meta_Update' , {room_id}) ; // update user meta
     }
-  } , [username]) ;
+  } , [room_id , socket]) ;
 
   useEffect(() => {
     setTimeout(() => {
@@ -218,7 +247,7 @@ const MessageBox =  forwardRef(({messages , liveMessages , oldChunkMessages, use
         <div></div>
         )}
       {oldChunkMessages.map((msg, i) => {
-        let meSender = msg.sender._id === user._id 
+        let meSender = msg.sender._id === user._id ; 
         return (
         <div key={msg._id} ref={i === 0 ? topMessageRef : null} className={`flex ${meSender ? "justify-end" : "justify-start"}`}>
           <div

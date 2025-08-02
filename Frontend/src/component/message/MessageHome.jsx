@@ -71,8 +71,7 @@ console.log((byUnreadMessage));
     const totalUnreadMessage = byUnreadMessage[room._id]?.length || 0 ;
     const totalUnseenMessage = room?.unseenMessages || 0 ;
     
-    const lastMessage = byUnreadMessage?.[room._id]?.[0] || room?.lastMessage ;
-
+    const lastMessage = byUnreadMessage?.[room._id]?.[0] ? byUnreadMessage?.[room._id]?.[0] : room?.lastMessage  ; 
     return {unseenMessages : totalUnseenMessage + totalUnreadMessage , lastMessage  }
   }
 
@@ -111,7 +110,8 @@ console.log((byUnreadMessage));
             return (
             <NavLink style={{padding : '0px'}}
             onClick={() => setSingleChatData(member[0] , room) }
-            to={`/messages/chat/${member[0].username}`} key={room._id} className="flex items-center justify-between p-2 ">
+            to={`/messages/chat/${member[0].username}`} key={room._id} className="flex items-center justify-between p-2 "
+            >
               <ChatCard i={i} avatar={member[0].avatar} username={member[0].username} fullName={member[0].fullname} lastMessage={lastUnseenMessageHandler(room).lastMessage} lastOnline={room?.lastOnline} unreadCount={lastUnseenMessageHandler(room).unseenMessages} onClick={() => {}} />
             </NavLink>
           )})}

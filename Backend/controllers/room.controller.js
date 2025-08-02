@@ -124,45 +124,41 @@ const deleteRoom = TryCatch(async (req , res) => {
 } , 'deleteRoom')
 
 const getRooms = TryCatch(async (req , res) => {
-  // const rooms = await Room
-  // .find({members : req.user._id})
-  // .sort({createdAt : -1})
-  // .populate('members' , 'fullname avatar username lastOnline') 
-
-  // const UserMeta = await UserRoomMeta.findOne({
-  //   user : req.user._id ,
-  //   room : {$exists : true}
-  // })
 
   const rooms = await Room.aggregate([
     {$match : {
       members : {$in : [ new ObjectId(`${req.user._id}`)]}
     }} , 
     {$lookup : {
-      from : 'messages' ,
-      let : {roomId : '$_id'},
+      from : 'userroommetas' ,
+      let : {roomId : '$_id'} ,
       pipeline : [
-        {$lookup : {
-          from : 'userroommetas' ,
-          let : {roomId : '$$roomId'} ,
-          pipeline : [
-            {$match : {
-              $expr : {
-                $and : [
-                  {$eq : ['$room' , '$$roomId']} ,
-                  {$eq : ['$user' , new ObjectId(`${req.user._id}`)]}
-                ]
-              }
-            }} ,
-          ] ,
-          as : 'userMeta' 
-        }} ,
-        {
-          $unwind: {
-            path: '$userMeta',
-            preserveNullAndEmptyArrays: true
+        {$match : {
+          $expr : {
+            $and : [
+              {$eq : ['$room' , '$$roomId']} ,
+              {$eq : ['$user' , new ObjectId(`${req.user._id}`)]}
+            ]
           }
-        },
+        }} ,
+      ] ,
+      as : 'userMeta' 
+    }} ,
+    {$unwind: {
+        path: '$userMeta',
+        preserveNullAndEmptyArrays: true
+      }
+    },
+    {$addFields: {
+        lastVisit: '$userMeta.lastVisit'
+      }
+    },
+    {$lookup : {
+      from : 'messages' ,
+      let : {roomId : '$_id' , 
+            lastVisit : '$lastVisit' ,
+      } ,
+      pipeline : [
         {$match : {
           $expr : {
             $and : [
@@ -170,8 +166,8 @@ const getRooms = TryCatch(async (req , res) => {
               {$eq : ['$isDeleted' , false]} ,
               
               {$cond: {
-                if: { $ifNull: ['$userMeta.lastVisit', false] },
-                then: { $gt: ['$createdAt', '$userMeta.lastVisit'] },
+                if: { $ifNull: ['$$lastVisit', false] },
+                then: { $gt: ['$createdAt', '$$lastVisit'] },
                 else: false ,
               }}
             ]
@@ -185,10 +181,32 @@ const getRooms = TryCatch(async (req , res) => {
       ] , 
       as : 'lastMessages'
     }} ,
+    {$lookup : {
+      from : 'messages' ,
+      let : {roomId : '$_id'},
+      pipeline : [
+        {$match : {
+          $expr : {
+            $and : [
+              {$eq : ['$room' , '$$roomId']} ,
+              {$eq : ['$isDeleted' , false]} ,
+            ]
+          }
+        }} ,
+        {$sort : {createdAt : -1}} ,
+        {$limit : 1} ,
+        {$project : {
+          message : 1 ,
+          createdAt : 1 ,
+        }} ,
+      ] ,
+      as : 'lastMessage'
+    }} ,
     {$addFields : {
-      lastMessage : {$arrayElemAt : ['$lastMessages' , 0]} ,
+      lastMessage : {$arrayElemAt : ['$lastMessage' , 0]} ,
       unseenMessages : {$size : '$lastMessages'}
     }} ,
+
     {$sort : {'unseenMessages' : -1}} ,
     {$lookup: {
         from: 'users',

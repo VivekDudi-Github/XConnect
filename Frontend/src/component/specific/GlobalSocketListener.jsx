@@ -33,8 +33,8 @@ useEffect(() => {
     }
     let Receive_Message_Listener = (data) => {
       
-      if(room_idRef?.current !== data.room_id ){
-        dispatch(setUnreadMessage({room_id : data.room_id ,message : data })) 
+      if(room_idRef?.current !== data.room ){
+        dispatch(setUnreadMessage({room_id : data.room ,message : data })) 
         console.log(data);
       }
     }
@@ -50,7 +50,7 @@ useEffect(() => {
     };
     
     if(socket){
-      console.log('clearing.. sockets');
+      console.log('listening...');
       
       socket.on('notification:receive' , notification_recieve) ;
       socket.on('RECEIVE_MESSAGE' , Receive_Message_Listener) ;

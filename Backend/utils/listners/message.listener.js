@@ -13,7 +13,7 @@ const MessageListener = (socket , io) => {
       const messageObj = {
         _id : new ObjectId() ,
         message ,
-        room_id ,
+        room : room_id ,
         createdAt : new Date() ,
         sender : {
           _id ,
@@ -25,13 +25,12 @@ const MessageListener = (socket , io) => {
       memberIds.forEach(member => {
         io.to(`user:${member}`).emit('RECEIVE_MESSAGE' ,messageObj )
       })
-      await Message.create({
-        sender : socket.user._id ,
-        message ,
-        room : room_id ,
-      })
-
-      return ;
+      try {
+        await Message.create(messageObj) ;
+      } catch (error) {
+        console.log('error while saving the message in socket' , error);
+      }
+      
     }
     
 

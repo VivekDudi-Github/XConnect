@@ -183,6 +183,7 @@ const api = createApi({
       providesTags : (result , error , arg) => [
         {type : 'Messages' , id : `${arg.room}-${arg._id}`} ,
       ] ,
+      keepUnusedDataFor : 60 * 60 , // 1 hour
     })
   })
 })
