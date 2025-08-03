@@ -129,6 +129,7 @@ const getRooms = TryCatch(async (req , res) => {
     {$match : {
       members : {$in : [ new ObjectId(`${req.user._id}`)]}
     }} , 
+    //usermeta
     {$lookup : {
       from : 'userroommetas' ,
       let : {roomId : '$_id'} ,
@@ -153,6 +154,7 @@ const getRooms = TryCatch(async (req , res) => {
         lastVisit: '$userMeta.lastVisit'
       }
     },
+    //last messages
     {$lookup : {
       from : 'messages' ,
       let : {roomId : '$_id' , 
@@ -181,6 +183,7 @@ const getRooms = TryCatch(async (req , res) => {
       ] , 
       as : 'lastMessages'
     }} ,
+    // messages
     {$lookup : {
       from : 'messages' ,
       let : {roomId : '$_id'},
@@ -208,12 +211,27 @@ const getRooms = TryCatch(async (req , res) => {
     }} ,
 
     {$sort : {'unseenMessages' : -1}} ,
+    //lookup members
     {$lookup: {
         from: 'users',
-        let: { memberIds: '$members' },
+        let: {
+          memberIds: '$members' ,
+          roomId : '$_id'
+          },
         pipeline: [
           { $match: { $expr: { $in: ['$_id', '$$memberIds'] } } },
-          { $project: { username: 1, avatar: 1, fullname: 1 , lastOnline : 1} }
+          {$lookup : {
+            from: 'userroommetas',
+            let: { userId: '$_id', roomId: '$$roomId' },
+            pipeline: [
+              { $match: { $expr: { $and: [ { $eq: ['$user', '$$userId'] }, { $eq: ['$room', '$$roomId'] } ] } } },
+              { $project: { lastVisit: 1 } }
+            ],
+            as : 'userMeta'
+          }} ,
+          { $unwind: { path: '$userMeta', preserveNullAndEmptyArrays: true } },
+          { $addFields: { lastVisit: '$userMeta.lastVisit' } },
+          { $project: { username: 1, avatar: 1, fullname: 1 , lastOnline :  '$lastVisit' } }
         ],
         as: 'members'
       }

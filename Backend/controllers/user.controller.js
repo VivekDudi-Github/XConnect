@@ -110,75 +110,79 @@ const logoutUser = TryCatch(async(req , res) => {
 
 const getMe = TryCatch(async (req ,res) => {
     const userId = req.user._id;
-    // const user = await User.findById(userId).select("-password -refreshToken");
-
-    const user = await User.aggregate([
-        {$match : {
-            _id : new ObjectId(`${userId}`) ,
-        }} ,
-        {$project : {
-            refreshToken : 0 ,
-            password : 0 ,
-        }} ,
-        {$lookup : {
-            from : 'following' ,
-            let : { userId : '$_id'} ,
-            pipeline : [
-                {$match : {
-                    $expr : {
-                        $eq : ['$followedTo' , '$$userId']
-                    }
-                }} ,
-                {$project : {
-                    followedTo : 0 ,
-                    followedBy : 0 ,
-                }}
-            ] ,
-            as : 'followers' ,
-        }} ,
-        {$lookup : {
-            from : 'following' ,
-            let : { userId : '$_id'} ,
-            pipeline : [
-                {$match : {
-                    $expr : {
-                        $eq : ['$followedBy' , '$$userId']
-                    }
-                }} ,
-                {$project : {
-                    followedTo : 0 ,
-                    followedBy : 0 ,
-                }}
-            ] ,
-            as : 'following' ,
-        }} ,
-        {$lookup : {
-            from : 'posts' ,
-            let : { userId : '$_id'} ,
-            pipeline : [
-                {$match : {
-                    $expr : {
-                        $eq : ['$author' , '$$userId'] ,
-                        $eq : ['$isDeleted' , false] ,
-                    }
-                }} ,
-                {$project : {
-                    content : 0 ,
-                    author : 0 ,
-                    createdAt : 0 ,
-                    isEdited : 0 ,
-                }}
-            ] ,
-            as : 'posts' ,
-        }} ,
-        {$addFields : {
-            followers : {$size : '$followers'} ,
-            following : {$size : '$following'} ,
-            posts : {$size : '$posts'} ,
-        }}  
+    let user  ;
+    try {
+        user = await User.aggregate([
+            {$match : {
+                _id : new ObjectId(`${userId}`) ,
+            }} ,
+            {$project : {
+                refreshToken : 0 ,
+                password : 0 ,
+            }} ,
+            {$lookup : {
+                from : 'following' ,
+                let : { userId : '$_id'} ,
+                pipeline : [
+                    {$match : {
+                        $expr : {
+                            $eq : ['$followedTo' , '$$userId']
+                        }
+                    }} ,
+                    {$project : {
+                        followedTo : 0 ,
+                        followedBy : 0 ,
+                    }}
+                ] ,
+                as : 'followers' ,
+            }} ,
+            {$lookup : {
+                from : 'following' ,
+                let : { userId : '$_id'} ,
+                pipeline : [
+                    {$match : {
+                        $expr : {
+                            $eq : ['$followedBy' , '$$userId']
+                        }
+                    }} ,
+                    {$project : {
+                        followedTo : 0 ,
+                        followedBy : 0 ,
+                    }}
+                ] ,
+                as : 'following' ,
+            }} ,
+            {$lookup : {
+                from : 'posts' ,
+                let : { userId : '$_id'} ,
+                pipeline : [
+                    {$match : {
+                        $expr : {
+                            $eq : ['$author' , '$$userId'] ,
+                            $eq : ['$isDeleted' , false] ,
+                        }
+                    }} ,
+                    {$project : {
+                        content : 0 ,
+                        author : 0 ,
+                        createdAt : 0 ,
+                        isEdited : 0 ,
+                    }}
+                ] ,
+                as : 'posts' ,
+            }} ,
+            {$addFields : {
+                followers : {$size : '$followers'} ,
+                following : {$size : '$following'} ,
+                posts : {$size : '$posts'} ,
+            }}  
+            
+        ]) ;
         
-    ]) ;
-    
+    } catch (error) {
+        console.error("Error fetching user data:", error);
+        return ResError(res, 500, "Internal Server Error");
+    }
     if (!user) {
         return ResError(res, 404, "User not found");
     }

@@ -10,7 +10,7 @@ const navItems = [
   { name: 'Search' , icon: <SearchIcon />, path: '/search' }, 
   { name: 'Explore', icon: <RocketIcon />, path: '/explore' },
   { name: 'Messages', icon: <LucideMessagesSquare />, path: '/messages' },
-  { name: 'Groups', icon: <Users2 />, path: '/groups' }, 
+  { name: 'Communities', icon: <Users2 />, path: '/communities' }, 
   { name: 'Bookmarks', icon: <BookmarkIcon />, path: '/bookmarks' },
   { name: 'Notifications', icon: <Bell />, path: '/notifications' },
   { name: 'Settings', icon: <Settings />, path: '/settings' },

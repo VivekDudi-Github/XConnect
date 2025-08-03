@@ -7,29 +7,7 @@ import api, { endpoints, useGetRoomsQuery } from '../../redux/api/api';
 import {toast} from 'react-toastify'
 import ChatCardSekelton from '../shared/ChatCardSekelton';
 import '../../assets/styles.css'
-
-const chats = [
-  {_id : 152 ,
-  fullName : 'John Doe',
-  type : 'user' ,
-  username : 'john_doe',
-  unreadMessage : 5 ,
-  lastMessage : 'Hey there! How are you?' ,
-  avatar : {
-    url : '/avatar-default.svg'
-  }
-  } ,
-  {_id : 153 ,
-    fullName : 'John Doe',
-    type : 'user' ,
-    username : 'ohn_doe',
-    unreadMessage : 0 ,
-    lastMessage : 'Hey there! How are you?' ,
-    avatar : {
-      url : '/avatar-default.svg'
-    }
-    }
-]
+import moment from 'moment';
 
 function MessageHome() {
   const dispatch = useDispatch() ;
@@ -112,7 +90,7 @@ console.log((byUnreadMessage));
             onClick={() => setSingleChatData(member[0] , room) }
             to={`/messages/chat/${member[0].username}`} key={room._id} className="flex items-center justify-between p-2 "
             >
-              <ChatCard i={i} avatar={member[0].avatar} username={member[0].username} fullName={member[0].fullname} lastMessage={lastUnseenMessageHandler(room).lastMessage} lastOnline={room?.lastOnline} unreadCount={lastUnseenMessageHandler(room).unseenMessages} onClick={() => {}} />
+              <ChatCard i={i} avatar={member[0].avatar} username={member[0].username} fullName={member[0].fullname} lastMessage={lastUnseenMessageHandler(room).lastMessage} lastOnline={member[0].lastOnline} unreadCount={lastUnseenMessageHandler(room).unseenMessages} onClick={() => {}} />
             </NavLink>
           )})}
           {isLoading && 
@@ -159,7 +137,7 @@ function ChatCard({
           </div>
           {/* Last Online */}
           <span className="text-xs text-gray-500">
-            • 2hrs ago
+            • {moment(lastOnline).fromNow()} 
           </span>
         </div>
 

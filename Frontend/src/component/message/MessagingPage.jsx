@@ -29,7 +29,7 @@ const dummyMessages = [
   // { from: "me", text: "All good! You?" },
   // { from: "other", text: "Just building XConnect 🚀" },
 ];
-// and also the auto scroll
+
 export default function MessagingPage({username}) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -91,7 +91,7 @@ export default function MessagingPage({username}) {
         let roomMessages = byRoom?.[room_id] || [] ;
         let unreadMessages = byUnreadMessage?.[room_id] || [] ;
         
-        console.log('timeout' , room_id , roomMessages?.length , unreadMessages?.length) ;
+        
         roomMessages = roomMessages.filter(m => {
           if(!allMessagesIdsRef.current.has(m._id)){
             allMessagesIdsRef.current.add(m._id) ;
@@ -143,7 +143,6 @@ export default function MessagingPage({username}) {
       const prevScrollHeight = containerRef.current.scrollHeight;
       const prevScrollTop = containerRef.current.scrollTop;
   
-      console.log(data);
       let OldMessages = data.data.filter(m => {
         if(!allMessagesIdsRef.current.has(m._id)){
           allMessagesIdsRef.current.add(m._id) ;
@@ -225,7 +224,7 @@ export default function MessagingPage({username}) {
             {/* Last Online */}
             <span className="text-xs flex flex-row-reverse  justify-between items-center sm:block text-gray-500 w-full sm:w-fit ">
               <div className='w-fit sm:w-full rotate-180 p-2 pb-0'> <EllipsisVerticalIcon size={17} /></div>
-              Last online • {moment(lastOnline).fromNow()}
+              Last Visited • {moment(lastOnline).fromNow()}
             </span>
             </div>
           </div>

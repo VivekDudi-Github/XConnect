@@ -18,7 +18,7 @@ const Profile = lazy(() => import('./pages/ProfilePage'));
 const MessagesPage = lazy(() => import('./pages/MessagesPage'));
 const ExplorePage = lazy(() => import('./pages/ExplorePage')) ;
 const NotificationPage = lazy(() => import('./pages/NotificationPage'));
-
+const CommunitiesPage = lazy(() => import('./pages/CommunitiesPage'));
 
 function App() {
   const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -65,6 +65,8 @@ useEffect(() => {
             <Route path='/profile' element={<Profile/>} />
             <Route path='/notifications' element={<NotificationPage/>} />
             
+            <Route path='/communities' element={<CommunitiesPage/>} />
+
             {/* <Route path='/settings' element={<SettingsPage/>} /> */}
             <Route path="/messages" element={<MessagesPage />}>
               <Route path="chat" element={<MessagesPage />} />
