@@ -10,6 +10,7 @@ import {deletePostFunc} from '../shared/SharedFun';
 import lastRefFunc from '../specific/LastRefFunc';
 import { useLazyGetFeedPostsQuery , useDeletePostMutation } from '../../redux/api/api';
 import DialogBox from '../shared/DialogBox';
+import CommunityPostCard from '../community/CommunityPostCard';
 
 
 
@@ -74,7 +75,7 @@ function Feed() {
 
       {posts && posts.map((post , i) => (
         <div ref={ i === posts.length - 1 ? lastPostRef : null }  key={i} >
-          <PostCard post={post}  />
+          {post?.type !== 'community' ? <PostCard post={post} key={post._id}/> : <CommunityPostCard post={post} key={post._id}/>}
         </div>
       ))}
       {(!posts || posts.length < 4) &&  Array.from({length : 4}).map((_  , i) => (

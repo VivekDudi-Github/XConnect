@@ -16,11 +16,11 @@ const postSchema = new mongoose.Schema({
       type : String , 
       required : true ,
     } ,
-     type : {
-      type : String , 
-      enum : ['image' , 'video'] ,
-      required : true
-     } 
+    type : {
+    type : String , 
+    enum : ['image' , 'video'] ,
+    required : true
+    } 
     }
   ] ,
   hashtags : [
@@ -43,20 +43,21 @@ const postSchema = new mongoose.Schema({
     default: false,
     index: true
   },
-  shareCount : {
-    type : Number ,
-    default : 0 
-  } ,
-  commentCount : {
-    type : Number ,
-    default : 0 ,
-  } ,
   author : {
     type : mongoose.Types.ObjectId ,
     ref : "User" ,
     required : true ,
     index : true
   } , 
+  type : {
+    type : String ,
+    enum : ['post' , 'community' ] ,
+    required : true ,
+  } ,
+  community : {
+    type : mongoose.Types.ObjectId ,
+    ref : 'Community' ,
+  } ,
   repost : {
     type : String ,
     default : null ,

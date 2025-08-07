@@ -1236,7 +1236,7 @@ const fetchFeedPost = TryCatch( async(req , res) => {
   //post from least last 3 days, post from followers , post from preferances
   const userId = req.user._id ;
 
-  const followings = await Following.find({followedBy : userId}) ;
+  const followings = await Following.find({followedBy : userId})
   const tags = await Preferance.find({user : userId }).select(' hashtags -_id') ;
   
   const hashtags = tags.map(t => t.hashtags )
@@ -1248,6 +1248,37 @@ const fetchFeedPost = TryCatch( async(req , res) => {
 
 
   const posts = await Post.aggregate([
+    {$lookup : {
+      from : 'followings' ,
+      let : {
+        userId : new ObjectId(`${req.user._id}`) ,        
+      } ,
+      pipeline : [
+        {$match : {
+          $expr : {
+            $eq : ['$followedBy' , '$$userId']
+          }}
+        } ,
+        { $project: { _id: 0, followedTo: 1,   followingCommunity : 1 } } 
+      ] ,
+      as : 'UsersFollowing' ,
+    }} ,
+    {$addFields : {
+      communityFollowIds : {
+        $map : {
+          input : '$UsersFollowing' ,
+          as : 'Id' ,
+          in : '$$Id.followingCommunity'
+        }
+      } ,
+      userFollowIds : {
+        $map : {
+          input : '$UsersFollowing' ,
+          as : 'Id' ,
+          in : '$$Id.followedTo'
+        }
+      }
+    }} ,
     {
       $match : {
         $expr : {
@@ -1255,12 +1286,13 @@ const fetchFeedPost = TryCatch( async(req , res) => {
             {$eq : ['$isDeleted' , false]} ,
             {$or : [
               { $gte: ['$createdAt', threeDaysAgo] },
-              { $in: ['$author', followings] },
+              { $in: ['$author', '$userFollowIds'] },
+              { $in: ['$community', '$communityFollowIds'] },
               { $in: ['$hashtags', hashtags] }
             ]}
           ]
         }
-      } 
+      }
     } ,
     {$sample : { size : 10}} ,
 
@@ -1330,6 +1362,8 @@ const fetchFeedPost = TryCatch( async(req , res) => {
       authorDetails : 0 ,
       totalLike : 0 ,
       userLike : 0 ,
+      communityFollowIds : 0 ,
+      userFollowIds : 0 ,
     }}
 
   ])

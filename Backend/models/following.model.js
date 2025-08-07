@@ -3,14 +3,20 @@ import mongoose from "mongoose";
 const followingSchema = new mongoose.Schema({
   followedTo : {
     type : mongoose.Types.ObjectId ,
-    required : true ,
-    ref : 'User'
+    ref : 'User' ,
+    index : true ,
   } ,
   followedBy : {
     type : mongoose.Types.ObjectId ,
     required : true ,
-    ref : 'User' 
+    ref : 'User' ,
+    index : true ,
   } ,
+  followingCommunity : {
+    type : mongoose.Types.ObjectId ,
+    ref : 'Community' ,
+    index : true ,
+  }
 
 } , {timestamps : true})
 
