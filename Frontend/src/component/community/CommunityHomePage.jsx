@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import CreateCommunityPost from './CreateCommunityPost';
+import CreateCommunityPage from './CreateCommunity';
 
 export default function CommunityHomePage() {
   const [joined, setJoined] = useState(false);
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-white dark:bg-black dark:text-white text-black"> 
       {/* Banner */}
       <div className="relative bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 h-48 flex items-center px-6">
         <img
@@ -78,6 +80,9 @@ export default function CommunityHomePage() {
           </div>
         </div>
       </div>
+
+      {/* Create Post */}
+      <CreateCommunityPage />
     </div>
   );
 }
