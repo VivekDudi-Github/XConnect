@@ -2,6 +2,8 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
   isProfileEdit : false ,
+  iscreateCommunityDialog : false ,
+  isCreateCommunityPostDialog : false ,
   isDeleteDialog : {
     isOpen : false ,
     postId : null ,
@@ -24,6 +26,12 @@ const miscSlice = createSlice({
     setIsProfileEdit : (state , action) => {
       state.isProfileEdit = action.payload ;
     } ,
+    setIsCreateCommunityDialog : (state , action) => {
+      state.iscreateCommunityDialog = action.payload ;
+    } ,
+    setIsCreateCommunityPostDialog : (state , action) => {
+      state.isCreateCommunityPostDialog = action.payload ;
+    } ,
     setisDeleteDialog : (state , action) => {
       state.isDeleteDialog = action.payload ;
     } , 
@@ -42,6 +50,13 @@ const miscSlice = createSlice({
   },
 });
 
-export const { setIsProfileEdit , setisDeleteDialog , setChatName , emptyChatName} = miscSlice.actions;
+export const { 
+  setIsProfileEdit ,
+  setIsCreateCommunityDialog ,
+  setIsCreateCommunityPostDialog ,
+  setisDeleteDialog , 
+  setChatName , 
+  emptyChatName
+} = miscSlice.actions;
 
 export default miscSlice;

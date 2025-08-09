@@ -1,9 +1,65 @@
 import { useState } from 'react';
 import CreateCommunityPost from './CreateCommunityPost';
 import CreateCommunityPage from './CreateCommunity';
+import CommunityPostCard from './CommunityPostCard';
+import { useDispatch, useSelector } from 'react-redux';
+import { setIsCreateCommunityPostDialog } from '../../redux/reducer/miscSlice';
 
 export default function CommunityHomePage() {
+  const dispatch = useDispatch();
+
+  const {iscreateCommunityDialog , isCreateCommunityPostDialog} = useSelector(state => state.misc );
+
+
   const [joined, setJoined] = useState(false);
+  const [posts , setPosts] = useState([
+       {
+        _id : 1 ,
+        community: 'AI & ML',
+          username: 'neural_guy',
+          title: 'How do transformers handle long sequences?',
+          description:
+            'Transformers work well with fixed-size input, but when sequence length increases, performance issues arise. What techniques are used to optimize?',
+          image: [
+          {url : 'https://cdn.britannica.com/37/189837-050-F0AF383E/New-Delhi-India-War-Memorial-arch-Sir.jpg'} ,
+          {url : 'https://cdn.britannica.com/37/189837-050-F0AF383E/New-Delhi-India-War-Memorial-arch-Sir.jpg' } , 
+        ],
+          time: '2 hours ago',
+        } ,
+      {
+        _id : 2 ,
+        community: 'AI & ML',
+        username: 'neural_guy',
+        title: 'How do transformers handle long sequences?',
+        description:
+          'Transformers work well with fixed-size input, but when sequence length increases, performance issues arise. What techniques are used to optimize?',
+        image: [],
+        time: '2 hours ago',
+      } ,
+      {
+        _id : 3 ,
+        community: 'AI & ML',
+          username: 'neural_guy',
+          title: 'How do transformers handle long sequences?',
+          description:
+            'Transformers work well with fixed-size input, but when sequence length increases, performance issues arise. What techniques are used to optimize?',
+          image: [
+          {url : 'https://cdn.britannica.com/37/189837-050-F0AF383E/New-Delhi-India-War-Memorial-arch-Sir.jpg'} ,
+          {url : 'https://cdn.britannica.com/37/189837-050-F0AF383E/New-Delhi-India-War-Memorial-arch-Sir.jpg' } , 
+        ],
+          time: '2 hours ago',
+        } ,
+      {
+        _id : 4 ,
+        community: 'AI & ML',
+        username: 'neural_guy',
+        title: 'How do transformers handle long sequences?',
+        description:
+          'Transformers work well with fixed-size input, but when sequence length increases, performance issues arise. What techniques are used to optimize?',
+        image: [],
+        time: '2 hours ago',
+      } ,
+    ]);
 
   return (
     <div className="min-h-screen bg-white dark:bg-black dark:text-white text-black"> 
@@ -18,48 +74,49 @@ export default function CommunityHomePage() {
           <h1 className="text-3xl font-bold">XConnect Devs</h1>
           <p className="text-sm opacity-80">Building the future of social</p>
         </div>
-        <button
-          onClick={() => setJoined(!joined)}
-          className="ml-auto bg-white text-black px-4 py-2 rounded-full hover:bg-gray-200"
-        >
-          {joined ? 'Leave' : 'Join'}
-        </button>
+        <div className='ml-auto flex gap-2'>
+          {/* <button
+            onClick={() => setJoined(!joined)}
+            className="ml-auto bg-white text-black px-4 py-2 rounded-full hover:bg-gray-200"
+          >
+            Create Post
+          </button> */}
+          {joined ? (
+            <button
+              onClick={() => {dispatch(setIsCreateCommunityPostDialog(true))}}
+              className="ml-auto bg-white text-black px-4 py-2 rounded-full hover:bg-gray-200"
+              >
+                Create Post
+            </button>
+          ) : (
+            <button
+              onClick={() => setJoined(!joined)}
+              className="ml-auto bg-white text-black px-4 py-2 rounded-full hover:bg-gray-200"
+              >
+                Join
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Main Content */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 p-6">
         {/* Left: Posts */}
         <div className="md:col-span-3 space-y-4">
-          {/* Single Post Card */}
-          <div className="bg-[#161b22] p-4 rounded-xl border border-gray-700">
-            <div className="text-sm text-gray-400 mb-1">
-              Posted in <span className="text-indigo-400">#general</span> by <span className="text-white">@vivek</span>
-            </div>
-            <h2 className="text-lg font-semibold">How do I optimize socket performance for messaging?</h2>
-            <p className="text-sm text-gray-300 mt-1">
-              I’ve implemented socket.io in my MERN stack app. I want to improve latency and avoid redundant fetches...
-            </p>
-            {true && ( // Optional image
-              <img
-                src="/socket-performance.png"
-                alt="Post Image"
-                className="mt-2 rounded-lg max-h-60 object-cover w-full"
-              />
-            )}
-            <div className="flex items-center gap-4 mt-3 text-gray-400 text-sm">
-              <button>💬 5</button>
-              <button>🔁 Share</button>
-              <button>🔖 Bookmark</button>
-            </div>
-          </div>
-          {/* Add more posts below in similar fashion */}
+          {posts.map((post) => (
+            <CommunityPostCard
+              key={post._id}
+              post={post} 
+              heading={false}
+            />
+          ))}
         </div>
 
         {/* Right: Sidebar */}
-        <div className="bg-[#161b22] p-4 rounded-xl border border-gray-700 space-y-4">
+        <div className= " dark:text-white p-4 rounded-xl space-y-4 h-fit custom-box ">
           <div>
             <h3 className="text-lg font-bold mb-2">About Community</h3>
-            <p className="text-sm text-gray-300">
+            <p className="text-sm dark:text-gray-300">
               XConnect Devs is a space for developers working on the XConnect platform. Share ideas, bugs, and improvements.
             </p>
           </div>
@@ -78,11 +135,21 @@ export default function CommunityHomePage() {
               <li>Keep discussions relevant</li>
             </ul>
           </div>
+          {joined && (
+            <button 
+            onClick={() => setJoined(false)}
+            className="border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white active:bg-red-700 font-medium px-5 py-1 rounded-lg shadow-md active:scale-95 duration-200"> 
+              Leave
+            </button>
+
+
+          )}
         </div>
       </div>
 
       {/* Create Post */}
-      <CreateCommunityPage />
+      { isCreateCommunityPostDialog && <CreateCommunityPost /> }
+      { iscreateCommunityDialog && <CreateCommunityPage /> }
     </div>
   );
 }

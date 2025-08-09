@@ -11,6 +11,7 @@ import { Following } from '../models/following.model.js';
 import { emitEvent } from '../utils/socket.js';
 import { Notification } from '../models/notifiaction.model.js';
 import { WatchHistory } from '../models/watchHistory.model.js';
+import { Community } from '../models/community.model.js';
 
 
 const ObjectId = mongoose.Types.ObjectId ;
@@ -18,7 +19,7 @@ const ObjectId = mongoose.Types.ObjectId ;
 
 const createPost = TryCatch( async(req , res) => {
   req.CreateMediaForDelete = [] ;
-  const {content , hashtags = [] ,  repost , mentions= [] , visiblity } = req.body ;
+  const {content , hashtags = [] , title , community  , isCommunityPost = false,  repost , mentions= [] , visiblity } = req.body ;
   
   const {media} = req.files ;
   if(media) media.forEach(file => req.CreateMediaForDelete.push(file)) ;
@@ -32,10 +33,18 @@ const createPost = TryCatch( async(req , res) => {
   if(repost && typeof repost !== 'string') return ResError(res , 400 , "Repost's data is invalid.")
   if(visiblity && !['public' , 'followers' , 'group'].includes(visiblity)) return ResError(res , 400 , "Visiblity's data is invalid.")
 
+  if(isCommunityPost){
+    if(!title || typeof title !== 'string') return ResError(res , 400 , 'Title is required.') ;
+    if(!ObjectId.isValid(community)) return ResError(res , 400 , 'Invalid community id.') ;
+    const IsCommunityExist = await Community.exists({_id : community}) ;
+    if(!IsCommunityExist) return ResError(res , 400 , 'Invalid community id.') ;
+  }
+
   let cloudinaryResults = [] ;  
   if(media && media.length > 0) {
     cloudinaryResults = await uploadFilesTOCloudinary(media)
   }
+  
   
   const post = await Post.create({
     author : req.user._id ,
@@ -45,7 +54,10 @@ const createPost = TryCatch( async(req , res) => {
     repost : repost || null ,
     visiblity : visiblity || 'public' ,
     mentions : mentions || [] ,
+    community : isCommunityPost ? community : null ,
+    title : isCommunityPost ? title : null ,
   })
+
   if(!post) return ResError(res , 500 , 'Post could not be created.')
     
   ResSuccess(res , 200 , post)

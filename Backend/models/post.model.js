@@ -75,6 +75,14 @@ const postSchema = new mongoose.Schema({
   isPinned : {
     type : Boolean ,
     default : false
+  } ,
+  isAnonymous : {
+    type : Boolean ,
+    default : false
+  } , 
+  title : {
+    type : String ,
+    default : null ,
   }
 } , {timestamps : true})
 

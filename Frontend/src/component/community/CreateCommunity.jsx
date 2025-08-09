@@ -1,3 +1,4 @@
+import { XIcon } from 'lucide-react';
 import { useState } from 'react';
 
 export default function CreateCommunityPage() {
@@ -26,7 +27,11 @@ export default function CreateCommunityPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto mt-10 p-6 bg-transparent text-black dark:text-white rounded-xl shadow-lg border border-gray-700"> 
+    <div className="max-w-3xl mx-auto mt-10 p-6 bg-transparent text-black dark:text-white rounded-xl shadow-lg border border-gray-700 relative"> 
+      <button title='Close' className=' absolute right-2 p-1 text-gray-600 bg-gray-100 hover:bg-gray-300 rounded-lg dark:bg-black  dark:text-white   dark:hover:bg-white shadow-sm shadow-black/60 dark:hover:text-black duration-300 active:scale-90'> 
+        <XIcon />
+      </button>
+      
       <h1 className="text-3xl font-bold mb-6">Create a Community</h1>
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Community Name */}
@@ -52,7 +57,7 @@ export default function CreateCommunityPage() {
             placeholder="What's this community about?"
             value={desc}
             onChange={(e) => setDesc(e.target.value)}
-             className="w-full p-2 rounded dark:bg-gradient-to-b dark:from-gray-800 dark:to-black duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-white"
+             className="w-full p-2 rounded dark:bg-gradient-to-t dark:from-gray-800 dark:to-black duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-white"
           />
         </div>
 

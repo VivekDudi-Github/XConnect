@@ -1,4 +1,6 @@
 import { lazy, Suspense } from 'react';
+import './App.css'
+
 import {Routes , Route, Navigate, useNavigate} from 'react-router-dom'
 
 import { ToastContainer , Slide } from 'react-toastify';

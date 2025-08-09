@@ -45,11 +45,6 @@ const communitySchema = new mongoose.Schema({
     type : Number ,
     default : 0 ,
   } ,
-  posts : {
-    type : Number ,
-    default : 0 ,
-    index : true ,
-  } ,
   rules: [
     {
       title: { type: String, required: true },
@@ -68,7 +63,7 @@ const communitySchema = new mongoose.Schema({
       trim : true , 
       index : true  ,
     }
-  ] ,
+  ]
 
 } , {timestamps : true})
 

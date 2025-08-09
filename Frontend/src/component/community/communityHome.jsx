@@ -11,7 +11,7 @@ function CommunityHome() {
     { id: 4, name: 'Startups', avatar: '🚀' },
   ]);
 
-  const [posts] = useState([
+  const [posts , setPosts] = useState([
      {
       _id : 1 ,
       community: 'AI & ML',
@@ -110,8 +110,6 @@ function CommunityHome() {
 }
 
 export default  CommunityHome
-
-// const CommunityPostCard = ({ post }) => {
 //   const {
 //     community,
 //     username,
