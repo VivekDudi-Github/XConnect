@@ -1,6 +1,8 @@
-import { Community } from "../models/community.model";
-import { deleteFilesFromCloudinary, uploadFilesTOCloudinary } from "../utils/cloudinary";
-import { ResSuccess, TryCatch } from "../utils/extra";
+import { Community } from "../models/community.model.js";
+import { Following } from "../models/following.model.js";
+import { Post } from "../models/post.model.js";
+import { deleteFilesFromCloudinary, uploadFilesTOCloudinary } from "../utils/cloudinary.js";
+import { ResSuccess, TryCatch } from "../utils/extra.js";
 
 
 const CreateCommunity = TryCatch(async(req , res) => {
@@ -56,24 +58,45 @@ const GetCommunities = TryCatch(async(req , res) => {
 } , 'GetCommunities')
 
 const GetCommunityPosts = TryCatch(async(req , res) => {
+  const id = req.params.id ;
+  const {page = 1 , limit = 10} = req.query ;
+
+  const skip = (page - 1) * limit ;
+
+  if(isNaN(skip) || isNaN(limit)) return ResError(res , 400 , 'Invalid page or limit.') ;
+  if(skip < 0 || limit <= 0) return ResError(res , 400 , 'Page and limit must be positive numbers.') ;
+
+  if(!id) return ResError(res , 400 , 'Community ID is required.') ;
+
+  const posts = await Post
+    .find({
+      community : id ,
+      isDeleted : false
+    })
+    .populate('author' , 'avatar username')
+    .sort({createdAt : -1})
+    .skip(skip)
+    .limit(limit)
+    .lean();
   
+    return ResSuccess(res , 200  , posts) ;
+
 } , 'GetCommunityPosts')
 
 const GetCommunityFollowers = TryCatch(async(req , res) => {
   
 } , 'GetCommunityFollowers')
 
-const GetCommunityFollowing = TryCatch(async(req , res) => {
-  
-} , 'GetCommunityFollowing')
+const getFollowingCommunities = TryCatch( async(req , res) => {
+  const followings = await Following.find({
+    followedBy : req.user._id ,
+    followingCommunity : { $exists: true }
+  }).select('followingCommunity').populate('followingCommunity' , 'name avatar').lean();
 
-const GetCommunityAdmins = TryCatch(async(req , res) => {
+  const communities = followings.map(following => following.followingCommunity) ;
   
-} , 'GetCommunityAdmins')
-
-const GetCommunityMembers = TryCatch(async(req , res) => {
-  
-} , 'GetCommunityMembers')
+  return ResSuccess(res , 200 , communities) ;
+} , 'GetFollowingCommunities')
 
 export {
   CreateCommunity ,
@@ -81,7 +104,5 @@ export {
   GetCommunities ,
   GetCommunityPosts ,
   GetCommunityFollowers ,
-  GetCommunityFollowing ,
-  GetCommunityAdmins ,
-  GetCommunityMembers ,
+  getFollowingCommunities
 }
