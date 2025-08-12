@@ -1,4 +1,5 @@
-import {BarChart2Icon , MessageCircleIcon , EllipsisVerticalIcon , Share2Icon , BookmarkIcon } from 'lucide-react';
+import {BarChart2Icon , MessageCircleIcon , EllipsisVerticalIcon , Share2Icon , BookmarkIcon, } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import InPostImages from '../post/InPostImages';
 
 
@@ -25,7 +26,9 @@ const CommunityPostCard = ({ post , heading }) => {
       <div className="bg-white rounded-xl p-2 custom-box"> 
         {/* User Info */}
         <div className="text-xs sm:text-[13px] text-gray-500 mb-2 relative">
-          Posted by <span className="text-blue-400">@{username}</span>
+          <Link to={`/profile/${username}`}>
+            Posted by <span className="text-blue-400">@{username}</span>
+          </Link>
            &nbsp; • <span>{time}</span>
            <span className='absolute right-0 top-0 text-xs text-gray-500 '>
             <EllipsisVerticalIcon size={17}/>
@@ -33,7 +36,9 @@ const CommunityPostCard = ({ post , heading }) => {
         </div>
 
         {/* Title */}
-        <h2 className="text-lg font-bold text-gray-700 dark:text-white mb-2">{title}</h2>
+        <Link to={`/communities/post/${post._id}`}>
+          <h2 className="text-lg font-bold text-gray-700 dark:text-white mb-2">{title}</h2>
+        </Link>
 
         {/* Description (truncated to ~160 chars) */}
         <p className="text-[13.5px] text-gray-600 font-semibold dark:text-gray-400 mb-3">

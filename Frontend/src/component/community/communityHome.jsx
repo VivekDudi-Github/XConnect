@@ -1,5 +1,6 @@
 import React , {useState} from 'react'
 import CommunityPostCard from './CommunityPostCard';
+import { Link } from 'react-router-dom';
 
 
 function CommunityHome() {
@@ -36,7 +37,7 @@ function CommunityHome() {
       time: '2 hours ago',
     } ,
     {
-      _id : 1 ,
+      _id : 3 ,
       community: 'AI & ML',
         username: 'neural_guy',
         title: 'How do transformers handle long sequences?',
@@ -49,7 +50,7 @@ function CommunityHome() {
         time: '2 hours ago',
       } ,
     {
-      _id : 2 ,
+      _id : 4 ,
       community: 'AI & ML',
       username: 'neural_guy',
       title: 'How do transformers handle long sequences?',
@@ -71,7 +72,7 @@ function CommunityHome() {
         <main className=" sm:col-span-4 space-y-6 pb-8 max-h-screen overflow-y-scroll pr-3">
           {posts.map((post) => (
             <CommunityPostCard
-              key={post.id}
+              key={post._id}
               post={post}
             />
           ))}
@@ -81,25 +82,27 @@ function CommunityHome() {
           <h2 className="text-lg font-medium mb-3">Following</h2>
           <ul className="space-y-3 ">
             {communities.map((comm) => (
-              <li
-                key={comm.id}
-                className="flex items-center  space-x-3 cursor-pointer hover:bg-gray-800 px-3 py-2 rounded-lg"
-              >
-                <span className="text-xl">{comm.avatar}</span>
-                <span>{comm.name}</span>
-              </li>
+              <Link to={'/communities/c/' + comm.id} key={comm.id} >
+                <li
+                  className="flex items-center space-x-3 cursor-pointer hover:bg-gray-800 px-3 py-2 rounded-lg"
+                >
+                  <span className="text-xl">{comm.avatar}</span>
+                  <span>{comm.name}</span>
+                </li>
+              </Link>
             ))}
           </ul>
           <h2 className="text-lg font-medium mb-3">You may also like</h2>
           <ul className="space-y-3">
             {communities.map((comm) => (
-              <li
-                key={comm.id}
-                className="flex items-center space-x-3 cursor-pointer hover:bg-gray-800 px-3 py-2 rounded-lg"
-              >
-                <span className="text-xl">{comm.avatar}</span>
-                <span>{comm.name}</span>
-              </li>
+              <Link to={'/communities/c/' + comm.id}  key={comm.id}>
+                <li
+                  className="flex items-center space-x-3 cursor-pointer hover:bg-gray-800 px-3 py-2 rounded-lg"
+                >
+                  <span className="text-xl">{comm.avatar}</span>
+                  <span>{comm.name}</span>
+                </li>
+              </Link>
             ))}
           </ul>
         </aside>

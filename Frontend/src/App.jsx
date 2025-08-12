@@ -22,6 +22,10 @@ const ExplorePage = lazy(() => import('./pages/ExplorePage')) ;
 const NotificationPage = lazy(() => import('./pages/NotificationPage'));
 const CommunitiesPage = lazy(() => import('./pages/CommunitiesPage'));
 
+import CommunityHome from './component/community/communityHome';
+const CommunityHomePage = lazy(() => import('./component/community/CommunityHomePage'))
+const CommunityPostPage = lazy(() => import('./component/community/CommunityPostPage'))
+
 function App() {
   const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
   const navigate = useNavigate()
@@ -67,7 +71,11 @@ useEffect(() => {
             <Route path='/profile' element={<Profile/>} />
             <Route path='/notifications' element={<NotificationPage/>} />
             
-            <Route path='/communities' element={<CommunitiesPage/>} />
+            <Route path='/communities' element={<CommunitiesPage/>}>
+              <Route path='' element={<CommunityHome />} />
+              <Route path='post/:id' element={<CommunityPostPage />} />
+              <Route path='c/:id' element={<CommunityHomePage />} />
+            </Route>
 
             {/* <Route path='/settings' element={<SettingsPage/>} /> */}
             <Route path="/messages" element={<MessagesPage />}>

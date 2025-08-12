@@ -1,9 +1,48 @@
+import { EllipsisVerticalIcon } from "lucide-react";
 import { useState } from "react";
 
 function CommunityPostPage() {
   const [comments, setComments] = useState([
-    { id: 1, user: "@john", text: "This is a great idea!", time: "2h ago" },
-    { id: 2, user: "@sarah", text: "I agree, let's do it!", time: "1h ago" },
+    {
+      id: 1,
+      user: "@john",
+      text: "This is a great discussion topic!",
+      time: "3h ago",
+      likes: 2,
+      replies: [
+        {
+          id: 2,
+          user: "@sarah",
+          text: "I totally agree with you!",
+          time: "2h ago",
+          likes: 1,
+          replies: [{
+          id: 2,
+          user: "@sarah",
+          text: "I totally agree with you!",
+          time: "2h ago",
+          likes: 1,
+          replies: [{
+          id: 2,
+          user: "@sarah",
+          text: "I totally agree with you!",
+          time: "2h ago",
+          likes: 1,
+          replies: [],
+        },],
+        },
+      ],
+        },
+      ],
+    },
+    {
+      id: 3,
+      user: "@mike",
+      text: "I think we should test this idea before implementing.",
+      time: "1h ago",
+      likes: 0,
+      replies: [],
+    },
   ]);
   const [newComment, setNewComment] = useState("");
 
@@ -18,9 +57,9 @@ function CommunityPostPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0d1117] text-white p-6">
+    <div className="min-h-screen dark:bg-[#000] dark:text-white p-6 ">
       {/* Post Header */}
-      <div className="max-w-3xl mx-auto bg-[#161b22] p-6 rounded-xl border border-gray-700 shadow-md">
+      <div className="max-w-3xl mx-auto dark:bg-[#000] p-6 rounded-xl border border-gray-700  custom-box ">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-gray-400">
@@ -39,7 +78,7 @@ function CommunityPostPage() {
         </div>
 
         {/* Post Content */}
-        <div className="mt-4 text-gray-300">
+        <div className="mt-4 dark:text-gray-300">
           <p>
             I’ve implemented socket.io for messaging in my MERN app, but I want
             to optimize for lower latency and prevent duplicate messages. Any
@@ -62,7 +101,7 @@ function CommunityPostPage() {
       </div>
 
       {/* Comment Section */}
-      <div className="max-w-3xl mx-auto mt-6 bg-[#161b22] p-6 rounded-xl border border-gray-700 shadow-md">
+      <div className="max-w-3xl mx-auto mt-6 dark:bg-[#000] p-6 rounded-xl dark:border border-gray-700 shadow-md">
         <h2 className="text-xl font-bold mb-4">Comments</h2>
 
         {/* Comment Form */}
@@ -70,7 +109,7 @@ function CommunityPostPage() {
           <input
             type="text"
             placeholder="Write a comment..."
-            className="flex-1 bg-[#0d1117] border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="flex-1 dark:bg-[#0d1117] shadowLight duration-200 outline-none" 
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
           />
@@ -84,15 +123,15 @@ function CommunityPostPage() {
 
         {/* Comment List */}
         <div className="space-y-4">
-          {comments.map((c) => (
+          {/* {comments.map((c) => (
             <div key={c.id} className="bg-[#0d1117] p-3 rounded-lg border border-gray-700">
               <p className="text-sm text-gray-400">
                 {c.user} • {c.time}
               </p>
               <p className="mt-1">{c.text}</p>
             </div>
-          ))}
-          <CommentsThread />
+          ))} */}
+          <CommentsThread commentsArr={comments} />
         </div>
       </div>
     </div>
@@ -117,11 +156,12 @@ function Comment({ comment, onReply }) {
   return (
     <div className="mb-4">
       {/* Comment Content */}
-      <div className="bg-[#0d1117] border border-gray-700 p-3 rounded-lg">
+      <div className="bg-[#000] border-t-2 border-gray-700 p-3 rounded-lg">
         <div className="flex justify-between items-center">
           <p className="text-sm text-gray-400">
             {comment.user} • {comment.time}
           </p>
+          <EllipsisVerticalIcon size={17} />
         </div>
         <p className="mt-1">{comment.text}</p>
         <div className="mt-2 text-sm text-gray-500 flex gap-4">
@@ -169,34 +209,8 @@ function Comment({ comment, onReply }) {
   );
 }
 
-function CommentsThread() {
-  const [comments, setComments] = useState([
-    {
-      id: 1,
-      user: "@john",
-      text: "This is a great discussion topic!",
-      time: "3h ago",
-      likes: 2,
-      replies: [
-        {
-          id: 2,
-          user: "@sarah",
-          text: "I totally agree with you!",
-          time: "2h ago",
-          likes: 1,
-          replies: [],
-        },
-      ],
-    },
-    {
-      id: 3,
-      user: "@mike",
-      text: "I think we should test this idea before implementing.",
-      time: "1h ago",
-      likes: 0,
-      replies: [],
-    },
-  ]);
+function CommentsThread({commentsArr = []}) {
+  const [comments, setComments] = useState(commentsArr || []);
 
   const handleReply = (parentId, replyText) => {
     const newReply = {
@@ -219,7 +233,7 @@ function CommentsThread() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-[#161b22] text-white rounded-xl border border-gray-700">
+    <div className="max-w-3xl mx-auto p-6 bg-[#161b22] text-white rounded-xl border border-gray-700  custom-box">
       <h2 className="text-xl font-bold mb-4">Comments</h2>
       {comments.map((comment) => (
         <Comment key={comment.id} comment={comment} onReply={handleReply} />
