@@ -2,7 +2,7 @@ import { Community } from "../models/community.model.js";
 import { Following } from "../models/following.model.js";
 import { Post } from "../models/post.model.js";
 import { deleteFilesFromCloudinary, uploadFilesTOCloudinary } from "../utils/cloudinary.js";
-import { ResSuccess, TryCatch } from "../utils/extra.js";
+import { ResSuccess, TryCatch , ResError } from "../utils/extra.js";
 
 
 const CreateCommunity = TryCatch(async(req , res) => {
@@ -11,10 +11,14 @@ const CreateCommunity = TryCatch(async(req , res) => {
   const {name , descriptopn , rules , tags} = req.body ;
   const {avatar , banner} = req.files ;
 
+  if(!banner) return ResError(res , 400 , 'Banner is required.') ;
+  if(!avatar) return ResError(res , 400 , 'Avatar is required.') ;
+
   if(!name || typeof name !== 'string') return ResError(res , 400 , 'Name is required.') ;
+  if(!rules || typeof rules !== 'string') return ResError(res , 400 , 'Rules is required.') ;
+
   if(!descriptopn || typeof descriptopn !== 'string') return ResError(res , 400 , 'Description is required.') ;
 
-  if(!rules || typeof rules !== 'array') return ResError(res , 400 , 'Rules is required.')
   if(!tags || typeof tags !== 'array') return ResError(res , 400 , 'Tags is required.')
 
   if(avatar && banner){

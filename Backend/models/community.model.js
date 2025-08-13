@@ -45,12 +45,10 @@ const communitySchema = new mongoose.Schema({
     type : Number ,
     default : 0 ,
   } ,
-  rules: [
-    {
-      title: { type: String, required: true },
-      description: { type: String, required: true }
-    } , 
-  ] ,
+  rules: {
+    type : String ,
+    required : true  
+   } ,
   highlights: [{ 
     type: mongoose.Types.ObjectId,
     ref: 'Post' ,

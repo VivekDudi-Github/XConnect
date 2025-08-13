@@ -50,10 +50,8 @@
     color: white; /* dark:text-white */
 
     /* dark:shadow-sm */
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    box-shadow: 0 0px 0px 0 rgba(0, 0, 0, 0);
 
-    /* Simulate dark gradient from slate-900 to black */
-    background-image: linear-gradient(to bottom, rgb(15, 23, 42), rgb(0, 0, 0));
 
     /* Borders: y = top + bottom */
     border-top: 1px solid white;

@@ -1,7 +1,15 @@
 import { XIcon } from 'lucide-react';
 import { useState } from 'react';
+import {toast} from 'react-toastify'
+import {useNavigate} from 'react-router-dom'
+import { useDispatch } from 'react-redux';
+import { setIsCreateCommunityDialog } from '../../redux/reducer/miscSlice';
+import { useCreateCommunityMutation } from '../../redux/api/api';
 
 export default function CreateCommunityPage() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const [name, setName] = useState('');
   const [desc, setDesc] = useState('');
   const [rules, setRules] = useState('');
@@ -13,22 +21,43 @@ export default function CreateCommunityPage() {
     setIcon(e.target.files[0]);
   };
 
-  const handleSubmit = (e) => {
+  const [createMutation , {data , isLoading , error , isSuccess}] = useCreateCommunityMutation() ;
+
+  const handleSubmit = async(e) => {
     e.preventDefault();
-    const communityData = {
-      name,
-      desc,
-      rules,
-      category,
-      icon,
-    };
-    console.log('Creating community:', communityData);
-    // Upload logic here
+    // const communityData = {
+    //   name,
+    //   description : desc,
+    //   rules,
+    //   tags : category,
+    //   avatar : icon,
+    //   banner
+    // };
+
+    const form = new FormData() ;
+    form.append('name' , name) ;
+    form.append('descriptopn' , desc) ;
+    form.append('rules' , rules) ;
+    form.append('tags' , category) ;
+    form.append('avatar' , icon) ;  
+    form.append('banner' , banner) ;  
+
+    try {
+      const res = await createMutation(form).unwrap()
+      if(res.data.success === true){
+        dispatch(setIsCreateCommunityDialog(false))
+      } 
+    } catch (error) {
+      console.log(error);
+      toast.error( error.data.message || 'something went wrong. Please try again.')
+    }
   };
 
   return (
-    <div className="max-w-3xl mx-auto mt-10 p-6 bg-transparent text-black dark:text-white rounded-xl shadow-lg border border-gray-700 relative"> 
-      <button title='Close' className=' absolute right-2 p-1 text-gray-600 bg-gray-100 hover:bg-gray-300 rounded-lg dark:bg-black  dark:text-white   dark:hover:bg-white shadow-sm shadow-black/60 dark:hover:text-black duration-300 active:scale-90'> 
+    <div className="max-w-3xl max-h-screen overflow-y-auto mx-auto mt-10 p-6 bg-transparent text-black dark:text-white rounded-xl shadow-lg border border-gray-700 relative"> 
+      <button title='Close' className=' absolute right-2 p-1 text-gray-600 bg-gray-100 hover:bg-gray-300 rounded-lg dark:bg-black  dark:text-white   dark:hover:bg-white shadow-sm shadow-black/60 dark:hover:text-black duration-300 active:scale-90'
+        onClick={() => dispatch(setIsCreateCommunityDialog(false))}
+      > 
         <XIcon />
       </button>
       
@@ -45,7 +74,7 @@ export default function CreateCommunityPage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            className="w-full p-2 rounded dark:bg-gradient-to-t dark:from-gray-800 dark:to-black duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-white"
+            className="w-full p-2 rounded dark:bg-gradient-to-t dark:from-gray-800 dark:to-black duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-white shadowLight"
           />
         </div>
 
@@ -57,7 +86,7 @@ export default function CreateCommunityPage() {
             placeholder="What's this community about?"
             value={desc}
             onChange={(e) => setDesc(e.target.value)}
-             className="w-full p-2 rounded dark:bg-gradient-to-t dark:from-gray-800 dark:to-black duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-white"
+             className="w-full p-2 rounded dark:bg-gradient-to-t dark:from-gray-800 dark:to-black duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-white shadowLight"
           />
         </div>
 
@@ -69,7 +98,7 @@ export default function CreateCommunityPage() {
             placeholder="e.g. Be respectful, No spam, etc."
             value={rules}
             onChange={(e) => setRules(e.target.value)}
-            className="w-full p-2 rounded dark:bg-gradient-to-t dark:from-gray-800 dark:to-black duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-white"
+            className="w-full p-2 rounded dark:bg-gradient-to-t dark:from-gray-800 dark:to-black duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-white shadowLight"
           />
         </div>
 

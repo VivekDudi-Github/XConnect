@@ -1,9 +1,17 @@
 import React , {useState} from 'react'
 import CommunityPostCard from './CommunityPostCard';
 import { Link } from 'react-router-dom';
+import { PlusIcon } from 'lucide-react';
+import CreateCommunityPage from './CreateCommunity';
+import { useDispatch, useSelector } from 'react-redux';
+import { setIsCreateCommunityDialog } from '../../redux/reducer/miscSlice';
 
 
 function CommunityHome() {
+  const dispatch = useDispatch();
+
+  const {iscreateCommunityDialog} = useSelector((state) => state.misc);
+
   const [activeTab, setActiveTab] = React.useState('Chats');
   const [communities] = useState([
     { id: 1, name: 'Web Dev', avatar: '🌐' },
@@ -63,7 +71,7 @@ function CommunityHome() {
 
   return (
     
-    <div className="max-w-5xl mx-auto mt-4 px-2 sm:px-0 dark:bg-black min-h-screen py-6 rounded-xl dark:text-white">
+    <div className="w-full p-4 mx-auto sm:px-0 dark:bg-black min-h-screen py-6 rounded-xl dark:text-white">
       <h1 className="text-2xl font-semibold mb-6">Communities</h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-6 gap-6 h-full">
@@ -72,19 +80,20 @@ function CommunityHome() {
         <main className=" sm:col-span-4 space-y-6 pb-8 max-h-screen overflow-y-scroll pr-3">
           {posts.map((post) => (
             <CommunityPostCard
+              heading={true}
               key={post._id}
               post={post}
             />
           ))}
         </main>
         {/* Sidebar */}
-        <aside className="sm:col-span-2 sm:block hidden min-w-24 w-full">
+        <aside className="sm:col-span-2 sm:block hidden min-w-24 w-full ">
           <h2 className="text-lg font-medium mb-3">Following</h2>
           <ul className="space-y-3 ">
             {communities.map((comm) => (
               <Link to={'/communities/c/' + comm.id} key={comm.id} >
                 <li
-                  className="flex items-center space-x-3 cursor-pointer hover:bg-gray-800 px-3 py-2 rounded-lg"
+                  className="flex items-center space-x-3 cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-800 px-3 py-2 rounded-lg mb-1  "
                 >
                   <span className="text-xl">{comm.avatar}</span>
                   <span>{comm.name}</span>
@@ -97,7 +106,7 @@ function CommunityHome() {
             {communities.map((comm) => (
               <Link to={'/communities/c/' + comm.id}  key={comm.id}>
                 <li
-                  className="flex items-center space-x-3 cursor-pointer hover:bg-gray-800 px-3 py-2 rounded-lg"
+                  className="flex items-center space-x-3 cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-800 px-3 py-2 rounded-lg mb-1"
                 >
                   <span className="text-xl">{comm.avatar}</span>
                   <span>{comm.name}</span>
@@ -105,7 +114,17 @@ function CommunityHome() {
               </Link>
             ))}
           </ul>
+          <hr className='p-[0.5px] mb-1 bg-gray-500 w-full' />
+          <button
+          onClick={() => dispatch(setIsCreateCommunityDialog(true))}
+          className="flex items-center justify-center space-x-3 cursor-pointer dark:bg-white text-white bg-gray-300  dark:text-black active:scale-95 px-3 py-2 rounded-lg duration-100">
+            <span>Create a Community</span>
+          </button>
         </aside>
+        {iscreateCommunityDialog && (
+          <div className='fixed bottom-0 left-0 right-0 h-screen bg-white dark:bg-black p-4 border-t overflow-y-auto  sm:pb-0 pb-16 border-gray-200 dark:border-gray-700 z-50'>
+          <CreateCommunityPage/>
+        </div>)}
       </div>
     </div>
   );

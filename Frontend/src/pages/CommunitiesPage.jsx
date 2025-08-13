@@ -1,7 +1,4 @@
 import Layout from '../layout/Layout'
-import CommunityHome from '../component/community/communityHome'
-import CommunityHomePage from '../component/community/CommunityHomePage'
-import CommunityPostPage from '../component/community/CommunityPostPage'
 import { Outlet } from 'react-router-dom'
 
 

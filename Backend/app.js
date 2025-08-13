@@ -16,7 +16,7 @@ import postRouter from './routes/post.routes.js' ;
 import roomRouter from './routes/room.routes.js' ;
 import commentRouter from './routes/comment.routes.js' ;
 import messageRouter from './routes/message.routes.js' ;
-import communityRouter from './routes/message.routes.js' ;
+import communityRouter from './routes/community.routes.js' ;
 
 import { checkSocketUser } from "./utils/chekAuth.js";
 

@@ -44,6 +44,13 @@ function CommunityPostPage() {
       replies: [],
     },
   ]);
+  const [communities , setCommunities] = useState([
+    { id: 1, name: 'Web Dev', avatar: '🌐' },
+    { id: 2, name: 'AI & ML', avatar: '🤖' },
+    { id: 3, name: 'Gaming', avatar: '🎮' },
+    { id: 4, name: 'Startups', avatar: '🚀' },
+  ]);
+
   const [newComment, setNewComment] = useState("");
 
   const handleCommentSubmit = (e) => {
@@ -57,81 +64,102 @@ function CommunityPostPage() {
   };
 
   return (
-    <div className="min-h-screen dark:bg-[#000] dark:text-white p-6 ">
-      {/* Post Header */}
-      <div className="max-w-3xl mx-auto dark:bg-[#000] p-6 rounded-xl border border-gray-700  custom-box ">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-gray-400">
-              Posted in <span className="text-indigo-400">XConnect Devs</span> by{" "}
-              <span className="text-white">@vivek</span> • 3h ago
-            </p>
-            <h1 className="text-2xl font-bold mt-2">
-              How do I improve socket performance in messaging apps?
-            </h1>
-          </div>
-          <img
-            src="/community-icon.png"
-            alt="Community Icon"
-            className="w-12 h-12 rounded-full border border-gray-500"
-          />
-        </div>
-
-        {/* Post Content */}
-        <div className="mt-4 dark:text-gray-300">
-          <p>
-            I’ve implemented socket.io for messaging in my MERN app, but I want
-            to optimize for lower latency and prevent duplicate messages. Any
-            suggestions from experienced devs?
-          </p>
-          <img
-            src="/socket-performance.png"
-            alt="Post"
-            className="mt-4 rounded-lg max-h-80 w-full object-cover"
-          />
-        </div>
-
-        {/* Post Actions */}
-        <div className="flex items-center gap-6 mt-6 text-gray-400 text-sm">
-          <button>👍 24</button>
-          <button>💬 {comments.length}</button>
-          <button>🔁 Share</button>
-          <button>🔖 Save</button>
-        </div>
-      </div>
-
-      {/* Comment Section */}
-      <div className="max-w-3xl mx-auto mt-6 dark:bg-[#000] p-6 rounded-xl dark:border border-gray-700 shadow-md">
-        <h2 className="text-xl font-bold mb-4">Comments</h2>
-
-        {/* Comment Form */}
-        <form onSubmit={handleCommentSubmit} className="flex gap-3 mb-6">
-          <input
-            type="text"
-            placeholder="Write a comment..."
-            className="flex-1 dark:bg-[#0d1117] shadowLight duration-200 outline-none" 
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
-          />
-          <button
-            type="submit"
-            className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded text-white font-medium"
-          >
-            Post
-          </button>
-        </form>
-
-        {/* Comment List */}
-        <div className="space-y-4">
-          {/* {comments.map((c) => (
-            <div key={c.id} className="bg-[#0d1117] p-3 rounded-lg border border-gray-700">
-              <p className="text-sm text-gray-400">
-                {c.user} • {c.time}
-              </p>
-              <p className="mt-1">{c.text}</p>
+    <div className="min-h-screen dark:bg-[#000] dark:text-white p-6  ">
+      <div className="grid grid-cols-1 sm:grid-cols-6 gap-6 h-full w-full">
+        <div className="col-span-1 sm:col-span-4">
+          {/* Post Header */}
+          <div className="max-w-3xl mx-auto dark:bg-black p-6 rounded-xl border border-gray-200  custom-box ">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-400">
+                  Posted in <span className="text-indigo-400">XConnect Devs</span> by{" "}
+                  <span className="text-white">@vivek</span> • 3h ago
+                </p>
+                <h1 className="text-2xl font-bold mt-2">
+                  How do I improve socket performance in messaging apps?
+                </h1>
+              </div>
+              <img
+                src="/community-icon.png"
+                alt="Community Icon"
+                className="w-12 h-12 rounded-full border border-gray-500"
+              />
             </div>
-          ))} */}
-          <CommentsThread commentsArr={comments} />
+
+            {/* Post Content */}
+            <div className="mt-4 dark:text-gray-300">
+              <p>
+                I’ve implemented socket.io for messaging in my MERN app, but I want
+                to optimize for lower latency and prevent duplicate messages. Any
+                suggestions from experienced devs?
+              </p>
+              <img
+                src="/socket-performance.png"
+                alt="Post"
+                className="mt-4 rounded-lg max-h-80 w-full object-cover"
+              />
+            </div>
+
+            {/* Post Actions */}
+            <div className="flex items-center gap-6 mt-6 text-gray-400 text-sm">
+              <button>👍 24</button>
+              <button>💬 {comments.length}</button>
+              <button>🔁 Share</button>
+              <button>🔖 Save</button>
+            </div>
+          </div>
+
+          {/* Comment Section */}
+          <div className="max-w-3xl mx-auto mt-6 dark:bg-[#000] p-6 rounded-xl dark:border border-gray-700 shadow-md">
+            <h2 className="text-xl font-bold mb-4">Comments</h2>
+
+            {/* Comment Form */}
+            <form onSubmit={handleCommentSubmit} className="flex gap-3 mb-6">
+              <input
+                type="text"
+                placeholder="Write a comment..."
+                className="flex-1 dark:bg-[#0d1117] shadowLight duration-200 outline-none" 
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+              />
+              <button
+                type="submit"
+                className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded text-white font-medium"
+              >
+                Post
+              </button>
+            </form>
+
+            {/* Comment List */}
+            <div className="space-y-4">
+              {/* {comments.map((c) => (
+                <div key={c.id} className="bg-[#0d1117] p-3 rounded-lg border border-gray-700">
+                  <p className="text-sm text-gray-400">
+                    {c.user} • {c.time}
+                  </p>
+                  <p className="mt-1">{c.text}</p>
+                </div>
+              ))} */}
+              <CommentsThread commentsArr={comments} />
+            </div>
+          </div>
+        </div>
+        <div className=" col-span-1 sm:col-span-2 bg-[#000]">
+          {/* Sidebar */}
+          <div className="bg-[#000] p-6 rounded-xl border-y-2 border-gray-200">
+            <h2 className="text-lg font-semibold mb-4">Related Communities</h2>
+            <ul className="space-y-3">
+              {communities.map((comm) => (
+                <li
+                  key={comm.id}
+                  className="flex items-center space-x-3 cursor-pointer hover:bg-gray-800 px-3 py-2 rounded-lg"
+                >
+                  <span className="text-xl">{comm.avatar}</span>
+                  <span>{comm.name}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
     </div>

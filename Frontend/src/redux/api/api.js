@@ -1,4 +1,5 @@
 import {createApi , fetchBaseQuery} from '@reduxjs/toolkit/query/react'
+import { CreativeCommonsIcon } from 'lucide-react';
 
 
 const api = createApi({
@@ -184,6 +185,16 @@ const api = createApi({
         {type : 'Messages' , id : `${arg.room}-${arg._id}`} ,
       ] ,
       keepUnusedDataFor : 60 * 60 , // 1 hour
+    }) ,
+
+    //community
+    createCommunity : builder.mutation({
+      query : (data) => ({
+        url : '/community/create',
+        method : 'POST' ,
+        body : data ,
+        credentials : 'include'
+      })
     })
   })
 })
@@ -232,5 +243,9 @@ export const {
 
   //messages
   // useLazyGetMessagesQuery ,
-  useGetMessagesQuery 
+  useGetMessagesQuery ,
+
+  //community
+  useCreateCommunityMutation ,
+  
 } = api ;
