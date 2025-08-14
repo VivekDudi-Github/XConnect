@@ -8,8 +8,9 @@ import { ResSuccess, TryCatch , ResError } from "../utils/extra.js";
 const CreateCommunity = TryCatch(async(req , res) => {
   req.CreateMediaForDelete = [] ;
 
-  const {name , descriptopn , rules , tags} = req.body ;
-  const {avatar , banner} = req.files ;
+  const {name , description , rules , tags} = req.body ;
+  let {avatar , banner} = req.files ;
+  
 
   if(!banner) return ResError(res , 400 , 'Banner is required.') ;
   if(!avatar) return ResError(res , 400 , 'Avatar is required.') ;
@@ -17,22 +18,23 @@ const CreateCommunity = TryCatch(async(req , res) => {
   if(!name || typeof name !== 'string') return ResError(res , 400 , 'Name is required.') ;
   if(!rules || typeof rules !== 'string') return ResError(res , 400 , 'Rules is required.') ;
 
-  if(!descriptopn || typeof descriptopn !== 'string') return ResError(res , 400 , 'Description is required.') ;
+  if(!description || typeof description !== 'string') return ResError(res , 400 , 'Description is required.') ;
 
-  if(!tags || typeof tags !== 'array') return ResError(res , 400 , 'Tags is required.')
+  if(!tags || Array.isArray(tags) === false) return ResError(res , 400 , 'Tags is required.')
 
-  if(avatar && banner){
-    avatar = uploadFilesTOCloudinary([avatar]) ;
-    banner = uploadFilesTOCloudinary([banner]) ;
+  if(avatar && banner  ){   
+    avatar = await uploadFilesTOCloudinary(avatar) ;
+    banner = await uploadFilesTOCloudinary(banner) ;
   }
-
+  console.log(avatar , banner);
+  
   const community = await Community.create({
     name ,
-    descriptopn ,
+    description ,
     rules ,
     tags ,
-    avatar ,
-    banner ,
+    avatar : avatar[0] ,
+    banner : banner[0] ,
     creator : req.user._id ,
   })
   if(!community) {
@@ -102,11 +104,157 @@ const getFollowingCommunities = TryCatch( async(req , res) => {
   return ResSuccess(res , 200 , communities) ;
 } , 'GetFollowingCommunities')
 
+const communityFeed = TryCatch( async(req , res) => {
+  const posts = await Post.aggregate([
+      {$lookup : {
+        from : 'followings' ,
+        let : {
+          userId : new ObjectId(`${req.user._id}`) ,        
+        } ,
+        pipeline : [
+          {$match : {
+            $expr : {
+              $eq : ['$followedBy' , '$$userId']
+            }}
+          } ,
+          { $project: { _id: 0, followedTo: 1,   followingCommunity : 1 } } 
+        ] ,
+        as : 'UsersFollowing' ,
+      }} ,
+      {$addFields : {
+        communityFollowIds : {
+          $map : {
+            input : '$UsersFollowing' ,
+            as : 'id' ,
+            in : '$$id.followingCommunity'
+          }
+        } ,
+        userFollowIds : {
+          $map : {
+            input : '$UsersFollowing' ,
+            as : 'id' ,
+            in : '$$id.followedTo'
+          }
+        }
+      }} ,
+      {$match : {
+          $expr : {
+            $and : [
+              // {$gte: ['$createdAt', threeDaysAgo] } ,
+              {$eq : ['$isDeleted' , false]} ,
+              {$in : ['$community', '$communityFollowIds'] },
+              {$or : [
+                { $gte: ['$createdAt', threeDaysAgo] },
+                { $in: ['$author', '$userFollowIds'] },
+                { $in: ['$hashtags', hashtags] }
+              ]}
+            ]
+          }
+        }
+      } ,
+      {$sample : { size : 10}} ,
+  
+      //author details
+      { $lookup : {
+        from : 'users' ,
+        let : { userId : '$author'} ,
+        pipeline : [
+          {$match : {
+            $expr : {
+              $eq : ['$_id' , '$$userId']
+            }
+          }} ,
+          {$project: {
+            username : 1 ,
+          }}
+        ] ,
+        as : 'authorDetails'
+      }} ,
+  
+      //userLike
+      {$lookup : {
+        from : 'likes' ,
+        let : { postId : '$_id'} ,
+        pipeline : [
+          {$match : {
+            $expr : {
+              $and : [
+                {$eq : ['$post' , '$$postId']} ,
+                {$eq : ['$user' , new ObjectId(`${userId}`)]}
+              ]
+            }
+          }}
+        ] ,
+        as : 'userLike'
+      }} ,
+  
+      //totalLike
+      {$lookup : {
+        from : 'likes' ,
+        localField : '_id' ,
+        foreignField : 'post' ,
+        as : 'totalLike' ,
+      }} ,
+  
+      //totalComments
+      {$lookup : {
+        from : 'comments' ,
+        localField : '_id' ,
+        foreignField : 'post' ,
+        as : 'totalComments' ,
+      }} ,
+  
+      {$addFields : {
+        author : '$authorDetails' ,
+        likeStatus : { $gt : [{ $size : '$userLike'} , 0 ]}  ,
+        likeCount : {$size : '$totalLike'} ,
+        commentCount : {$size : '$totalComments'} ,
+      }} ,
+  
+      {$unwind: {path: '$author',preserveNullAndEmptyArrays: true} } ,
+      
+      {$project : {
+        authorDetails : 0 ,
+        totalLike : 0 ,
+        userLike : 0 ,
+        communityFollowIds : 0 ,
+        userFollowIds : 0 ,
+      }}
+  
+    ])
+
+  return ResSuccess(res , 200 , posts) 
+    
+} , 'CommunityFeed')
+
+const followCommunity = TryCatch(async(req , res) => {
+  const {id} = req.params ;
+
+  if(!id) return ResError(res , 400 , 'Community ID is required')
+
+  const isExistFollowing = await Following.exists({followingCommunity : id , followedBy : req.user._id})
+
+  if(isExistFollowing){
+    await Following.findOneAndDelete({followingCommunity : id , followedBy : req.user._id})
+    return ResSuccess(res , 200 , {operation : false} )
+  } else {
+    await Following.create({
+      followingCommunity : id ,
+      followedBy : req.user._id ,
+    })
+    return ResSuccess(res , 200 , {operation : true} )
+  }
+
+} , 'followCommiunity')
+
 export {
   CreateCommunity ,
   GetCommunity ,
   GetCommunities ,
   GetCommunityPosts ,
   GetCommunityFollowers ,
-  getFollowingCommunities
+  getFollowingCommunities ,
+  
+  communityFeed ,
+  followCommunity ,
 }

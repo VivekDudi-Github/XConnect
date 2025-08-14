@@ -1247,14 +1247,16 @@ const LikePost = async(req , res , postId , ) => {
 const fetchFeedPost = TryCatch( async(req , res) => {
   //post from least last 3 days, post from followers , post from preferances
   const userId = req.user._id ;
-
-  const followings = await Following.find({followedBy : userId})
+  let { tab} = req.query ;
   const tags = await Preferance.find({user : userId }).select(' hashtags -_id') ;
   
   const hashtags = tags.map(t => t.hashtags )
-  
-
-  
+  let filter = [];
+  if(tab === 'communities'){
+    filter = [
+      {$exists : ['$community' , true]} ,
+    ]
+  }
   const threeDaysAgo = new Date();
   threeDaysAgo.setDate(threeDaysAgo.getDate() - 4);
 
@@ -1279,23 +1281,24 @@ const fetchFeedPost = TryCatch( async(req , res) => {
       communityFollowIds : {
         $map : {
           input : '$UsersFollowing' ,
-          as : 'Id' ,
-          in : '$$Id.followingCommunity'
+          as : 'id' ,
+          in : '$$id.followingCommunity'
         }
       } ,
       userFollowIds : {
         $map : {
           input : '$UsersFollowing' ,
-          as : 'Id' ,
-          in : '$$Id.followedTo'
+          as : 'id' ,
+          in : '$$id.followedTo'
         }
       }
     }} ,
-    {
-      $match : {
+    {$match : {
         $expr : {
           $and : [
+            // {$gte: ['$createdAt', threeDaysAgo] } ,
             {$eq : ['$isDeleted' , false]} ,
+            ...filter ,
             {$or : [
               { $gte: ['$createdAt', threeDaysAgo] },
               { $in: ['$author', '$userFollowIds'] },

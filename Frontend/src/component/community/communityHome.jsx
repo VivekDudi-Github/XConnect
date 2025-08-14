@@ -117,7 +117,7 @@ function CommunityHome() {
           <hr className='p-[0.5px] mb-1 bg-gray-500 w-full' />
           <button
           onClick={() => dispatch(setIsCreateCommunityDialog(true))}
-          className="flex items-center justify-center space-x-3 cursor-pointer dark:bg-white text-white bg-gray-300  dark:text-black active:scale-95 px-3 py-2 rounded-lg duration-100">
+          className="flex items-center justify-center space-x-3 cursor-pointer dark:bg-white text-gray-700 bg-gray-300  dark:text-black active:scale-95 px-3 py-2 rounded-lg duration-100">
             <span>Create a Community</span>
           </button>
         </aside>
