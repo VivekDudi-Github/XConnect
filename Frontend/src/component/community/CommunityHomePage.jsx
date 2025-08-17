@@ -16,49 +16,52 @@ export default function CommunityHomePage() {
        {
         _id : 1 ,
         community: 'AI & ML',
-          username: 'neural_guy',
+        communityId : '12345',
+          author: {
+            username: 'neural_guy',
+          },
           title: 'How do transformers handle long sequences?',
-          description:
+          content:
             'Transformers work well with fixed-size input, but when sequence length increases, performance issues arise. What techniques are used to optimize?',
-          image: [
+          media: [
           {url : 'https://cdn.britannica.com/37/189837-050-F0AF383E/New-Delhi-India-War-Memorial-arch-Sir.jpg'} ,
           {url : 'https://cdn.britannica.com/37/189837-050-F0AF383E/New-Delhi-India-War-Memorial-arch-Sir.jpg' } , 
         ],
-          time: '2 hours ago',
+          createdAt: '2025-08-17T16:36:31.996Z',
         } ,
-      {
-        _id : 2 ,
-        community: 'AI & ML',
-        username: 'neural_guy',
-        title: 'How do transformers handle long sequences?',
-        description:
-          'Transformers work well with fixed-size input, but when sequence length increases, performance issues arise. What techniques are used to optimize?',
-        image: [],
-        time: '2 hours ago',
-      } ,
-      {
+        {
         _id : 3 ,
         community: 'AI & ML',
-          username: 'neural_guy',
+        communityId : '12345',
+          author: {
+            username: 'neural_guy',
+          },
           title: 'How do transformers handle long sequences?',
-          description:
+          content:
             'Transformers work well with fixed-size input, but when sequence length increases, performance issues arise. What techniques are used to optimize?',
-          image: [
+          media: [
           {url : 'https://cdn.britannica.com/37/189837-050-F0AF383E/New-Delhi-India-War-Memorial-arch-Sir.jpg'} ,
           {url : 'https://cdn.britannica.com/37/189837-050-F0AF383E/New-Delhi-India-War-Memorial-arch-Sir.jpg' } , 
         ],
-          time: '2 hours ago',
+          createdAt: '2025-08-17T16:36:31.996Z',
         } ,
-      {
-        _id : 4 ,
+        {
+        _id : 2 ,
         community: 'AI & ML',
-        username: 'neural_guy',
-        title: 'How do transformers handle long sequences?',
-        description:
-          'Transformers work well with fixed-size input, but when sequence length increases, performance issues arise. What techniques are used to optimize?',
-        image: [],
-        time: '2 hours ago',
-      } ,
+        communityId : '12345',
+          author: {
+            username: 'neural_guy',
+          },
+          title: 'How do transformers handle long sequences?',
+          content:
+            'Transformers work well with fixed-size input, but when sequence length increases, performance issues arise. What techniques are used to optimize?',
+          media: [
+          {url : 'https://cdn.britannica.com/37/189837-050-F0AF383E/New-Delhi-India-War-Memorial-arch-Sir.jpg'} ,
+          {url : 'https://cdn.britannica.com/37/189837-050-F0AF383E/New-Delhi-India-War-Memorial-arch-Sir.jpg' } , 
+        ],
+          createdAt: '2025-08-17T16:36:31.996Z',
+        } ,
+      
     ]);
 
   return (

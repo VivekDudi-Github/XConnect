@@ -19,7 +19,7 @@ const ObjectId = mongoose.Types.ObjectId ;
 
 const createPost = TryCatch( async(req , res) => {
   req.CreateMediaForDelete = [] ;
-  const {content , hashtags = [] , title , community  , isCommunityPost = false,  repost , mentions= [] , visiblity } = req.body ;
+  const {content , hashtags = [] , title , community  , isCommunityPost = false,  repost , mentions= [] , visiblity , category ,isAnonymous } = req.body ;
   
   const {media} = req.files ;
   if(media) media.forEach(file => req.CreateMediaForDelete.push(file)) ;
@@ -29,12 +29,15 @@ const createPost = TryCatch( async(req , res) => {
   if( media && !Array.isArray(media)) return ResError(res , 400 , "Media's data is invalid.")
   if(!Array.isArray(hashtags)) return ResError(res , 400 , "Hastags' data is invalid.")
   if(!Array.isArray(mentions)) return ResError(res , 400 , "Mentions' data is invalid.")
-  
-  if(repost && typeof repost !== 'string') return ResError(res , 400 , "Repost's data is invalid.")
+   
+  if(repost && !ObjectId.isValid(repost)) return ResError(res , 400 , "Repost's data is invalid.") ;  
   if(visiblity && !['public' , 'followers' , 'group'].includes(visiblity)) return ResError(res , 400 , "Visiblity's data is invalid.")
 
   if(isCommunityPost){
+    if(category && typeof category !== 'string') return ResError(res , 400 , 'Category is required.') ;
+    if([ 'general' , 'help' , 'feedback' , 'showcase'].includes(category) === false) return ResError(res , 400 , 'Invalid category.') ;
     if(!title || typeof title !== 'string') return ResError(res , 400 , 'Title is required.') ;
+    if(!category || typeof category !== 'string') return ResError(res , 400 , 'Category is required.') ;
     if(!ObjectId.isValid(community)) return ResError(res , 400 , 'Invalid community id.') ;
     const IsCommunityExist = await Community.exists({_id : community}) ;
     if(!IsCommunityExist) return ResError(res , 400 , 'Invalid community id.') ;
@@ -56,6 +59,9 @@ const createPost = TryCatch( async(req , res) => {
     mentions : mentions || [] ,
     community : isCommunityPost ? community : null ,
     title : isCommunityPost ? title : null ,
+    isAnonymous : isAnonymous || false ,
+    category : category || null ,
+    type : isCommunityPost ? 'community' : 'post' ,
   })
 
   if(!post) return ResError(res , 500 , 'Post could not be created.')

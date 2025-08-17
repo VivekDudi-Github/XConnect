@@ -1,16 +1,29 @@
-import { useState } from 'react';
-import {XIcon} from 'lucide-react'
+import { useState ,useEffect} from 'react';
+import {SmileIcon, XIcon} from 'lucide-react'
 import { useDispatch } from 'react-redux';
 import { setIsCreateCommunityPostDialog } from '../../redux/reducer/miscSlice';
+import {toast} from 'react-toastify';
+import { useCreatePostMutation } from '../../redux/api/api';
+import data from '@emoji-mart/data';
+import  Picker  from '@emoji-mart/react';
+import { useParams } from 'react-router-dom';
 
 export default function CreateCommunityPost() {
+  const params = useParams() ;
+  const communityId = params.id ;
+
   const dispatch = useDispatch();
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [media, setMedia] = useState([]);
   const [category, setCategory] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [hashtags  , sethashTags] = useState([])
+  const [mentions , setMentions] = useState([]) ;
+
 
   const handleIMediaUpload = (e) => {
     console.log(e.target.files.length);
@@ -21,10 +34,55 @@ export default function CreateCommunityPost() {
     setMedia(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e) => {
+
+  const [createMutation ]= useCreatePostMutation() ; 
+
+  const handleSubmit = async(e) => {
     e.preventDefault();
-    console.log({ title, content, category, image, isAnonymous });
-  };
+    const toastId = toast.loading('Posting...') ;
+
+
+    const form = new FormData() ;
+    form.append('title' , title) ;
+    form.append('content' , content) ;
+    form.append('community' , communityId) ; 
+    form.append('category' , category) ;
+    form.append('isAnonymous' , isAnonymous) ;
+    form.append('isCommunityPost' , true) ;
+    hashtags.forEach((tag) => {
+      form.append(`hashtags[]` , tag)
+    }) ;
+    mentions.forEach((mention) => {
+      form.append(`mentions[]` , mention)
+    }) ;
+    media.length > 0 && media.forEach(m => form.append('media' , m)) ;
+    try {
+      const res = await createMutation(form).unwrap()
+
+      console.log(res);
+      console.log(res.success);
+      
+      if(res.success === true){
+        toast.update(toastId, {
+          render: "Posted successfully",
+          type: "success",
+          isLoading: false,
+          draggable: true,
+          autoClose: 2000,
+        });
+        closeHandler();
+      } 
+    } catch (error) {
+      console.log(error);
+      toast.update(toastId , {
+        render: error.data?.message || 'Something went wrong. Please try again.' ,
+        type: 'error' ,
+        isLoading: false, 
+        autoClose: 2000, 
+      })
+    }
+
+  }
 
   const closeHandler = () => {
     setTitle('');
@@ -32,10 +90,29 @@ export default function CreateCommunityPost() {
     setMedia([]);
     setCategory('');
     setIsAnonymous(false);
-console.log('working');
-
     dispatch( setIsCreateCommunityPostDialog(false))
   }
+
+useEffect(() => {
+    const detectHashtags = () => {
+      const matches = content.match(/#[\w]+/g);
+      sethashTags(matches || []); 
+      return matches || [];
+    };
+  
+    const detectMentions = () => {
+      const matches = content.match(/@[\w]+/g);
+      setMentions(matches || []);
+      return matches || [] ;
+    };
+
+    detectHashtags() ;
+    detectMentions() ;
+  } , [content]);
+  
+const handleEmojiSelect = (emoji) => {
+    setContent(prev => prev + emoji.native);
+  };
 
   return (
     <div className="max-w-2xl mx-auto mt-10 bg-zinc-100 dark:bg-[#161b22] dark:text-white p-6 rounded-xl border border-gray-700 shadow-lg relative">
@@ -59,8 +136,29 @@ console.log('working');
         </div>
 
         {/* Content */}
-        <div>
-          <label className="block text-sm font-medium mb-1">Description / Question</label>
+        <div className='relative '>
+          <label className=" text-sm  flex gap-2 items-centerfont-medium mb-1">Description / Question 
+          <button 
+            type='button'
+            onClick={() => setShowEmojiPicker(prev => !prev)}
+            className="dark:text-zinc-400 text-cyan-400 hover:text-cyan-500 dark:hover:text-white transition"
+          >
+            <SmileIcon size={20} />
+          </button>
+
+          {showEmojiPicker && (
+            <div 
+            className="absolute z-50 mt-2 top-8 right-0">
+              <Picker
+                data={data}
+                onEmojiSelect={handleEmojiSelect}
+                theme="dark"
+                style={{ width: '100%' }}
+              />
+            </div>
+          )}
+
+          </label>
           <textarea
             rows="5"
             className="w-full p-2 rounded dark:bg-gradient-to-t dark:from-gray-800 dark:to-black duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-white"
@@ -70,13 +168,13 @@ console.log('working');
           ></textarea>
         </div>
 
-        {/* Category or Tag */}
+        {/* Category*/}
         <div>
           <label className="block text-sm font-medium mb-1">Category</label>
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="w-full bg-transparent border border-gray-600 rounded px-3 py-2 focus:outline-none"
+            className="w-full bg-white dark:bg-black border text-black  dark:text-white border-gray-600 rounded px-3 py-2 focus:outline-none"
           >
             <option value="">Select a category</option>
             <option value="general">General</option>
@@ -89,7 +187,7 @@ console.log('working');
         {/* Image Upload */}
         <div>
           <label className="block text-sm font-medium mb-1">Attach Image (optional)</label>
-          <input
+          <input multiple
             type="file"
             accept="image/* video/*"
             onChange={handleIMediaUpload}
@@ -130,18 +228,17 @@ console.log('working');
         {/* Buttons */}
         <div className="flex justify-end space-x-4 pt-4">
           <button
-            type="button"
-            className=" shadowLight active:scale-95 " 
-            onClick={closeHandler}
+            onClick={() => closeHandler()}
+            className="bg-white  text-black font-semibold active:scale-95 duration-200 shadow-slate-500 dark:shadow-none shadow-md  px-6 py-2 rounded-lg"
           >
             Cancel
           </button>
           <div className="flex justify-end">
           <button
             type="submit"
-            className="shadowLight active:scale-95"
+            className="bg-white  text-black font-semibold active:scale-95 duration-200 shadow-slate-500 dark:shadow-none shadow-md  px-6 py-2 rounded-lg"
           >
-            Create Community
+            Create Post
           </button>
         </div>
         </div>

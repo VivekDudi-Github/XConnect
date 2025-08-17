@@ -59,8 +59,8 @@ const postSchema = new mongoose.Schema({
     ref : 'Community' ,
   } ,
   repost : {
-    type : String ,
-    default : null ,
+    type : mongoose.Types.ObjectId ,
+    ref : 'Post' ,
   } ,
   visiblity : {
     type : String ,
@@ -81,6 +81,10 @@ const postSchema = new mongoose.Schema({
     default : false
   } , 
   title : {
+    type : String ,
+    default : null ,
+  } ,
+  category : {
     type : String ,
     default : null ,
   }

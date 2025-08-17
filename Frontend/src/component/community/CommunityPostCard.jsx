@@ -1,16 +1,19 @@
 import {BarChart2Icon , MessageCircleIcon , EllipsisVerticalIcon , Share2Icon , BookmarkIcon, } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import InPostImages from '../post/InPostImages';
-
+import moment from 'moment';
 
 const CommunityPostCard = ({ post , heading }) => {
+  console.log(post);
+  
   const {
     community,
-    username,
+    author,
     title,
-    description,
-    image,
-    time,
+    content,
+    media,
+    createdAt,
+    isAnonymous = false ,
   } = post;
 
   return (
@@ -18,18 +21,25 @@ const CommunityPostCard = ({ post , heading }) => {
       {/* Top Info */}
        {heading && (
          <div className=" flex justify-start items-center px-4 ">  
-          <span className='text-black font-bold rounded-t-xl bg-black dark:bg-white px-4'>
+          <Link to={`/communities/c/${post.communityId}`}
+           className='text-black font-bold rounded-t-xl bg-black dark:bg-white px-4'>
             <span className="font-e text-xs text-white dark:text-purple-800 overflow-hidden">Posted in {community}</span>            
-          </span>
+          </Link>
         </div>
        )}
       <div className="bg-white rounded-xl p-2 custom-box"> 
         {/* User Info */}
         <div className="text-xs sm:text-[13px] text-gray-500 mb-2 relative">
-          <Link to={`/profile/${username}`}>
-            Posted by <span className="text-blue-400">@{username}</span>
-          </Link>
-           &nbsp; • <span>{time}</span>
+          {!isAnonymous ? (
+            <Link to={`/profile/${author?.username}`}>
+              Posted by <span className="text-blue-400">@{author.username}</span>
+            </Link>
+          ) : (
+            <span >
+              Posted by <span className="text-blue-400">@{author.username}</span>
+            </span>
+          )}
+           &nbsp; • <span>{moment(createdAt).fromNow()}</span>
            <span className='absolute right-0 top-0 text-xs text-gray-500 '>
             <EllipsisVerticalIcon size={17}/>
           </span>
@@ -40,15 +50,15 @@ const CommunityPostCard = ({ post , heading }) => {
           <h2 className="text-lg font-bold text-gray-700 dark:text-white mb-2">{title}</h2>
         </Link>
 
-        {/* Description (truncated to ~160 chars) */}
+        {/* content (truncated to ~160 chars) */}
         <p className="text-[13.5px] text-gray-600 font-semibold dark:text-gray-400 mb-3">
-          {description?.length > 120 ? `${description.slice(0, 120)}...` : description} 
+          {content?.length > 120 ? `${content.slice(0, 120)}...` : content} 
         </p>
 
         {/* Optional Image */}
-        {image.length > 0 && (
+        {media?.length > 0 && (
           <div className="mb-3 ">
-            <InPostImages imagesArray={[image[0]  ]} />
+            <InPostImages imagesArray={[media[0]  ]} />
           </div>
         )}
 

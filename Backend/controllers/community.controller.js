@@ -1,9 +1,12 @@
+import mongoose from "mongoose";
 import { Community } from "../models/community.model.js";
 import { Following } from "../models/following.model.js";
 import { Post } from "../models/post.model.js";
 import { deleteFilesFromCloudinary, uploadFilesTOCloudinary } from "../utils/cloudinary.js";
 import { ResSuccess, TryCatch , ResError } from "../utils/extra.js";
+import { Preferance } from "../models/prefrence.model.js";
 
+const ObjectId = mongoose.Types.ObjectId ;
 
 const CreateCommunity = TryCatch(async(req , res) => {
   req.CreateMediaForDelete = [] ;
@@ -41,6 +44,11 @@ const CreateCommunity = TryCatch(async(req , res) => {
     deleteFilesFromCloudinary([avatar , banner])
     return ResError(res , 500 , 'Community could not be created.')
   }
+
+  await Following.create({
+    followingCommunity : community._id ,
+    followedBy : req.user._id ,
+  })
 
   return ResSuccess(res , 200 , 'Community created successfully.')
 
@@ -105,8 +113,21 @@ const getFollowingCommunities = TryCatch( async(req , res) => {
 } , 'GetFollowingCommunities')
 
 const communityFeed = TryCatch( async(req , res) => {
+  const userId = req.user._id ;
+
+  const {page = 1 , limit = 10} = req.query ;
+  const skip = (page - 1) * Number(limit) ;
+  
+  const tags = await Preferance.find({user : userId }).select(' hashtags -_id') ;  
+  const hashtags = tags.map(t => t.hashtags ) ;
+
+  const threeDaysAgo = new Date();
+  threeDaysAgo.setDate(threeDaysAgo.getDate() - 4);
+
+
   const posts = await Post.aggregate([
-      {$lookup : {
+    // lookuo ffor the following communities
+    {$lookup : {
         from : 'followings' ,
         let : {
           userId : new ObjectId(`${req.user._id}`) ,        
@@ -137,12 +158,15 @@ const communityFeed = TryCatch( async(req , res) => {
           }
         }
       }} ,
+
+      //match posts
       {$match : {
           $expr : {
             $and : [
               // {$gte: ['$createdAt', threeDaysAgo] } ,
               {$eq : ['$isDeleted' , false]} ,
-              {$in : ['$community', '$communityFollowIds'] },
+              {$eq : ['$type' , 'community']} ,
+              // {$in : ['$community', '$communityFollowIds'] },
               {$or : [
                 { $gte: ['$createdAt', threeDaysAgo] },
                 { $in: ['$author', '$userFollowIds'] },
@@ -152,7 +176,10 @@ const communityFeed = TryCatch( async(req , res) => {
           }
         }
       } ,
-      {$sample : { size : 10}} ,
+      {$skip : skip} ,
+      
+      //random sample 9350872
+      {$sample : { size : Number(limit)}} ,
   
       //author details
       { $lookup : {
@@ -171,6 +198,22 @@ const communityFeed = TryCatch( async(req , res) => {
         as : 'authorDetails'
       }} ,
   
+      //community name 
+      {$lookup : {
+        from : 'communities' ,
+        let : { communityId : '$community'} ,
+        pipeline : [
+          {$match : {
+            $expr : {
+              $eq : ['$_id' , '$$communityId']
+            }
+          }} ,
+          {$project: {
+            name : 1 ,
+          }}
+        ] ,
+        as : 'communityDetails'
+      }} ,
       //userLike
       {$lookup : {
         from : 'likes' ,
@@ -209,6 +252,8 @@ const communityFeed = TryCatch( async(req , res) => {
         likeStatus : { $gt : [{ $size : '$userLike'} , 0 ]}  ,
         likeCount : {$size : '$totalLike'} ,
         commentCount : {$size : '$totalComments'} ,
+        community : {$arrayElemAt : ['$communityDetails.name' , 0]} ,
+        communityId : {$arrayElemAt : ['$communityDetails._id' , 0]} ,
       }} ,
   
       {$unwind: {path: '$author',preserveNullAndEmptyArrays: true} } ,
@@ -219,6 +264,8 @@ const communityFeed = TryCatch( async(req , res) => {
         userLike : 0 ,
         communityFollowIds : 0 ,
         userFollowIds : 0 ,
+        UsersFollowing : 0 ,
+        communityDetails : 0 ,
       }}
   
     ])
@@ -232,8 +279,11 @@ const followCommunity = TryCatch(async(req , res) => {
 
   if(!id) return ResError(res , 400 , 'Community ID is required')
 
-  const isExistFollowing = await Following.exists({followingCommunity : id , followedBy : req.user._id})
+  const communityAuthor = await Community.findById(id).select('creator')
 
+  if(communityAuthor.creator.equals(req.user._id)) return ResError(res , 400 , 'You cannot follow your own community.') ;
+
+  const isExistFollowing = await Following.exists({followingCommunity : id , followedBy : req.user._id})
   if(isExistFollowing){
     await Following.findOneAndDelete({followingCommunity : id , followedBy : req.user._id})
     return ResSuccess(res , 200 , {operation : false} )
