@@ -26,8 +26,6 @@ export default function CreateCommunityPost() {
 
 
   const handleIMediaUpload = (e) => {
-    console.log(e.target.files.length);
-    
   setMedia([...media , ...e.target.files]);
   };
   const removeMedia = (index) => {

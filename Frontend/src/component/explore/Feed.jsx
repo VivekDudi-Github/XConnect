@@ -75,7 +75,7 @@ function Feed() {
 
       {posts && posts.map((post , i) => (
         <div ref={ i === posts.length - 1 ? lastPostRef : null }  key={i} >
-          {post?.type !== 'community' ? <PostCard post={post} key={post._id}/> : <CommunityPostCard post={post} key={post._id}/>}
+          {post?.type !== 'community' ? <PostCard post={post} key={post._id}/> : <CommunityPostCard post={post} heading={true} key={post._id}/>}
         </div>
       ))}
       {(!posts || posts.length < 4) &&  Array.from({length : 4}).map((_  , i) => (

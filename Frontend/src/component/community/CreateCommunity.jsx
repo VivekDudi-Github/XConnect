@@ -14,17 +14,18 @@ export default function CreateCommunityPage() {
 
   const [name, setName] = useState('');
   const [desc, setDesc] = useState('');
-  const [rules, setRules] = useState('');
+  const [rules, setRules] = useState([]);
   const [tags, setTags] = useState([]);
   const [icon, setIcon] = useState(null);
   const [banner, setBanner] = useState(null);
 
   const [inputValue, setInputValue] = useState("");
+  const [rulesText, setRulesText] = useState("");
 
    const addTag = (e) => {
     e.preventDefault() ;
     const newTag = inputValue.trim();
-    if(tags.length >= 10) {
+    if(tags.length > 10) {
       toast.error('Maximum 10 tags allowed');
       return;
     }
@@ -35,6 +36,19 @@ export default function CreateCommunityPage() {
     ) {
       setTags([...tags, newTag]);
       setInputValue("");
+    }
+  };
+
+  const addRule = (e) => {
+    e.preventDefault() ;
+    const newTag = rulesText.trim();
+    if(rules.length > 20) {
+      toast.error('Maximum 20 rules allowed.');
+      return;
+    }
+    if (newTag && !tags.includes(newTag.toLowerCase())) {
+      setRules([...tags, newTag]);
+      setRulesText("");
     }
   };
 
@@ -115,33 +129,42 @@ export default function CreateCommunityPage() {
 
         {/* Rules */}
         <div>
-          <label className=" inline-block text-sm font-medium rounded-t-md">Community Rules</label> 
-          <textarea
-            rows={3}
-            placeholder="e.g. Be respectful, No spam, etc."
-            value={rules}
-            onChange={(e) => setRules(e.target.value)}
-            className="w-full p-1 focus:pl-3 rounded dark:bg-gradient-to-t dark:from-gray-800 dark:to-black duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-white shadowLight"
-          />
+          <label className="block text-sm font-medium mb-1">Rules</label>
+          <div className="flex gap-2 mb-2">
+            <input
+              type="text"
+              value={rulesText}
+              onChange={(e) => setRulesText(e.target.value)}
+              className="w-full p-1 focus:pl-3 rounded dark:bg-gradient-to-t dark:from-gray-800 dark:to-black focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-white shadowLight"
+              placeholder="Type a tag and press Enter"
+            />
+            <button type='button'
+              onClick={addRule}
+              className="bg-white  text-black font-semibold active:scale-95 duration-200 shadow-slate-500 dark:shadow-none shadow-md  px-6 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={rules.length >= 15 || !rulesText.trim()}
+            >
+              Add
+            </button>
+          </div>
+          <ol className="space-y-2 list-decimal list-inside text-gray-800 dark:text-gray-200">
+            {rules.map((rule, index) => (
+              <li
+                key={index}
+                className="flex items-center gap-2 p-2 rounded-md bg-gray-100 dark:bg-gray-800 transition-all duration-300 ease-in-out hover:bg-gray-200 dark:hover:bg-gray-700 fade-in "
+              >
+                <XIcon
+                  size={16}
+                  className="cursor-pointer text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 transition-colors duration-200"
+                  onClick={() =>
+                    setRules((prev) => prev.filter((r, i) => i !== index))
+                  }
+                />
+                <span className="flex-1 text-sm">{rule}</span>
+              </li>
+            ))}
+          </ol>
         </div>
 
-        {/* Category */}
-        {/* <div>
-          <label className="block text-sm font-medium mb-1">Category</label>
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="w-full dark:bg-[#0d1117] text-black dark:text-white rounded px-3 py-2"
-          >
-            <option value="">Select a topic</option>
-            <option value="tech">Tech</option>
-            <option value="gaming">Gaming</option>
-            <option value="education">Education</option>
-            <option value="lifestyle">Lifestyle</option>
-            <option value="news">News</option>
-          </select>
-        </div> */}
-      
         {/* Tags */}
         <div>
           <label className="block text-sm font-medium mb-1">Tags</label>
@@ -153,7 +176,7 @@ export default function CreateCommunityPage() {
                 key={index}
                 className="flex items-center gap-1 bg-cyan-500 text-white px-3 py-1 rounded-full text-sm fade-in "
               >
-                {tag}
+               {tag}
                 <button
                   type="button"
                   onClick={() => removeTag(tag)}

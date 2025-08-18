@@ -201,6 +201,12 @@ const api = createApi({
         url : '/community/feed/?page=' + page + '&limit=' + limit ,
         credentials : 'include'
       })
+    }) ,
+    getACommunity : builder.query({
+      query : ({id}) =>({
+        url : `/community/${id}` ,
+        credentials : 'include'
+      })
     })
   })
 })
@@ -254,4 +260,5 @@ export const {
   //community
   useCreateCommunityMutation ,
   useLazyGetCommunityFeedQuery ,
+  useGetACommunityQuery ,
 } = api ;

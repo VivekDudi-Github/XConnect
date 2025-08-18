@@ -34,15 +34,15 @@ function CommunityHome() {
 
 
   const lastPostRef = useCallback(node => {
-    // lastRefFunc({
-    //   observer , 
-    //   node , 
-    //   isLoading , 
-    //   page ,
-    //   activeTab : null ,
-    //   totalPages : null ,
-    //   fetchFunc : refetchCommunities
-    // })
+    lastRefFunc({
+      observer , 
+      node , 
+      isLoading , 
+      page ,
+      activeTab : null ,
+      totalPages : null ,
+      fetchFunc : refetchCommunities
+    })
   } , [refetchCommunities , page , isLoading ]
   )
 

@@ -1,16 +1,23 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import CreateCommunityPost from './CreateCommunityPost';
 import CreateCommunityPage from './CreateCommunity';
 import CommunityPostCard from './CommunityPostCard';
 import { useDispatch, useSelector } from 'react-redux';
 import { setIsCreateCommunityPostDialog } from '../../redux/reducer/miscSlice';
+import { useParams } from 'react-router-dom';
+import { useGetACommunityQuery } from '../../redux/api/api';
 
 export default function CommunityHomePage() {
   const dispatch = useDispatch();
+  const {user} = useSelector(state => state.auth) ;
 
+  const {id} = useParams();
+  
   const {iscreateCommunityDialog , isCreateCommunityPostDialog} = useSelector(state => state.misc );
 
+  const {data , isLoading , isError , error } = useGetACommunityQuery({id} , {skip : !id}) ;
 
+  const [community , setCommunity] = useState(null) ;
   const [joined, setJoined] = useState(false);
   const [posts , setPosts] = useState([
        {
@@ -63,28 +70,31 @@ export default function CommunityHomePage() {
         } ,
       
     ]);
+  console.log(community, data);
+
+  useEffect(() => {
+    if(data?.data){
+      setCommunity(data.data);
+    }
+  } , [data]) ;
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black dark:text-white text-black"> 
+    <div className="min-h-screen bg-white dark:bg-black dark:text-white text-black sm:pb-0 pb-16 "> 
       {/* Banner */}
       <div className="relative bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 h-48 flex items-center px-6">
+      <img src={community?.banner?.url} alt="Community Icon" className="object-cover absolute top-0 left-0 bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 h-full w-full z-0"/>
         <img
           src="/XConnect.jpeg"
           alt="Community Icon"
-          className="w-20 h-20 rounded-full border-4 border-white shadow-md"
+          className="w-20 h-20 rounded-full border-4 border-white shadow-md z-10"
         />
-        <div className="ml-4">
-          <h1 className="text-3xl font-bold">XConnect Devs</h1>
+        <div className="ml-4 z-10">
+          <h1 className="text-3xl font-bold ">{community?.name}</h1>
           <p className="text-sm opacity-80">Building the future of social</p>
         </div>
-        <div className='ml-auto flex gap-2'>
-          {/* <button
-            onClick={() => setJoined(!joined)}
-            className="ml-auto bg-white text-black px-4 py-2 rounded-full hover:bg-gray-200"
-          >
-            Create Post
-          </button> */}
-          {joined ? (
+        <div className='ml-auto flex gap-2 z-10'>
+          
+          {community?.isFollowing ? (
             <button
               onClick={() => {dispatch(setIsCreateCommunityPostDialog(true))}}
               className="ml-auto bg-white text-black px-4 py-2 rounded-full hover:bg-gray-200"
@@ -126,7 +136,7 @@ export default function CommunityHomePage() {
           <div>
             <h3 className="text-lg font-bold mb-2">Community Stats</h3>
             <ul className="text-sm text-gray-400">
-              <li>👥 2,134 Members</li>
+              <li>👥 {community?.totalFollowers} { community?.totalFollowers > 1 ? 'Members' : 'Member'}</li>
               <li>🟢 142 Online</li>
             </ul>
           </div>
@@ -138,20 +148,22 @@ export default function CommunityHomePage() {
               <li>Keep discussions relevant</li>
             </ul>
           </div>
-          {joined && (
+          {community?.isFollowing && community?.creator !== user?._id && (
             <button 
             onClick={() => setJoined(false)}
             className="border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white active:bg-red-700 font-medium px-5 py-1 rounded-lg shadow-md active:scale-95 duration-200"> 
               Leave
             </button>
-
-
           )}
         </div>
       </div>
 
       {/* Create Post */}
-      { isCreateCommunityPostDialog && <CreateCommunityPost /> }
+      { isCreateCommunityPostDialog && (
+        <div className='fixed bottom-0 left-0 right-0 min-h-screen bg-white dark:bg-black p-4 border-t overflow-y-auto  sm:pb-0 pb-16 border-gray-200 dark:border-gray-700 z-50'>
+          <CreateCommunityPost /> 
+        </div>
+      )}
       { iscreateCommunityDialog && <CreateCommunityPage /> }
     </div>
   );

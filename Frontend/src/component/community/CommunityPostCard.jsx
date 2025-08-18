@@ -4,8 +4,7 @@ import InPostImages from '../post/InPostImages';
 import moment from 'moment';
 
 const CommunityPostCard = ({ post , heading }) => {
-  console.log(post);
-  
+
   const {
     community,
     author,

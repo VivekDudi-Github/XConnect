@@ -1369,11 +1369,30 @@ const fetchFeedPost = TryCatch( async(req , res) => {
       as : 'totalComments' ,
     }} ,
 
+    //community name
+    {$lookup : {
+        from : 'communities' ,
+        let : { communityId : '$community'} ,
+        pipeline : [
+          {$match : {
+            $expr : {
+              $eq : ['$_id' , '$$communityId']
+            }
+          }} ,
+          {$project: {
+            name : 1 ,
+          }}
+        ] ,
+        as : 'communityDetails'
+      }} ,
+
     {$addFields : {
       author : '$authorDetails' ,
       likeStatus : { $gt : [{ $size : '$userLike'} , 0 ]}  ,
       likeCount : {$size : '$totalLike'} ,
       commentCount : {$size : '$totalComments'} ,
+      community : {$arrayElemAt : ['$communityDetails.name' , 0]} ,
+      communityId : {$arrayElemAt : ['$communityDetails._id' , 0]} ,
     }} ,
 
     // {$unwind: {path: '$totalComments',preserveNullAndEmptyArrays: true} } ,
@@ -1385,6 +1404,8 @@ const fetchFeedPost = TryCatch( async(req , res) => {
       userLike : 0 ,
       communityFollowIds : 0 ,
       userFollowIds : 0 ,
+      communityDetails : 0 ,
+      isDeleted : 0 ,
     }}
 
   ])

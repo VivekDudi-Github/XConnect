@@ -19,11 +19,13 @@ const CreateCommunity = TryCatch(async(req , res) => {
   if(!avatar) return ResError(res , 400 , 'Avatar is required.') ;
 
   if(!name || typeof name !== 'string') return ResError(res , 400 , 'Name is required.') ;
-  if(!rules || typeof rules !== 'string') return ResError(res , 400 , 'Rules is required.') ;
+  
 
   if(!description || typeof description !== 'string') return ResError(res , 400 , 'Description is required.') ;
 
   if(!tags || Array.isArray(tags) === false) return ResError(res , 400 , 'Tags is required.')
+  if(!rules || Array.isArray(rules) === false) return ResError(res , 400 , 'Rules is required.')
+
 
   if(avatar && banner  ){   
     avatar = await uploadFilesTOCloudinary(avatar) ;
@@ -59,10 +61,18 @@ const GetCommunity = TryCatch(async(req , res) => {
 
   if(!_id) return ResError(res , 400 , 'Community ID is required.')
 
-    const community = await Community.findById(_id).populate('admins' , 'avatar fullname username') ;
-
+    const community = await Community.findById(_id).populate('admins' , 'avatar fullname username').lean() ;
+    const isFollowing = await Following.exists({
+      followedBy : req.user._id ,
+      followingCommunity : _id
+    })
+    const totalCommunityFollowers = await Following.countDocuments({
+      followingCommunity : _id ,
+    }) ;
     if(!community) return ResError(res , 404 , 'Community not found.')
 
+    community.isFollowing = isFollowing ;
+    community.totalFollowers = totalCommunityFollowers ;
     return ResSuccess(res , 200 , community)
 
 } , 'GetCommunity')
@@ -125,6 +135,7 @@ const communityFeed = TryCatch( async(req , res) => {
   threeDaysAgo.setDate(threeDaysAgo.getDate() - 4);
 
 
+
   const posts = await Post.aggregate([
     // lookuo ffor the following communities
     {$lookup : {
@@ -176,7 +187,7 @@ const communityFeed = TryCatch( async(req , res) => {
           }
         }
       } ,
-      {$skip : skip} ,
+      // {$skip : skip} ,
       
       //random sample 9350872
       {$sample : { size : Number(limit)}} ,
@@ -266,6 +277,7 @@ const communityFeed = TryCatch( async(req , res) => {
         userFollowIds : 0 ,
         UsersFollowing : 0 ,
         communityDetails : 0 ,
+        isDeleted : 0 ,
       }}
   
     ])
