@@ -309,6 +309,59 @@ const followCommunity = TryCatch(async(req , res) => {
 
 } , 'followCommiunity')
 
+const updateCommunity = TryCatch( async(req , res) => {
+    req.CreateMediaForDelete = [] ;
+
+    const {name , description , rules , tags} = req.body ;
+    const {id} = req.params ;
+    const {banner , avatar} = req.files ;
+  console.log(rules);
+  
+    if(banner) req.CreateMediaForDelete.push(banner) ;
+    if(avatar) req.CreateMediaForDelete.push(avatar) ;
+
+    if(!name && !description && !rules && !tags && !banner && !avatar) return ResError(res , 400 , 'Atleast provide a field to be changed')
+
+    if ( name && (name.length < 3 || name.length > 20)) return ResError(res , 400 , "name must be between 3 and 20 characters long") ;
+    if( description && typeof description !== 'string' ) return ResError(res , 400 , "invalid description type") ;  
+
+    if(tags && Array.isArray(tags) === false) return ResError(res , 400 , 'Tags is required')
+    if(rules && Array.isArray(rules) === false) return ResError(res , 400 , 'Rules is required')
+
+    const existingCommuntiy = await Community.findById(id) ;
+
+    if(!existingCommuntiy) return ResError(res , 400 , 'Invalid community id')
+
+
+    let avatarResults ;
+    if(avatar) {
+        avatarResults = await uploadFilesTOCloudinary(avatar) ;
+        if (avatarResults?.length) {
+          await deleteFilesFromCloudinary([existingCommuntiy.avatar]);
+        }
+    }
+ 
+    let bannerResults  ;
+    if(banner) {
+        bannerResults =  await uploadFilesTOCloudinary(banner) ;
+        if (bannerResults?.length) {
+          await deleteFilesFromCloudinary([existingCommuntiy.banner]);
+        }
+    }
+
+    existingCommuntiy.name = name || existingCommuntiy.name ;
+    existingCommuntiy.description = description || existingCommuntiy.description ;
+    existingCommuntiy.rules = rules || existingCommuntiy.rules ;
+    existingCommuntiy.tags = tags || existingCommuntiy.tags ;
+    existingCommuntiy.avatar = avatarResults ? avatarResults[0] : existingCommuntiy.avatar ;
+    existingCommuntiy.banner = bannerResults ? bannerResults[0] : existingCommuntiy.banner ;
+    await existingCommuntiy.save(); 
+
+    return ResSuccess(res , 200 , 'Community updated successfully')
+
+} , 'updateCommunity')
+
+
 export {
   CreateCommunity ,
   GetCommunity ,
@@ -319,4 +372,5 @@ export {
   
   communityFeed ,
   followCommunity ,
+  updateCommunity ,
 }

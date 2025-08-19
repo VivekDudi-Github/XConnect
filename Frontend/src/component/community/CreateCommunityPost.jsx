@@ -113,7 +113,7 @@ const handleEmojiSelect = (emoji) => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto mt-10 bg-zinc-100 dark:bg-[#161b22] dark:text-white p-6 rounded-xl border border-gray-700 shadow-lg relative">
+    <div className="max-w-2xl pb-16 sm:pb-0 mx-auto mt-10 bg-zinc-100 dark:bg-[#161b22] dark:text-white p-6 rounded-xl border border-gray-700 shadow-lg relative">
       <button title='Close' className=' absolute right-2 p-1 text-gray-600 bg-gray-100 hover:bg-gray-300 rounded-lg dark:bg-black  dark:text-white   dark:hover:bg-white shadow-sm shadow-black/60 dark:hover:text-black duration-300 active:scale-90 '
       onClick={closeHandler}
       > 

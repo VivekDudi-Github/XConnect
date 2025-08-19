@@ -1,21 +1,22 @@
 import { XIcon } from 'lucide-react';
 import { useState } from 'react';
 import {toast} from 'react-toastify'
-import {useNavigate} from 'react-router-dom'
+import {useNavigate, useParams} from 'react-router-dom'
 import { useDispatch } from 'react-redux';
 import { setIsCreateCommunityDialog } from '../../redux/reducer/miscSlice';
-import { useCreateCommunityMutation } from '../../redux/api/api';
+import { useCreateCommunityMutation, useUpdateCommunityMutation } from '../../redux/api/api';
 
 import '../../assets/styles.css';
 
-export default function CreateCommunityPage() {
+export default function CreateCommunityPage({community , isUpdate = false}) {
+  const {id} = useParams() ;
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const [name, setName] = useState('');
-  const [desc, setDesc] = useState('');
-  const [rules, setRules] = useState([]);
-  const [tags, setTags] = useState([]);
+  const [name, setName] = useState(community?.name || '');
+  const [desc, setDesc] = useState( community?.description || '');
+  const [rules, setRules] = useState( community?.rules || []);
+  const [tags, setTags] = useState(community?.tags || []);
   const [icon, setIcon] = useState(null);
   const [banner, setBanner] = useState(null);
 
@@ -41,13 +42,13 @@ export default function CreateCommunityPage() {
 
   const addRule = (e) => {
     e.preventDefault() ;
-    const newTag = rulesText.trim();
+    const rule = rulesText.trim();
     if(rules.length > 20) {
       toast.error('Maximum 20 rules allowed.');
       return;
     }
-    if (newTag && !tags.includes(newTag.toLowerCase())) {
-      setRules([...tags, newTag]);
+    if (rule && !tags.includes(rule.toLowerCase())) {
+      setRules([...rules, rule]);
       setRulesText("");
     }
   };
@@ -63,14 +64,18 @@ export default function CreateCommunityPage() {
   };
 
   const [createMutation , {data , isLoading , error , isSuccess}] = useCreateCommunityMutation() ;
+  const [updateMutation , {isLoading : updateIsLoading , error : updateError , isSuccess : updateIsSuccess}] = useUpdateCommunityMutation() ;
 
   const handleSubmit = async(e) => {
     e.preventDefault();
+    const toastId = toast.loading('Posting...') ;
 
     const form = new FormData() ;
     form.append('name' , name) ;
     form.append('description' , desc) ;
-    form.append('rules' , rules) ;
+    rules.forEach(rule => {
+      form.append("rules[]", rule); 
+    }) ;
     tags.forEach(tag => {
       form.append("tags[]", tag);
     });
@@ -78,20 +83,38 @@ export default function CreateCommunityPage() {
     form.append('banner' , banner) ;  
 
     try {
-      const res = await createMutation(form).unwrap()
+      let res ;
+      if(isUpdate){
+        
+        res = await updateMutation({data : form , id}).unwrap() ;
+      }else {
+        res = await createMutation(form).unwrap() ;
+      }
       console.log(res);
       
       if(res.success === true){
+        toast.update(toastId , {
+          render : 'Community created successfully' ,
+          type : 'success' ,
+          isLoading: false,
+          draggable: true,
+          autoClose: 2000,
+        });
         dispatch(setIsCreateCommunityDialog(false))
-      } 
+      }
     } catch (error) {
       console.log(error);
-      toast.error( error.data.message || 'something went wrong. Please try again.')
+      toast.update(toastId , {
+        render : error.data?.message || 'Something went wrong. Please try again.' ,
+        type : 'error' ,
+        isLoading: false, 
+        autoClose: 2000, 
+      })
     }
   };
 
   return (
-    <div className="max-w-3xl max-h-screen overflow-y-auto mx-auto mt-10 p-6 bg-transparent text-black dark:text-white rounded-xl shadow-lg border border-gray-700 relative"> 
+    <div className="max-w-3xl pb-16 sm:pb-0 max-h-screen overflow-y-auto mx-auto mt-10 p-6 bg-transparent text-black dark:text-white rounded-xl shadow-lg border border-gray-700 relative"> 
       <button title='Close' className=' absolute right-2 p-1 text-gray-600 bg-gray-100 hover:bg-gray-300 rounded-lg dark:bg-black  dark:text-white   dark:hover:bg-white shadow-sm shadow-black/60 dark:hover:text-black duration-300 active:scale-90'
         onClick={() => dispatch(setIsCreateCommunityDialog(false))}
       > 
@@ -217,14 +240,22 @@ export default function CreateCommunityPage() {
         <div>
           <label className="block text-sm font-medium mb-1">Community Icon </label>
           <input type="file" accept="image/*" onChange={handleImageChange} />
-          {icon && <img src={URL.createObjectURL(icon)} alt="Community Icon" className="mt-2 max-h-20 rounded-lg object-cover " />}
+          {icon ?
+            <img src={ URL.createObjectURL(icon)} alt="Community Icon" className="mt-2 max-h-20 rounded-lg object-cover " />
+            :
+            <img src={community?.avatar?.url } alt="Community Icon" className="mt-2 max-h-20 rounded-lg object-cover " />
+          }
         </div>
         
         {/* Banner Upload */}
         <div>
           <label className="block text-sm font-medium mb-1">Community Banner </label>
           <input type="file" accept="image/*" onChange={(e) => setBanner(e.target.files[0]) } />
-          {banner && <img src={URL.createObjectURL(banner)} alt="Community Banner" className="mt-2 max-h-20 rounded-lg object-cover" />}
+          {banner ? 
+            <img src={URL.createObjectURL(banner)} alt="Community Banner" className="mt-2 max-h-20 rounded-lg object-cover" />
+            :
+            <img src={community?.banner?.url } alt="Community Banner" className="mt-2 max-h-20 rounded-lg object-cover" />  
+          }
         </div>
         
 
@@ -234,7 +265,7 @@ export default function CreateCommunityPage() {
             type="submit"
             className="bg-white  text-black font-semibold active:scale-95 duration-200 shadow-slate-500 dark:shadow-none shadow-md  px-6 py-2 rounded-lg"
           >
-            Create Community
+            { !isUpdate ? 'Create' : 'Update'} Community
           </button>
         </div>
       </form>

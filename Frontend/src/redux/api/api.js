@@ -207,7 +207,22 @@ const api = createApi({
         url : `/community/${id}` ,
         credentials : 'include'
       })
-    })
+    }) ,
+    updateCommunity : builder.mutation({
+      query : ({data , id}) =>({
+        url : '/community/update/' + id ,
+        method : 'POST' ,
+        body : data ,
+        credentials : 'include'
+      })
+    }) ,
+    toggleFollowCommunity : builder.mutation({
+      query : ({id}) =>({
+        url : '/community/follow/' + id ,
+        method : 'POST' ,
+        credentials : 'include'
+      })
+    }) ,
   })
 })
 
@@ -261,4 +276,6 @@ export const {
   useCreateCommunityMutation ,
   useLazyGetCommunityFeedQuery ,
   useGetACommunityQuery ,
+  useUpdateCommunityMutation ,
+  useToggleFollowCommunityMutation ,
 } = api ;
