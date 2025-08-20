@@ -12,7 +12,7 @@ router.post('/create' , checkUser , uploadFiles , CreateCommunity);
 router.post('/follow/:id' , checkUser , followCommunity);
 router.get('/feed' , checkUser , communityFeed);
 router.get('/following' , checkUser , getFollowingCommunities);
-router.get('/post/:id' , checkUser , GetCommunityPosts);
+router.get('/posts/:id' , checkUser , GetCommunityPosts);
 
 router.post('/update/:id' , checkUser , uploadFiles , updateCommunity);
 router.get('/:id' , checkUser , GetCommunity);

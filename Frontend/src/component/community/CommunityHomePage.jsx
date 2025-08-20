@@ -1,23 +1,33 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import CreateCommunityPost from './CreateCommunityPost';
 import CreateCommunityPage from './CreateCommunity';
 import CommunityPostCard from './CommunityPostCard';
 import { useDispatch, useSelector } from 'react-redux';
 import { setIsCreateCommunityDialog, setIsCreateCommunityPostDialog } from '../../redux/reducer/miscSlice';
 import { useParams } from 'react-router-dom';
-import { useGetACommunityQuery, useToggleFollowCommunityMutation } from '../../redux/api/api';
+import { useDeleteCommunityMutation, useGetACommunityQuery, useLazyGetCommunityPostsQuery, useToggleFollowCommunityMutation } from '../../redux/api/api';
 import { toast } from 'react-toastify';
+import lastRefFunc from '../specific/LastRefFunc';
+import DialogBox from '../shared/DialogBox';
+import { Search } from 'lucide-react';
+import SearchBar from '../specific/search/SearchBar';
 
-//add community follow , unfollow , get community posts , update communiyt profile , delete community , tabs in community home page , pins and highlightz ,
+// update communiyt profile , delete community , tabs in community home page , pins and highlightz ,
 export default function CommunityHomePage() {
   const dispatch = useDispatch();
   const {user} = useSelector(state => state.auth) ;
 
   const {id} = useParams();
+  const observer = useRef(null) ;
   
+  const [deleteCommunityDialog , setDeleteCommunityDialog] = useState(false) ;
+
   const {iscreateCommunityDialog , isCreateCommunityPostDialog} = useSelector(state => state.misc );
   const [followCommunityMutation ,] = useToggleFollowCommunityMutation() ;
+  const [deleteCommunityMutation] = useDeleteCommunityMutation() ;
 
+  const [page , setPage] = useState(1);
+  const [totalPages , setTotalPages] = useState(1);
 
   const {data , isLoading , isError , error } = useGetACommunityQuery({id} , {skip : !id}) ;
 
@@ -25,23 +35,72 @@ export default function CommunityHomePage() {
   const [isFollowing , setIsFollowing] = useState(false) ;
   const [posts , setPosts] = useState([]);
 
-  console.log(community, data);
 
-  const toggleFollowCommunity = async() => {
+  const [ fetchMorePost ,{data : communityPosts , isLoading : isLoadingPosts , isError : isErrorPosts , error : errorPosts}] = useLazyGetCommunityPostsQuery() ;
+
+  const lastPostRef = useCallback(node => {
+      lastRefFunc({
+        observer , 
+        node , 
+        isLoading : isLoadingPosts , 
+        page ,
+        id ,
+        totalPages ,
+        fetchFunc : fetchMorePost ,
+      })
+    } , [fetchMorePost , page , isLoadingPosts ,totalPages ]
+  )
+
+  useEffect(() => {
+    fetchMorePost({page : 1 , id : id}) ;
+  } , [])
+
+  useEffect(() => {
+    if(communityPosts && communityPosts?.data){
+      console.log(communityPosts);
+      
+      setPosts(prev => [...prev , ...communityPosts.data.posts]) ;
+      setTotalPages(communityPosts.data.totalPages) ;
+      if(communityPosts.data.totalPages > page) setPage(prev => prev + 1) ;
+    }
+  } , [communityPosts])
+
+  useEffect(() => {
+    if(isErrorPosts && error){
+      toast.error(`Error fetching posts: ${errorPosts.data.message || 'Something went wrong while fetching posts.'}`) ;
+      console.error('Error fetching posts:', errorPosts);
+    }
+  } , [isErrorPosts]) ;
+
+  const toggleFollowCommunity = async(e) => {
+    e.preventDefault();
     try {
       const res = await followCommunityMutation({id : community?._id}).unwrap() ;
       res.data.data.operation === true ? setIsFollowing(true) : setIsFollowing(false) ;
     } catch (error) {
       console.log(error);
-      toast.error(error.data.message || 'Something went wrong. Please try again.')
+      toast.error(error.data.message || 'Something went wrong. Please try again.') ;
     }
+  }
+
+  const deleteCommunityFunc = async() => {
+
+    // try {
+    //   const res = await deleteCommunityMutation(community?._id).unwrap() ;
+    //   res.data.data.operation === true ? setDeleteCommunity(false) : setDeleteCommunity(true) ;
+    // } catch (error) {
+    //   console.log(error);
+    //   toast.error(error.data.message || 'Something went wrong. Please try again.') ;
+    // }
   }
 
   useEffect(() => {
     if(data?.data){
       setCommunity(data.data);
+      setIsFollowing(data.data.isFollowing);
     }
   } , [data]) ;
+
 
   return (
     <div className="min-h-screen bg-white dark:bg-black dark:text-white text-black sm:pb-0 pb-16 "> 
@@ -59,7 +118,7 @@ export default function CommunityHomePage() {
         </div>
         <div className='ml-auto flex gap-2 z-10'>
           
-          {community?.isFollowing ? (
+          {isFollowing ? (
             <button
               onClick={() => {dispatch(setIsCreateCommunityPostDialog(true))}}
               className="ml-auto bg-white text-black px-4 py-2 rounded-full hover:bg-gray-200"
@@ -68,7 +127,7 @@ export default function CommunityHomePage() {
             </button>
           ) : (
             <button
-              onClick={() => setJoined(!joined)}
+              onClick={toggleFollowCommunity}
               className="ml-auto bg-white text-black px-4 py-2 rounded-full hover:bg-gray-200"
               >
                 Join
@@ -76,6 +135,8 @@ export default function CommunityHomePage() {
           )}
         </div>
       </div>
+
+      <div className='px-2'><SearchBar /></div>
 
       {/* Right: Sidebar */}
         <div className= " dark:text-white p-4 rounded-xl space-y-4 h-fit custom-box ">
@@ -100,19 +161,27 @@ export default function CommunityHomePage() {
               ))}
             </ul>
           </div>
-          {community?.isFollowing && community?.creator !== user?._id && (
+          {isFollowing && community?.creator !== user?._id && (
             <button 
-            onClick={() => setJoined(false)}
+            onClick={toggleFollowCommunity}
             className="border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white active:bg-red-700 font-medium px-5 py-1 rounded-lg shadow-md active:scale-95 duration-200"> 
               Unfollow
             </button>
           )}
-          {community?.creator === user?._id && ( 
-            <button 
-            onClick={() => dispatch(setIsCreateCommunityDialog(true))}
-            className="border-2 border-cyan-600 text-cyan-600 hover:bg-cyan-600 hover:text-white active:bg-red-700 font-medium px-5 py-1 rounded-lg shadow-md active:scale-95 duration-200"> 
-              Update Community
-            </button>
+          {community?.creator == user?._id && (
+            <>
+              <button 
+              onClick={() => dispatch(setIsCreateCommunityDialog(true))}
+              className="border-2 border-cyan-600 text-cyan-600 hover:bg-cyan-600 hover:text-white active:bg-red-700 font-medium px-5 py-1 rounded-lg shadow-md active:scale-95 duration-200"> 
+                Edit Community
+              </button>
+              <button
+                onClick={() => setDeleteCommunityDialog(true)}
+                className="border-2 ml-1 border-red-600 text-red-600 hover:bg-red-600 hover:text-white active:bg-red-700 font-medium px-5 py-1 rounded-lg shadow-md active:scale-95 duration-200"
+              >
+                Delete Community
+              </button>
+            </>
           )}
         </div>
 
@@ -120,12 +189,13 @@ export default function CommunityHomePage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 p-6">
         {/* Left: Posts */}
         <div className="md:col-span-3 space-y-4">
-          {posts.map((post) => (
-            <CommunityPostCard
-              key={post._id}
+          {posts.map((post  , i) => (
+            <div key={post._id} ref={ i === posts.length - 1 ? lastPostRef : null } >
+              <CommunityPostCard
               post={post} 
               heading={false}
             />
+            </div>
           ))}
         </div>
       </div>
@@ -141,6 +211,19 @@ export default function CommunityHomePage() {
           <CreateCommunityPage community={community} isUpdate={true} /> 
         </div>
       ) }
+      {deleteCommunityDialog && (
+        <DialogBox 
+          onClose={() => setDeleteCommunityDialog(false)} 
+          message={
+            <div className='flex flex-col items-center'>
+              <p className='text-red-600 text-xl font-bold'>Are you sure you want to delete this community?</p>
+              <p className='text-gray-500 text-sm'>This action cannot be undone.</p>
+            </div>
+          }
+          mainFuction={deleteCommunityFunc} 
+        />
+       )}
+
     </div>
   );
 }

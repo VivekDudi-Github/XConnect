@@ -1,5 +1,5 @@
 import {createApi , fetchBaseQuery} from '@reduxjs/toolkit/query/react'
-import { CreativeCommonsIcon } from 'lucide-react';
+import { CreativeCommonsIcon, Delete } from 'lucide-react';
 
 
 const api = createApi({
@@ -223,6 +223,24 @@ const api = createApi({
         credentials : 'include'
       })
     }) ,
+    getCommunityPosts : builder.query({
+      query : ({id , page = 1 , limit = 1}) => ({
+        url : '/community/posts/' + id ,
+        method : 'GET' ,
+        params : {
+          page ,
+          limit
+        } ,
+        credentials : 'include'
+      })
+    }) ,
+    deleteCommunity : builder.mutation({
+      query : ({id}) => ({
+        url : '/community/delete/' + id ,
+        method : 'DELETE' ,
+        credentials : 'include'
+      })
+    }) ,
   })
 })
 
@@ -278,4 +296,6 @@ export const {
   useGetACommunityQuery ,
   useUpdateCommunityMutation ,
   useToggleFollowCommunityMutation ,
+  useLazyGetCommunityPostsQuery ,
+  useDeleteCommunityMutation ,
 } = api ;

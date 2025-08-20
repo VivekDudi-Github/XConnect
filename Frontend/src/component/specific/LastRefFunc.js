@@ -16,6 +16,8 @@ const lastRefFunc = (config) => {
   if(observer.current) observer.current.disconnect() ;
 
   observer.current = new IntersectionObserver(entries => {
+    console.log(page , totalPages);
+    
     if(entries[0].isIntersecting && !isLoading && ( (totalPages || totalPages === 0) ? page <= totalPages : true) && page > 1){ 
       console.log('fetcheing post');
       

@@ -84,13 +84,16 @@ const GetCommunities = TryCatch(async(req , res) => {
 const GetCommunityPosts = TryCatch(async(req , res) => {
   const id = req.params.id ;
   const {page = 1 , limit = 10} = req.query ;
-
+  console.log(page , 'community posts , line:87');
+  
   const skip = (page - 1) * limit ;
 
   if(isNaN(skip) || isNaN(limit)) return ResError(res , 400 , 'Invalid page or limit.') ;
   if(skip < 0 || limit <= 0) return ResError(res , 400 , 'Page and limit must be positive numbers.') ;
 
   if(!id) return ResError(res , 400 , 'Community ID is required.') ;
+
+  const totalPages = await Post.countDocuments({community : id , isDeleted : false}) ;
 
   const posts = await Post
     .find({
@@ -103,7 +106,7 @@ const GetCommunityPosts = TryCatch(async(req , res) => {
     .limit(limit)
     .lean();
   
-    return ResSuccess(res , 200  , posts) ;
+    return ResSuccess(res , 200  ,{posts , totalPages}) ;
 
 } , 'GetCommunityPosts')
 
@@ -293,7 +296,7 @@ const followCommunity = TryCatch(async(req , res) => {
 
   const communityAuthor = await Community.findById(id).select('creator')
 
-  if(communityAuthor.creator.equals(req.user._id)) return ResError(res , 400 , 'You cannot follow your own community.') ;
+  if(communityAuthor.creator.equals(req.user._id)) return ResError(res , 400 , 'You cannot unfollow your own community.') ;
 
   const isExistFollowing = await Following.exists({followingCommunity : id , followedBy : req.user._id})
   if(isExistFollowing){

@@ -11,7 +11,7 @@ const DialogBox = ({ message, onClose , mainFuction }) => {
     <div className={`fixed inset-0 z-40 flex items-center justify-center duration-200 transition-opacity ${isDeleteDialog ? 'opacity-100' : 'opacity-0 hidden'}`}> 
   
       <div className="dark:bg-black bg-white z-50 text-white rounded-xl p-6 max-w-sm w-full text-center dark:shadow dark:border-none  shadow-slate-500/10 shadow-lg border-t"> 
-        <p className="text-gray-800 dark:text-white mb-4 font-semibold">{message}</p>
+        <h1 className="text-gray-800 dark:text-white mb-4 font-semibold">{message}</h1>
         <div className='flex gap-4 justify-center'>
           <button
             onClick={onClose}
