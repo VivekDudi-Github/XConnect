@@ -12,14 +12,18 @@ import DialogBox from '../shared/DialogBox';
 import { Search } from 'lucide-react';
 import SearchBar from '../specific/search/SearchBar';
 
-// update communiyt profile , delete community , tabs in community home page , pins and highlightz ,
+const tabs = ['General' , 'Help' ,'FeedBack' , 'Showcase'];  
+
+//tabs in community home page , pins and highlights ,
 export default function CommunityHomePage() {
   const dispatch = useDispatch();
   const {user} = useSelector(state => state.auth) ;
 
   const {id} = useParams();
   const observer = useRef(null) ;
-  
+
+  const [activeTab , setActiveTab] = useState('General');
+
   const [deleteCommunityDialog , setDeleteCommunityDialog] = useState(false) ;
 
   const {iscreateCommunityDialog , isCreateCommunityPostDialog} = useSelector(state => state.misc );
@@ -45,15 +49,21 @@ export default function CommunityHomePage() {
         isLoading : isLoadingPosts , 
         page ,
         id ,
+        activeTab ,
         totalPages ,
         fetchFunc : fetchMorePost ,
       })
-    } , [fetchMorePost , page , isLoadingPosts ,totalPages ]
+    } , [fetchMorePost , page , activeTab , isLoadingPosts ,totalPages ]
   )
 
-  useEffect(() => {
-    fetchMorePost({page : 1 , id : id}) ;
-  } , [])
+useEffect(() => {
+  setPage(1);
+  setPosts([]) ;
+  setTotalPages(1);
+  
+  fetchMorePost({page : 1 , tab : activeTab , id}) ; 
+  
+}, [activeTab])
 
   useEffect(() => {
     if(communityPosts && communityPosts?.data){
@@ -76,7 +86,7 @@ export default function CommunityHomePage() {
     e.preventDefault();
     try {
       const res = await followCommunityMutation({id : community?._id}).unwrap() ;
-      res.data.data.operation === true ? setIsFollowing(true) : setIsFollowing(false) ;
+      res?.data?.operation === true ? setIsFollowing(true) : setIsFollowing(false) ;
     } catch (error) {
       console.log(error);
       toast.error(error.data.message || 'Something went wrong. Please try again.') ;
@@ -137,7 +147,25 @@ export default function CommunityHomePage() {
       </div>
 
       <div className='px-2'><SearchBar /></div>
-
+      {/* Tabs */}
+      <div className=" mx-2 flex borde overflow-y-clip overflow-x-auto pb-1 ">
+        {tabs.map(tab => (
+          <button
+            key={tab}
+            onClick={() => {
+              setActiveTab(tab) ;
+              setPosts([]) ;
+            }}
+            className={`px-4 py-2 -mb-px border-b-2 text-sm hover:scale-110 duration-150  ${
+              activeTab === tab
+                ? 'border-blue-600  font-bold dark:text-black dark:bg-white rounded-t-xl text-cyan-500 '
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
       {/* Right: Sidebar */}
         <div className= " dark:text-white p-4 rounded-xl space-y-4 h-fit custom-box ">
           <div>

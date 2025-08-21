@@ -35,7 +35,7 @@ const CommunityPostCard = ({ post , heading }) => {
             </Link>
           ) : (
             <span >
-              Posted by <span className="text-blue-400">@{author.username}</span>
+              Posted by <span className="dark:text-gray-400 font-medium text-gray-800 ">Anonymous User</span>
             </span>
           )}
            &nbsp; • <span>{moment(createdAt).fromNow()}</span>

@@ -84,7 +84,6 @@ const GetCommunities = TryCatch(async(req , res) => {
 const GetCommunityPosts = TryCatch(async(req , res) => {
   const id = req.params.id ;
   const {page = 1 , limit = 10} = req.query ;
-  console.log(page , 'community posts , line:87');
   
   const skip = (page - 1) * limit ;
 
@@ -262,7 +261,11 @@ const communityFeed = TryCatch( async(req , res) => {
       }} ,
   
       {$addFields : {
-        author : '$authorDetails' ,
+        author : {$cond : {
+          if : { $eq : ['$isAnonymous' , true] } ,
+          then : 'Anonymous' ,
+          else : '$authorDetails' ,
+        }} ,
         likeStatus : { $gt : [{ $size : '$userLike'} , 0 ]}  ,
         likeCount : {$size : '$totalLike'} ,
         commentCount : {$size : '$totalComments'} ,

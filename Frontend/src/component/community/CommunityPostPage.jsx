@@ -1,5 +1,7 @@
-import { EllipsisVerticalIcon } from "lucide-react";
+import { EllipsisVerticalIcon, ThumbsUpIcon } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
+import PostViewPage from "../post/MainPost";
 
 function CommunityPostPage() {
   const [comments, setComments] = useState([
@@ -65,9 +67,10 @@ function CommunityPostPage() {
 
   return (
     <div className="min-h-screen dark:bg-[#000] dark:text-white p-6  ">
-      <div className="grid grid-cols-1 sm:grid-cols-6 gap-6 h-full w-full">
-        <div className="col-span-1 sm:col-span-4">
+      <div className="grid grid-cols-4 sm:grid-cols-4 gap-4 h-full w-full"> 
+        <div className="col-span-4 lg:col-span-3"> 
           {/* Post Header */}
+          
           <div className="max-w-3xl mx-auto dark:bg-black p-6 rounded-xl border border-gray-200  custom-box ">
             <div className="flex items-center justify-between">
               <div>
@@ -89,7 +92,7 @@ function CommunityPostPage() {
             {/* Post Content */}
             <div className="mt-4 dark:text-gray-300">
               <p>
-                I’ve implemented socket.io for messaging in my MERN app, but I want
+                I've implemented socket.io for messaging in my MERN app, but I want
                 to optimize for lower latency and prevent duplicate messages. Any
                 suggestions from experienced devs?
               </p>
@@ -109,8 +112,19 @@ function CommunityPostPage() {
             </div>
           </div>
 
+          {/* <div>
+            <p className="text-sm text-gray-400">
+              Posted in <span className="text-indigo-400">XConnect Devs</span> by{" "}
+              <span className="text-white">@vivek</span> • 3h ago
+            </p>
+            <h1 className="text-2xl font-bold mt-2">
+              How do I improve socket performance in messaging apps?
+            </h1>
+          </div> */}
+          <PostViewPage />
+
           {/* Comment Section */}
-          <div className="max-w-3xl mx-auto mt-6 dark:bg-[#000] p-6 rounded-xl dark:border border-gray-700 shadow-md">
+          <div className="max-w-full mx-auto mt-6 dark:bg-[#000] p-6 rounded-xl shadow-md">
             <h2 className="text-xl font-bold mb-4">Comments</h2>
 
             {/* Comment Form */}
@@ -132,20 +146,13 @@ function CommunityPostPage() {
 
             {/* Comment List */}
             <div className="space-y-4">
-              {/* {comments.map((c) => (
-                <div key={c.id} className="bg-[#0d1117] p-3 rounded-lg border border-gray-700">
-                  <p className="text-sm text-gray-400">
-                    {c.user} • {c.time}
-                  </p>
-                  <p className="mt-1">{c.text}</p>
-                </div>
-              ))} */}
               <CommentsThread commentsArr={comments} />
             </div>
           </div>
         </div>
-        <div className=" col-span-1 sm:col-span-2 bg-[#000]">
-          {/* Sidebar */}
+
+        {/* Sidebar */}
+        <div className=" col-span-full lg:col-span-1  bg-[#000]"> 
           <div className="bg-[#000] p-6 rounded-xl border-y-2 border-gray-200">
             <h2 className="text-lg font-semibold mb-4">Related Communities</h2>
             <ul className="space-y-3">
@@ -184,17 +191,20 @@ function Comment({ comment, onReply }) {
   return (
     <div className="mb-4">
       {/* Comment Content */}
-      <div className="bg-[#000] border-t-2 border-gray-700 p-3 rounded-lg">
+      <div className="dark:bg-[#000] text-black dark:text-white border-t-2 border-gray-700 p-2 rounded-lg">
         <div className="flex justify-between items-center">
-          <p className="text-sm text-gray-400">
-            {comment.user} • {comment.time}
-          </p>
+          <div className="flex items-center gap-2">
+            <img src="/avatar-default.svg" alt="" className="w-8 h-8 border  rounded-full"/> 
+            <Link to={'/profile/'+comment.user} className="text-sm text-gray-400">
+              {comment.user} • {comment.time}
+            </Link>
+          </div>
           <EllipsisVerticalIcon size={17} />
         </div>
         <p className="mt-1">{comment.text}</p>
         <div className="mt-2 text-sm text-gray-500 flex gap-4">
           <button onClick={() => setShowReplyBox(!showReplyBox)}>💬 Reply</button>
-          <button>👍 {comment.likes}</button>
+          <button className="flex"> <ThumbsUpIcon size={17} /> {' '} {comment.likes}</button> 
         </div>
       </div>
 
@@ -208,16 +218,16 @@ function Comment({ comment, onReply }) {
             value={replyText}
             onChange={(e) => setReplyText(e.target.value)}
           ></textarea>
-          <div className="flex gap-2 mt-2">
+          <div className="flex gap-2 font-semibold mt-2">
             <button
               onClick={handleReply}
-              className="bg-indigo-600 hover:bg-indigo-500 px-4 py-1 rounded text-sm"
+              className="bg-cyan-600  hover:bg-cyan-500 px-4 py-1 rounded text-sm shadowLight" 
             >
               Reply
             </button>
             <button
               onClick={() => setShowReplyBox(false)}
-              className="bg-gray-700 hover:bg-gray-600 px-4 py-1 rounded text-sm"
+              className="bg-gray-700 hover:bg-gray-500 px-4 py-1 rounded text-sm shadowLight"
             >
               Cancel
             </button>
@@ -261,8 +271,8 @@ function CommentsThread({commentsArr = []}) {
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-[#161b22] text-white rounded-xl border border-gray-700  custom-box">
-      <h2 className="text-xl font-bold mb-4">Comments</h2>
+    <div className="w-full mx-auto p-6 bg-[#161b22] text-white rounded-xl border border-gray-700  custom-box">
+
       {comments.map((comment) => (
         <Comment key={comment.id} comment={comment} onReply={handleReply} />
       ))}
