@@ -100,6 +100,7 @@ const GetCommunityPosts = TryCatch(async(req , res) => {
       isDeleted : false
     })
     .populate('author' , 'avatar username')
+    .populate('community' , 'name avatar')
     .sort({createdAt : -1})
     .skip(skip)
     .limit(limit)

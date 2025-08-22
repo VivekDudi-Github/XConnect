@@ -1,9 +1,15 @@
-import { EllipsisVerticalIcon, ThumbsUpIcon } from "lucide-react";
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import PostViewPage from "../post/MainPost";
+import { BarChart2Icon, BookmarkIcon, EllipsisVerticalIcon, HeartIcon, MessageSquareIcon, Repeat2Icon, Share2Icon, ShareIcon, ThumbsUpIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { useGetPostQuery, useToggleOnPostMutation } from "../../redux/api/api";
+import moment from "moment";
+import RenderPostContent from "../specific/RenderPostContent";
+import { toast } from "react-toastify";
+import ImageSlider from "../shared/ImagesSlider";
 
-function CommunityPostPage() {
+
+function CommunityPostPage({community}) {
   const [comments, setComments] = useState([
     {
       id: 1,
@@ -65,6 +71,80 @@ function CommunityPostPage() {
     setNewComment("");
   };
 
+ const {user} = useSelector(state => state.auth) ;
+  const {id} = useParams() ;
+  
+  const [post , setPost] = useState({}) ;
+  console.log(post);
+  
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [likeStatus, setLikeStatus] = useState( 0);
+  const [totalLikes, setTotalLikes] = useState(0);
+  const [bookmarkStatus, setBookmarkStatus] = useState(false);
+
+  const {data  , isError , isLoading , error} = useGetPostQuery(id)
+  
+  
+  const [toggleMutation] = useToggleOnPostMutation() ;
+
+  const toggleLiketFunc = async(option) => {
+    try {
+      const data = await toggleMutation({id :post._id , option : option }).unwrap() ;
+      if(data.data.operation){
+        setLikeStatus(true)
+        setTotalLikes(prev => prev + 1)
+      }else {
+        setLikeStatus(false)
+        setTotalLikes(prev => prev - 1)
+      }
+    } catch (error) {
+      console.log('error in doing like' , error);
+    }
+  }
+  const togglePostFunc = async(option) => {
+    if(!post._id) return toast.info('Post is still loading.') ; 
+    try {
+      const data  = await toggleMutation({id :post._id , option : option }).unwrap() ;
+      if(data.data.operation){
+        if(option === 'pin'){
+          setPinStatus(true)
+        }else if(option === 'bookmark'){
+          setBookmarkStatus(true)
+        }
+        toast.success(`Post ${option === 'pin' ? 'Pinned' : 'bookmarked'} successfully!` )
+        setOpenOptions(false)
+      }else {
+        if(option === 'pin'){
+          setPinStatus(false)
+        }else if(option === 'bookmark'){
+          setBookmarkStatus(false)
+        }
+        toast.success(`Post ${option === 'pin' ? 'Unpinned' : 'removed from bookmarks'} successfully!` )
+        setOpenOptions(false)
+      }
+    } catch (error) {
+      console.log('error in doing toggle post operation', error);
+    }
+  }
+
+
+  useEffect(() => {
+    if(data) 
+      setPost(data?.data) ;
+      setLikeStatus(data?.data?.likeStatus) ;
+      setBookmarkStatus(data?.data?.bookmarkStatus) ;
+      setTotalLikes(data?.data?.likeCount) ;
+  } , [data])
+
+  useEffect(() => {
+    if(isError){
+      toast.error(error?.data?.message || "Couldn't fetch the post. Please try again.");
+      console.log(isError , error);}
+  } , [isError , error])
+
+
+
+
   return (
     <div className="min-h-screen dark:bg-[#000] dark:text-white p-6  ">
       <div className="grid grid-cols-4 sm:grid-cols-4 gap-4 h-full w-full"> 
@@ -75,53 +155,64 @@ function CommunityPostPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-400">
-                  Posted in <span className="text-indigo-400">XConnect Devs</span> by{" "}
-                  <span className="text-white">@vivek</span> • 3h ago
+                  Posted in <span className="text-indigo-400">{post?.community?.name}</span> by{" "}
+                  <span className="text-white">@vivek</span> • {moment( post.createdAt).calendar()}
                 </p>
                 <h1 className="text-2xl font-bold mt-2">
-                  How do I improve socket performance in messaging apps?
+                  {post?.title}
                 </h1>
               </div>
               <img
-                src="/community-icon.png"
+                src={ post?.community?.avatar?.url }
                 alt="Community Icon"
-                className="w-12 h-12 rounded-full border border-gray-500"
+                className="w-12 h-12 rounded-full border-[1px] dark:border-white border-black"
               />
             </div>
 
             {/* Post Content */}
             <div className="mt-4 dark:text-gray-300">
               <p>
-                I've implemented socket.io for messaging in my MERN app, but I want
-                to optimize for lower latency and prevent duplicate messages. Any
-                suggestions from experienced devs?
+                <RenderPostContent text={post?.content} />
               </p>
-              <img
-                src="/socket-performance.png"
-                alt="Post"
-                className="mt-4 rounded-lg max-h-80 w-full object-cover"
-              />
+              <ImageSlider images={post?.media} />
             </div>
 
             {/* Post Actions */}
-            <div className="flex items-center gap-6 mt-6 text-gray-400 text-sm">
-              <button>👍 24</button>
-              <button>💬 {comments.length}</button>
-              <button>🔁 Share</button>
-              <button>🔖 Save</button>
-            </div>
+            <div className="mt-6 flex items-center  gap-6 text-sm">
+              <button
+                onClick={() => { toggleLiketFunc('like') }}
+                className={`flex items-center gap-1 `}
+              >
+                <HeartIcon size={16} className={` ${
+                  likeStatus ? 'fill-red-500' : ''
+                } duration-200 hover:scale-110 active:scale-95 text-red-500`} />
+                {totalLikes}
+              </button>
+
+              <button className="flex items-center gap-1 hover:text-green-500">
+                <Share2Icon size={16} className='fill-blue-600 text-blue-600' />
+                Share
+              </button>
+
+              <button className="flex items-center gap-1 hover:text-green-500">
+                <Repeat2Icon size={16} className=' text-green-600' /> 
+                Repost
+              </button>
+
+              <button
+                onClick={() => togglePostFunc('bookmark')}
+                className={`flex items-center gap-1 `}
+              >
+                <BookmarkIcon size={16} className={`${ bookmarkStatus ? 'fill-yellow-500 text-yellow-500' : ''  } duration-200 text-yellow-500` } />
+                {post?.bookmarkCount || ''} {bookmarkStatus ? 'Saved' : 'Saves'} 
+              </button>
+              </div>
+              <div className='  sm:translate-x-full sm:hidden sm:mt-0 mt-3 text-gray-400 font-semibold duration-200 my-1 flex items-center justify-end text-sm'>
+                <BarChart2Icon size={16} className=' text-cyan-600' /> 
+                500 views
+              </div>
           </div>
 
-          {/* <div>
-            <p className="text-sm text-gray-400">
-              Posted in <span className="text-indigo-400">XConnect Devs</span> by{" "}
-              <span className="text-white">@vivek</span> • 3h ago
-            </p>
-            <h1 className="text-2xl font-bold mt-2">
-              How do I improve socket performance in messaging apps?
-            </h1>
-          </div> */}
-          <PostViewPage />
 
           {/* Comment Section */}
           <div className="max-w-full mx-auto mt-6 dark:bg-[#000] p-6 rounded-xl shadow-md">

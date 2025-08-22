@@ -186,6 +186,23 @@ const getPost = TryCatch(async(req , res) => {
         ]
       }
     }} ,
+    //community
+    {$lookup : {
+      from : 'communities' ,
+      let : { communityId : '$community'} ,
+      pipeline : [
+        {$match : {
+          $expr : {
+            $eq : ['$_id' , '$$communityId']
+          }
+        }} ,
+        {$project: {
+          name : 1 ,
+          avatar : 1 ,
+        }} ,
+      ] ,
+      as : 'communityDetails' ,
+    }} ,
     //author
     {$lookup : {
       from : 'users' ,
@@ -310,8 +327,9 @@ const getPost = TryCatch(async(req , res) => {
       bookmarkCount: { $size : '$bookmarksArray'} ,
       repost : '$repostDetails' , 
       author : '$authorDetails' ,
+      community : '$communityDetails' ,
     }} ,
-    
+    {$unwind : {path : '$community' , preserveNullAndEmptyArrays : true}} ,
     {$unwind: {path: '$author',preserveNullAndEmptyArrays: true} } ,
     {$unwind: {path: '$repost',preserveNullAndEmptyArrays: true} } ,
 
@@ -323,6 +341,7 @@ const getPost = TryCatch(async(req , res) => {
       bookmarkArray : 0 ,
       authorDetails : 0 ,
       repostDetails : 0 ,
+      communityDetails : 0 ,
     }}
 
   ])
