@@ -113,7 +113,7 @@ useEffect(() => {
       
       {/* Options */}
         <EllipsisVerticalIcon size={17}/>
-        <div className={`absolute w-40 top-2 right-6 duration-200 bg-white dark:bg-slate-800 shadow-md shadow-black/60 rounded-lg  ${isOpenOptions ? '' : 'scale-0 translate-x-14 -translate-y-14 ' }  `}>
+        <div className={`absolute w-40 top-2 right-6 duration-200 bg-white dark:bg-slate-800 shadow-md shadow-black/60 rounded-lg ${isOpenOptions ? '' : 'scale-0 translate-x-14 -translate-y-14 ' }  `}> 
           
           <div 
           onClick={() => togglePostFunc('pin')}

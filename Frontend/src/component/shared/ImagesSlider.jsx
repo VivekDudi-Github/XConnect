@@ -19,7 +19,7 @@ const ImageSlider = ({ images = [] }) => {
       <img
         src={images[currentIndex]?.url}
         alt={`Slide ${currentIndex}`}
-        className="max-h-80 h-full object-cover rounded-lg"
+        className="max-h-80 h-full  mx-auto object-cover rounded-lg"
       />
 
       {/* Navigation Arrows (only if more than 1 image) */}

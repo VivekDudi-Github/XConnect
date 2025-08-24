@@ -1,5 +1,5 @@
 import { ChevronLeftIcon, Eclipse, EllipsisIcon, EllipsisVerticalIcon, Loader2Icon } from 'lucide-react'
-import React, { useCallback, useEffect, useRef, useState , forwardRef} from 'react'
+import { useCallback, useEffect, useRef, useState , forwardRef} from 'react'
 import { useNavigate } from 'react-router-dom'
 import { emptyChatName } from '../../redux/reducer/miscSlice';
 import { useDispatch, useSelector } from 'react-redux';
@@ -12,7 +12,6 @@ import RenderPostContent from '../specific/RenderPostContent'
 import { clearUnreadMessage, storeSocketMessage } from '../../redux/reducer/messageSlice';
 import api, { useGetMessagesQuery } from '../../redux/api/api';
 import lastRefFunc from '../specific/LastRefFunc';
-import { set } from 'mongoose';
 
 
 const dummyMessages = [
@@ -53,6 +52,7 @@ export default function MessagingPage({username}) {
 
 
   const {title , avatar , username : userIdentifier  , lastOnline , type , _id , room_id } = useSelector(state => state.misc.chatName) ;
+  console.log(userIdentifier , _id , room_id);
   
   const {isFetching , isSuccess , isError , data} = useGetMessagesQuery({
     room : room_id ,
@@ -120,6 +120,7 @@ export default function MessagingPage({username}) {
   } , [])
 
   useEffect(() => {
+    
     return () => {
       dispatch(storeSocketMessage({room_id , messages : [...messagesRef.current , ...liveMessagesRef.current ]})) ;      
 
@@ -208,7 +209,7 @@ export default function MessagingPage({username}) {
     <div className='dark:text-white  h-screen sm:pb-16 pb-32 text-black '>
       <div className='sticky top-0'>
         <div className='text-white flex items-center gap-2 p-2 w-full border-b-2 border-b-gray-700 '>
-          <button onClick={BackButton}><ChevronLeftIcon className='text-black dark:text-white'/></button>
+          <button onClick={() => BackButton()}><ChevronLeftIcon className='text-black dark:text-white'/></button>
           <img
           src={avatar?.url}
           className="w-12 h-12 rounded-full object-cover mr-2 ring-1"

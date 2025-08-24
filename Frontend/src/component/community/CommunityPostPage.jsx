@@ -1,5 +1,5 @@
-import { BarChart2Icon, BookmarkIcon, EllipsisVerticalIcon, HeartIcon, MessageSquareIcon, Repeat2Icon, Share2Icon, ShareIcon, ThumbsUpIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { BarChart2Icon, BookmarkIcon, ChevronDown, EllipsisVerticalIcon, HeartIcon, MessageSquareIcon, Pin, PinIcon, Repeat2Icon, Share2Icon, ShareIcon, ThumbsDownIcon, ThumbsUpIcon } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useGetPostQuery, useToggleOnPostMutation } from "../../redux/api/api";
@@ -14,7 +14,7 @@ function CommunityPostPage({community}) {
     {
       id: 1,
       user: "@john",
-      text: "This is a great discussion topic!",
+      text: "This is a great discussion topic! I think we should test this idea before implementing.I think we should test this idea before implementing.I think we should test this idea before implementing",
       time: "3h ago",
       likes: 2,
       replies: [
@@ -25,24 +25,47 @@ function CommunityPostPage({community}) {
           time: "2h ago",
           likes: 1,
           replies: [{
-          id: 2,
-          user: "@sarah",
-          text: "I totally agree with you!",
-          time: "2h ago",
-          likes: 1,
-          replies: [{
-          id: 2,
-          user: "@sarah",
-          text: "I totally agree with you!",
-          time: "2h ago",
-          likes: 1,
+            id: 2,
+            user: "@sarah",
+            text: "I totally agree with you!",
+            time: "2h ago",
+            likes: 1,
+            replies: [{
+              id: 2,
+              user: "@sarah",
+              text: "I totally agree with you!",
+              time: "2h ago",
+              likes: 1,
+              replies: [],
+              },
+            ],
+          },
+        ],
+        },
+        {id: 10,
+          user: "@mike",
+          text: "I think we should test this idea before implementing.",
+          time: "1h ago",
+          likes: 9,
           replies: [],
-        },],
-        },
-      ],
-        },
+        } ,
+        {id: 11,
+          user: "@mike",
+          text: "I think we should test this idea before implementing.I think we should test this idea before implementing.I think we should test this idea before implementing.",
+          time: "1h ago",
+          likes: 3,
+          replies: [],
+        } ,
+        {id: 12,
+          user: "@mike",
+          text: "I think we should test this idea before implementing.",
+          time: "1h ago",
+          likes: 5,
+          replies: [],
+        }
       ],
     },
+    
     {
       id: 3,
       user: "@mike",
@@ -59,10 +82,14 @@ function CommunityPostPage({community}) {
     { id: 4, name: 'Startups', avatar: '🚀' },
   ]);
 
+  const [commentLoader ,  setCommentLoader] = useState(false) ;
+
   const [newComment, setNewComment] = useState("");
+
 
   const handleCommentSubmit = (e) => {
     e.preventDefault();
+
     if (!newComment.trim()) return;
     setComments([
       ...comments,
@@ -73,6 +100,7 @@ function CommunityPostPage({community}) {
 
  const {user} = useSelector(state => state.auth) ;
   const {id} = useParams() ;
+
   
   const [post , setPost] = useState({}) ;
   console.log(post);
@@ -146,7 +174,7 @@ function CommunityPostPage({community}) {
 
 
   return (
-    <div className="min-h-screen dark:bg-[#000] dark:text-white p-6  ">
+    <div className="min-h-screen dark:bg-[#000] dark:text-white sm:p-6 p-1  ">
       <div className="grid grid-cols-4 sm:grid-cols-4 gap-4 h-full w-full"> 
         <div className="col-span-4 lg:col-span-3"> 
           {/* Post Header */}
@@ -155,8 +183,8 @@ function CommunityPostPage({community}) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-400">
-                  Posted in <span className="text-indigo-400">{post?.community?.name}</span> by{" "}
-                  <span className="text-white">@vivek</span> • {moment( post.createdAt).calendar()}
+                  Posted in <Link to={'/community/c/'+community?._id} className="text-indigo-400">{post?.community?.name}</Link> by{" "}
+                  <Link to={'/profile/'+post?.author?.username} className="text-cyan-500 ">@{post?.author?.username}</Link> • {moment( post.createdAt).calendar()} 
                 </p>
                 <h1 className="text-2xl font-bold mt-2">
                   {post?.title}
@@ -178,7 +206,7 @@ function CommunityPostPage({community}) {
             </div>
 
             {/* Post Actions */}
-            <div className="mt-6 flex items-center  gap-6 text-sm">
+            <div className="mt-6 flex flex-wrap items-center  gap-6 text-sm">
               <button
                 onClick={() => { toggleLiketFunc('like') }}
                 className={`flex items-center gap-1 `}
@@ -206,16 +234,17 @@ function CommunityPostPage({community}) {
                 <BookmarkIcon size={16} className={`${ bookmarkStatus ? 'fill-yellow-500 text-yellow-500' : ''  } duration-200 text-yellow-500` } />
                 {post?.bookmarkCount || ''} {bookmarkStatus ? 'Saved' : 'Saves'} 
               </button>
-              </div>
-              <div className='  sm:translate-x-full sm:hidden sm:mt-0 mt-3 text-gray-400 font-semibold duration-200 my-1 flex items-center justify-end text-sm'>
+              <div className='  text-gray-400 font-semibold duration-200 my-1 flex items-center justify-end text-sm'>
                 <BarChart2Icon size={16} className=' text-cyan-600' /> 
                 500 views
               </div>
+            </div>
+              
           </div>
 
 
           {/* Comment Section */}
-          <div className="max-w-full mx-auto mt-6 dark:bg-[#000] p-6 rounded-xl shadow-md">
+          <div className="max-w-full mx-auto mt-6 dark:bg-[#000] p-3 rounded-xl shadow-md">
             <h2 className="text-xl font-bold mb-4">Comments</h2>
 
             {/* Comment Form */}
@@ -227,11 +256,11 @@ function CommunityPostPage({community}) {
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
               />
-              <button
-                type="submit"
-                className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded text-white font-medium"
+              <button type="submit"
+                disabled={commentLoader || (!newComment.trim())}
+               className="bg-white  text-black font-semibold active:scale-95 duration-200 shadow-slate-500 dark:shadow-none shadow-md  px-6 py-2 rounded-lg "
               >
-                Post
+                {commentLoader ? <Loader2Icon className='animate-spin'/> : 'Post'}
               </button>
             </form>
 
@@ -243,14 +272,14 @@ function CommunityPostPage({community}) {
         </div>
 
         {/* Sidebar */}
-        <div className=" col-span-full lg:col-span-1  bg-[#000]"> 
-          <div className="bg-[#000] p-6 rounded-xl border-y-2 border-gray-200">
+        <div className=" col-span-full lg:col-span-1 bg-white dark:bg-black "> 
+          <div className="bg-[#f1f1f1] p-6 rounded-xl border-y-2 border-gray-200 custom-box">
             <h2 className="text-lg font-semibold mb-4">Related Communities</h2>
             <ul className="space-y-3">
               {communities.map((comm) => (
                 <li
                   key={comm.id}
-                  className="flex items-center space-x-3 cursor-pointer hover:bg-gray-800 px-3 py-2 rounded-lg"
+                  className="flex items-center space-x-3 cursor-pointer hover:bg-slate-300  dark:hover:bg-gray-800 px-3 py-2 rounded-lg duration-200"
                 >
                   <span className="text-xl">{comm.avatar}</span>
                   <span>{comm.name}</span>
@@ -269,8 +298,20 @@ export default CommunityPostPage;
 
 
 function Comment({ comment, onReply }) {
+
+  const renderPreRef = useRef(null) ;
+  const [expandable , setExpandable] = useState(false) ;
+  const [textExpended , setTextExpended] = useState(false) ;
+
+  const [showReply, setShowReply] = useState(false);
   const [showReplyBox, setShowReplyBox] = useState(false);
   const [replyText, setReplyText] = useState("");
+
+  const [isOpenOptions , setOpenOptions] = useState(false) ;
+  const [pinStatus , setPinStatus] = useState(false) ;
+  const [likeStatus , setLikeStatus] = useState(false) ;
+
+
 
   const handleReply = () => {
     if (!replyText.trim()) return;
@@ -279,23 +320,76 @@ function Comment({ comment, onReply }) {
     setShowReplyBox(false);
   };
 
+  useEffect(() => {
+    const timer =setTimeout(() => {
+      if(renderPreRef.current){
+      if(renderPreRef.current.scrollHeight > 50 ){
+        console.log('triggered expandable');
+        
+        setExpandable(true)
+      }
+    }
+    } , 50)
+
+    return () => clearTimeout(timer) ;
+  } , [])
+
   return (
-    <div className="mb-4">
+    <div className="mb-4 ">
       {/* Comment Content */}
-      <div className="dark:bg-[#000] text-black dark:text-white border-t-2 border-gray-700 p-2 rounded-lg">
+      <div className="dark:bg-[#000]  text-black dark:text-white border-t-2 border-gray-700 p-2 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             <img src="/avatar-default.svg" alt="" className="w-8 h-8 border  rounded-full"/> 
-            <Link to={'/profile/'+comment.user} className="text-sm text-gray-400">
-              {comment.user} • {comment.time}
+            <Link to={'/profile/'+comment.user} className="text-sm text-slate-400">
+              <span className="dark:text-cyan-600">{comment.user}</span> • {comment.time}
             </Link>
           </div>
           <EllipsisVerticalIcon size={17} />
+          <div className={`absolute w-40 top-2 right-6 duration-200 bg-white dark:bg-slate-800 shadow-md shadow-black/60 rounded-lg ${isOpenOptions ? '' : 'scale-0 translate-x-14 -translate-y-14 ' }  `}> 
+            <div 
+          className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-300 dark:hover:bg-slate-900 cursor-pointer"
+          >
+            <PinIcon size={17} />
+            <span>{pinStatus ? 'Unpin' : 'Pin'}</span>
+          </div> 
+          </div>
         </div>
-        <p className="mt-1">{comment.text}</p>
-        <div className="mt-2 text-sm text-gray-500 flex gap-4">
-          <button onClick={() => setShowReplyBox(!showReplyBox)}>💬 Reply</button>
-          <button className="flex"> <ThumbsUpIcon size={17} /> {' '} {comment.likes}</button> 
+
+        <div className={` overflow-hidden transition-[max-height] duration-500 ease-in-out  `}
+          style={{
+            maxHeight : textExpended ? '800px' : '48px' ,
+          }}
+          >
+          <pre ref={renderPreRef} className="dark:text-gray-300 text-sm mb-0.5 font-sans text-wrap"><RenderPostContent text={comment?.text}/></pre>
+        </div>
+        <button 
+          onClick={() => setTextExpended((prev) => !prev)}
+          className={`text-gray-500 mb-1 text-sm font-sans text-wrap block ${expandable ? '' : 'hidden'}`}>
+              {textExpended ? 'show less..' : 'read more...'}
+        </button>
+
+        <div className="mt-2 text-sm text-gray-500 flex gap-4 items-center">
+        
+        {/* <button  */}
+        { comment.replies.length > 0 && <button  
+          onClick={() => setShowReply(!showReply)}
+          className={`flex justify-between items-center gap-1 dark:hover:text-white `}>
+            {comment?.replies.length } Replies 
+            <ChevronDown className={` ${!showReply ? '' : ' rotate-180'} duration-200`} size={15}/> 
+        </button>
+        }
+
+          <button className="flex items-center dark:hover:text-white gap-1"> 
+            <ThumbsUpIcon className={`${likeStatus ? 'dark:fill-gray-300 fill-cyan-500' : ''}  hover:text-gray-600 dark:hover:text-white duration-200`} size={17} /> {' '} {comment.likes}
+          </button> 
+          <button className="flex items-center dark:hover:text-white gap-1"> 
+            <ThumbsDownIcon className={`${!likeStatus ? 'dark:fill-gray-300 dark:text-gray-300 fill-cyan-500 text-cyan-500' : ''}  hover:text-gray-600 dark:hover:text-white duration-200`} size={17} /> {' '} {comment.likes}
+          </button> 
+          <button className="flex items-center gap-1 dark:hover:text-white" onClick={() => setShowReplyBox(!showReplyBox)}><MessageSquareIcon size={15} /> 
+            Add Reply
+          </button>
+          
         </div>
       </div>
 
@@ -312,13 +406,13 @@ function Comment({ comment, onReply }) {
           <div className="flex gap-2 font-semibold mt-2">
             <button
               onClick={handleReply}
-              className="bg-cyan-600  hover:bg-cyan-500 px-4 py-1 rounded text-sm shadowLight" 
+              className="bg-cyan-600 text-black hover:text-white hover:bg-cyan-500 px-4 py-1 rounded text-sm shadowLight" 
             >
               Reply
             </button>
             <button
               onClick={() => setShowReplyBox(false)}
-              className="bg-gray-700 hover:bg-gray-500 px-4 py-1 rounded text-sm shadowLight"
+              className="bg-gray-700 hover:text-white hover:bg-gray-500 px-4 py-1 rounded text-sm shadowLight"
             >
               Cancel
             </button>
@@ -327,13 +421,14 @@ function Comment({ comment, onReply }) {
       )}
 
       {/* Child Replies */}
-      {comment.replies?.length > 0 && (
+      {showReply && comment.replies?.length > 0 && (
         <div className="ml-6 mt-3 border-l border-gray-700 pl-4">
           {comment.replies.map((reply) => (
             <Comment key={reply.id} comment={reply} onReply={onReply} />
           ))}
         </div>
       )}
+
     </div>
   );
 }
@@ -362,7 +457,7 @@ function CommentsThread({commentsArr = []}) {
   };
 
   return (
-    <div className="w-full mx-auto p-6 bg-[#161b22] text-white rounded-xl border border-gray-700  custom-box">
+    <div className="w-full mx-auto text-white rounded-xl border custom-box  ">
 
       {comments.map((comment) => (
         <Comment key={comment.id} comment={comment} onReply={handleReply} />
