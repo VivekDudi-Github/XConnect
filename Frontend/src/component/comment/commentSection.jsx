@@ -166,8 +166,8 @@ const addToMentions = (username) => {
           {totalComments || ''} Comments
         </div>
         <div className="flex items-center gap-1 relative z-10"
-        onClick={()=> setIsOpenOptions(prev => !prev)}
-        >
+          onClick={()=> setIsOpenOptions(prev => !prev)}
+          >
           Sort by:{" "}
           <button 
            

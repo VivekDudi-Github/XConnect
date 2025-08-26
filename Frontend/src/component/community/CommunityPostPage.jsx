@@ -1,118 +1,78 @@
-import { BarChart2Icon, BookmarkIcon, ChevronDown, EllipsisVerticalIcon, HeartIcon, MessageSquareIcon, Pin, PinIcon, Repeat2Icon, Share2Icon, ShareIcon, ThumbsDownIcon, ThumbsUpIcon } from "lucide-react";
+import { BarChart2Icon, BookmarkIcon, ChevronDown, EllipsisVerticalIcon, FlagIcon, HeartIcon, InfoIcon, Loader2Icon, MessageSquareIcon, Pin, PinIcon, Repeat2Icon, Share2Icon, ShareIcon, ThumbsDownIcon, ThumbsUpIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { useGetPostQuery, useToggleOnPostMutation } from "../../redux/api/api";
+import { useGetPostQuery, useLazyGetCommentQuery, usePostCommentMutation, useToggleDisLikeCommentMutation, useToggleLikeCommentMutation, useToggleOnPostMutation } from "../../redux/api/api";
 import moment from "moment";
 import RenderPostContent from "../specific/RenderPostContent";
 import { toast } from "react-toastify";
 import ImageSlider from "../shared/ImagesSlider";
+import TextArea from 'react-textarea-autosize'
+import CommentCardSkeleton from "../shared/CommentCardSkeleton";
 
 
 function CommunityPostPage({community}) {
-  const [comments, setComments] = useState([
-    {
-      id: 1,
-      user: "@john",
-      text: "This is a great discussion topic! I think we should test this idea before implementing.I think we should test this idea before implementing.I think we should test this idea before implementing",
-      time: "3h ago",
-      likes: 2,
-      replies: [
-        {
-          id: 2,
-          user: "@sarah",
-          text: "I totally agree with you!",
-          time: "2h ago",
-          likes: 1,
-          replies: [{
-            id: 2,
-            user: "@sarah",
-            text: "I totally agree with you!",
-            time: "2h ago",
-            likes: 1,
-            replies: [{
-              id: 2,
-              user: "@sarah",
-              text: "I totally agree with you!",
-              time: "2h ago",
-              likes: 1,
-              replies: [],
-              },
-            ],
-          },
-        ],
-        },
-        {id: 10,
-          user: "@mike",
-          text: "I think we should test this idea before implementing.",
-          time: "1h ago",
-          likes: 9,
-          replies: [],
-        } ,
-        {id: 11,
-          user: "@mike",
-          text: "I think we should test this idea before implementing.I think we should test this idea before implementing.I think we should test this idea before implementing.",
-          time: "1h ago",
-          likes: 3,
-          replies: [],
-        } ,
-        {id: 12,
-          user: "@mike",
-          text: "I think we should test this idea before implementing.",
-          time: "1h ago",
-          likes: 5,
-          replies: [],
-        }
-      ],
-    },
-    
-    {
-      id: 3,
-      user: "@mike",
-      text: "I think we should test this idea before implementing.",
-      time: "1h ago",
-      likes: 0,
-      replies: [],
-    },
-  ]);
+ const {user} = useSelector(state => state.auth) ;
+  const {id} = useParams() ;
+
+  const [comments, setComments] = useState([]);
   const [communities , setCommunities] = useState([
     { id: 1, name: 'Web Dev', avatar: '🌐' },
     { id: 2, name: 'AI & ML', avatar: '🤖' },
     { id: 3, name: 'Gaming', avatar: '🎮' },
     { id: 4, name: 'Startups', avatar: '🚀' },
   ]);
+console.log(comments);
 
   const [commentLoader ,  setCommentLoader] = useState(false) ;
 
   const [newComment, setNewComment] = useState("");
-
-
-  const handleCommentSubmit = (e) => {
-    e.preventDefault();
-
-    if (!newComment.trim()) return;
-    setComments([
-      ...comments,
-      { id: Date.now(), user: "@you", text: newComment, time: "Just now" },
-    ]);
-    setNewComment("");
-  };
-
- const {user} = useSelector(state => state.auth) ;
-  const {id} = useParams() ;
+  const [sortBy, setSortBy] = useState('Top');
+  const [isOpenOptions , setIsOpenOptions] = useState(false) ;
+  const [ totalPages , setTotalPages] = useState(1);
+  const [ page , setPage] = useState(1);
 
   
   const [post , setPost] = useState({}) ;
-  console.log(post);
   
   const [menuOpen, setMenuOpen] = useState(false);
-  const [likeStatus, setLikeStatus] = useState( 0);
+  const [likeStatus, setLikeStatus] = useState(0);
   const [totalLikes, setTotalLikes] = useState(0);
   const [bookmarkStatus, setBookmarkStatus] = useState(false);
 
-  const {data  , isError , isLoading , error} = useGetPostQuery(id)
+  const [commentPostMutation] = usePostCommentMutation() ;
+  const {data  , isError , isLoading , error} = useGetPostQuery(id);
   
-  
+  const [fetchMoreComments , {data : newCommentData , isLoading : isLoadingComments , isError : isErrorComments}] = useLazyGetCommentQuery() ;
+
+  useEffect(() => {
+      fetchMoreComments({page : 1 , sortBy , id , isComment : false , comment_id : null}) ;
+  } , [])
+
+
+  useEffect(() => {
+    if(newCommentData && newCommentData.data){
+      console.log(newCommentData.data);
+      
+      setComments((prev) => [...prev , ...newCommentData.data.comments]) ;
+      setTotalPages(newCommentData.data.totalPages) ;
+      setPage(prev => prev + 1) ;
+    }
+  } , [newCommentData])
+
+  const handleCommentSubmit = async(e) => {
+    e.preventDefault();
+    setCommentLoader(true) ;
+    try {
+      await commentPostMutation({postId : id , content : newComment , isEdited : false , mentions : []}).unwrap() ;
+      setNewComment('');
+    } catch (error) {
+      console.log('error in posting comment' , error);
+      toast.error(error?.data?.message || "Couldn't post the comment. Please try again.");
+    } finally{
+      setCommentLoader(false);
+    }
+  };
   const [toggleMutation] = useToggleOnPostMutation() ;
 
   const toggleLiketFunc = async(option) => {
@@ -245,14 +205,45 @@ function CommunityPostPage({community}) {
 
           {/* Comment Section */}
           <div className="max-w-full mx-auto mt-6 dark:bg-[#000] p-3 rounded-xl shadow-md">
-            <h2 className="text-xl font-bold mb-4">Comments</h2>
+            {/* comment Header */}
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold">Comments</h2>
+              <div className="flex items-center gap-1 relative z-10"
+              onClick={()=> setIsOpenOptions(prev => !prev)}
+              >
+              Sort by:{" "}
+              <button 
+              
+              className="flex items-center gap-1 dark:hover:bg-slate-700 hover:bg-gray-300 rounded-full p-2 duration-200 ">
+                {sortBy}
+                <ChevronDown size={14} />
+              </button>
+              <div className={`absolute w-28 top-6 dark:text-slate-400 right-8 duration-200 bg-white dark:bg-slate-800 shadow-md shadow-black/60 rounded-lg  ${isOpenOptions ? '' : 'scale-0 translate-x-14 -translate-y-14 ' }  `}>
+                <div
+                onClick={() => setSortBy('Top') }
+                className="flex items-center gap-2 px-2 py-1 rounded-md hover:bg-gray-300 dark:hover:bg-slate-900 cursor-pointer">
+                  Top
+                </div>
+                <div
+                onClick={() => setSortBy('Most Liked') }
+                className="flex items-center gap-2 px-2 py-1 rounded-md hover:bg-gray-300 dark:hover:bg-slate-900 cursor-pointer">
+                  Most Liked
+                </div>
+                <div
+                onClick={() => setSortBy('Newest ') }
+                className="flex items-center gap-2 px-2 py-1 rounded-md hover:bg-gray-300 dark:hover:bg-slate-900 cursor-pointer">
+                  Newest
+                </div>
+              </div>
+              </div>
+            </div>
 
             {/* Comment Form */}
             <form onSubmit={handleCommentSubmit} className="flex gap-3 mb-6">
-              <input
+              <TextArea maxRows={4}
                 type="text"
                 placeholder="Write a comment..."
-                className="flex-1 dark:bg-[#0d1117] shadowLight duration-200 outline-none" 
+                className="w-full p-1 py-2 focus:pl-3 rounded  duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-white shadowLight"
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
               />
@@ -265,10 +256,17 @@ function CommunityPostPage({community}) {
             </form>
 
             {/* Comment List */}
-            <div className="space-y-4">
-              <CommentsThread commentsArr={comments} />
-            </div>
+            {isLoadingComments ? 
+            Array.from({length : 4}).map((_ , i) => (
+              <CommentCardSkeleton key={i}/>
+            ))
+            : (
+              <div className="space-y-4">
+                <CommentsThread commentsArr={comments} id={id} fetchMoreComments={fetchMoreComments} />
+              </div>
+            )}
           </div>
+
         </div>
 
         {/* Sidebar */}
@@ -297,35 +295,96 @@ export default CommunityPostPage;
 
 
 
-function Comment({ comment, onReply }) {
+function Comment({ comment, fetchMoreComments , id }) {
 
   const renderPreRef = useRef(null) ;
   const [expandable , setExpandable] = useState(false) ;
   const [textExpended , setTextExpended] = useState(false) ;
+  const [commentLoader ,  setCommentLoader] = useState(false) ;
 
   const [showReply, setShowReply] = useState(false);
   const [showReplyBox, setShowReplyBox] = useState(false);
   const [replyText, setReplyText] = useState("");
 
+  const [likeCount , setLikeCount] = useState(comment?.likeCount) ;
+  const [dislikeCount , setDislikeCount] = useState(comment?.dislikeCount) ;
+
   const [isOpenOptions , setOpenOptions] = useState(false) ;
-  const [pinStatus , setPinStatus] = useState(false) ;
-  const [likeStatus , setLikeStatus] = useState(false) ;
+  const [likeStatus , setLikeStatus] = useState(comment.likeStatus) ;
+  const [dislikeStatus , setDislikeStatus] = useState(comment?.dislikeStatus) ;
+
+  const [toggleLikeMutation] = useToggleLikeCommentMutation();
+  const [toggleDislikeMutation] = useToggleDisLikeCommentMutation();
+  const [PostReplyMutation] = usePostCommentMutation();
+
+  const [page , setPage] = useState(1) ;
 
 
+  const toggleLiketFunc = async() => {
+    try {
+      const res = await toggleLikeMutation({id : comment._id})
+      console.log(res);
+      
+      if(res.data.data.operation){
+        setLikeStatus(true)
+        setLikeCount(likeCount + 1)
+        if(dislikeStatus === true) setDislikeCount(prev => prev - 1)
+        setDislikeStatus(false)
+      }else {
+        setLikeCount(likeCount - 1)
+        setLikeStatus(false)
+      }
+    } catch (error) {
+      console.log('error in toggling like' , error);
+    }
+  }
+  const toggleDisLiketFunc = async() => {
+    try {
+      const res = await toggleDislikeMutation({id : comment._id})
+      if(res.data.data.operation){
+        if(likeStatus === true) setLikeCount(prev => prev - 1)
+        setLikeStatus(false) ;
+        setDislikeStatus(true) ;
+        setDislikeCount(dislikeCount + 1)
+      }else {
+        setDislikeCount(dislikeCount - 1)
+        setLikeStatus(false) ;
+        setDislikeStatus(false) ;
+      }
+    } catch (error) {
+      console.log('error in toggling like' , error);
+    }
+  }
 
-  const handleReply = () => {
+
+  const handleReply = async(e) => {
+    e.preventDefault();
     if (!replyText.trim()) return;
-    onReply(comment.id, replyText);
-    setReplyText("");
-    setShowReplyBox(false);
+    setCommentLoader(true) ;
+
+    try {
+      await PostReplyMutation({postId : id ,  comment_id : comment._id  , content : replyText , isEdited : false , mentions : []}).unwrap() ;
+      setReplyText('');
+      setShowReplyBox(false);
+    } catch (error) {
+      console.log('error in posting reply' , error);
+      toast.error(error?.data?.message || "Couldn't post the reply. Please try again.");
+    } finally{
+      setCommentLoader(false);
+    }
   };
+
+
+  useEffect(() => {
+    if( page === 1 && showReply){
+      fetchMoreComments({page ,id , isComment : true , comment_id : comment._id})
+    }
+  } , [showReply])
 
   useEffect(() => {
     const timer =setTimeout(() => {
       if(renderPreRef.current){
       if(renderPreRef.current.scrollHeight > 50 ){
-        console.log('triggered expandable');
-        
         setExpandable(true)
       }
     }
@@ -340,28 +399,36 @@ function Comment({ comment, onReply }) {
       <div className="dark:bg-[#000]  text-black dark:text-white border-t-2 border-gray-700 p-2 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <img src="/avatar-default.svg" alt="" className="w-8 h-8 border  rounded-full"/> 
+            <img src={comment?.author?.avatar?.url} alt="" className="w-8 h-8 border  rounded-full"/> 
             <Link to={'/profile/'+comment.user} className="text-sm text-slate-400">
-              <span className="dark:text-cyan-600">{comment.user}</span> • {comment.time}
+              <span className="dark:text-cyan-600">{comment.author.username}</span> • {moment(comment.createdAt).fromNow()}
             </Link>
           </div>
-          <EllipsisVerticalIcon size={17} />
-          <div className={`absolute w-40 top-2 right-6 duration-200 bg-white dark:bg-slate-800 shadow-md shadow-black/60 rounded-lg ${isOpenOptions ? '' : 'scale-0 translate-x-14 -translate-y-14 ' }  `}> 
-            <div 
-          className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-300 dark:hover:bg-slate-900 cursor-pointer"
-          >
-            <PinIcon size={17} />
-            <span>{pinStatus ? 'Unpin' : 'Pin'}</span>
-          </div> 
-          </div>
+
+          {/* options */}
+            <div onClick={() => setOpenOptions(prev => !prev)}
+              className='relative dark:hover:bg-slate-700 hover:bg-gray-300 rounded-full p-2 duration-200'
+              >
+              <EllipsisVerticalIcon onClick={() => setOpenOptions(prev => !prev)} size={17} />
+              <div className={`absolute min-w-40 top-2 right-6 duration-200 bg-white dark:bg-slate-800 shadow-md shadow-black/60 rounded-lg ${isOpenOptions ? 'block' : 'scale-0 translate-x-14 -translate-y-2 ' }  `}> 
+                <div 
+                onClick={() => setPinStatus(!pinStatus)}
+                className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-300 dark:hover:bg-slate-900 cursor-pointer"
+                >
+                    <InfoIcon size={17} className="fill-red-500 text-white" />
+                    <span>Report</span>
+                </div> 
+              </div>
+            </div>
         </div>
 
-        <div className={` overflow-hidden transition-[max-height] duration-500 ease-in-out  `}
+        {/* content */}
+        <div className={` ${textExpended ? 'overflow-auto' : 'overflow-hidden'}  transition-[max-height] duration-500 ease-in-out  `}
           style={{
             maxHeight : textExpended ? '800px' : '48px' ,
           }}
           >
-          <pre ref={renderPreRef} className="dark:text-gray-300 text-sm mb-0.5 font-sans text-wrap"><RenderPostContent text={comment?.text}/></pre>
+          <pre ref={renderPreRef} className="dark:text-gray-300 text-sm mb-0.5 font-sans text-wrap"><RenderPostContent text={comment?.content}/></pre>
         </div>
         <button 
           onClick={() => setTextExpended((prev) => !prev)}
@@ -369,22 +436,23 @@ function Comment({ comment, onReply }) {
               {textExpended ? 'show less..' : 'read more...'}
         </button>
 
+        {/* Actions  */}
         <div className="mt-2 text-sm text-gray-500 flex gap-4 items-center">
-        
-        {/* <button  */}
-        { comment.replies.length > 0 && <button  
-          onClick={() => setShowReply(!showReply)}
-          className={`flex justify-between items-center gap-1 dark:hover:text-white `}>
-            {comment?.replies.length } Replies 
-            <ChevronDown className={` ${!showReply ? '' : ' rotate-180'} duration-200`} size={15}/> 
-        </button>
-        }
-
-          <button className="flex items-center dark:hover:text-white gap-1"> 
-            <ThumbsUpIcon className={`${likeStatus ? 'dark:fill-gray-300 fill-cyan-500' : ''}  hover:text-gray-600 dark:hover:text-white duration-200`} size={17} /> {' '} {comment.likes}
+          { comment?.replyCount > 0 && 
+          <button  
+            onClick={() => setShowReply(!showReply)}
+            className={`flex justify-between items-center gap-1 dark:hover:text-white `}>
+              {comment?.replyCount || 0 } Replies 
+              <ChevronDown className={` ${!showReply ? '' : ' rotate-180'} duration-200`} size={15}/> 
+          </button>
+          }
+          <button onClick={toggleLiketFunc} className="flex items-center dark:hover:text-white gap-1"> 
+            <ThumbsUpIcon className={`${likeStatus ? 'dark:fill-gray-300 dark:text-gray-300 fill-cyan-500 text-cyan-500' : ''}  hover:text-gray-600 dark:hover:text-white active:scale-90 duration-200`} size={17} /> 
+            {' '} {likeCount}
           </button> 
-          <button className="flex items-center dark:hover:text-white gap-1"> 
-            <ThumbsDownIcon className={`${!likeStatus ? 'dark:fill-gray-300 dark:text-gray-300 fill-cyan-500 text-cyan-500' : ''}  hover:text-gray-600 dark:hover:text-white duration-200`} size={17} /> {' '} {comment.likes}
+          <button onClick={toggleDisLiketFunc} className="flex items-center dark:hover:text-white gap-1"> 
+            <ThumbsDownIcon className={`${dislikeStatus ? 'dark:fill-gray-300 dark:text-gray-300 fill-cyan-500 text-cyan-500' : ''} active:scale-90  hover:text-gray-600 dark:hover:text-white duration-200`} size={17} /> 
+            {' '} {dislikeCount} 
           </button> 
           <button className="flex items-center gap-1 dark:hover:text-white" onClick={() => setShowReplyBox(!showReplyBox)}><MessageSquareIcon size={15} /> 
             Add Reply
@@ -396,19 +464,19 @@ function Comment({ comment, onReply }) {
       {/* Reply Box */}
       {showReplyBox && (
         <div className="ml-6 mt-2">
-          <textarea
+          <TextArea maxRows={8}
             rows="2"
             placeholder="Write a reply..."
-            className="w-full bg-[#161b22] border border-gray-600 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full p-1 py-1 focus:pl-3 rounded-sm  duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-white shadowLight"
             value={replyText}
             onChange={(e) => setReplyText(e.target.value)}
-          ></textarea>
+          />
           <div className="flex gap-2 font-semibold mt-2">
             <button
               onClick={handleReply}
               className="bg-cyan-600 text-black hover:text-white hover:bg-cyan-500 px-4 py-1 rounded text-sm shadowLight" 
             >
-              Reply
+              {commentLoader ? <Loader2Icon className='animate-spin'/> : 'Reply'}
             </button>
             <button
               onClick={() => setShowReplyBox(false)}
@@ -424,7 +492,7 @@ function Comment({ comment, onReply }) {
       {showReply && comment.replies?.length > 0 && (
         <div className="ml-6 mt-3 border-l border-gray-700 pl-4">
           {comment.replies.map((reply) => (
-            <Comment key={reply.id} comment={reply} onReply={onReply} />
+            <Comment key={reply.id} comment={reply} id={id} fetchMoreComments={fetchMoreComments} />
           ))}
         </div>
       )}
@@ -433,34 +501,13 @@ function Comment({ comment, onReply }) {
   );
 }
 
-function CommentsThread({commentsArr = []}) {
-  const [comments, setComments] = useState(commentsArr || []);
-
-  const handleReply = (parentId, replyText) => {
-    const newReply = {
-      id: Date.now(),
-      user: "@you",
-      text: replyText,
-      time: "Just now",
-      likes: 0,
-      replies: [],
-    };
-
-    const addReply = (list) =>
-      list.map((c) =>
-        c.id === parentId
-          ? { ...c, replies: [...c.replies, newReply] }
-          : { ...c, replies: addReply(c.replies) }
-      );
-
-    setComments((prev) => addReply(prev));
-  };
+function CommentsThread({commentsArr = [] , id , fetchMoreComments  }) {
 
   return (
     <div className="w-full mx-auto text-white rounded-xl border custom-box  ">
 
-      {comments.map((comment) => (
-        <Comment key={comment.id} comment={comment} onReply={handleReply} />
+      {commentsArr.map((comment) => (
+        <Comment key={comment._id} id={id} fetchMoreComments={fetchMoreComments} comment={comment} />
       ))}
     </div>
   );

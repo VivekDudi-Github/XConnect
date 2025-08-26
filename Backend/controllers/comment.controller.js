@@ -6,6 +6,7 @@ import mongoose from 'mongoose';
 import { User } from '../models/user.model.js';
 import { Notification } from '../models/notifiaction.model.js';
 import { emitEvent } from '../utils/socket.js';
+import { Dislikes } from '../models/dislikes.modal.js';
 
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -128,7 +129,6 @@ const getComments = TryCatch(async(req , res) => {
   const {id} = req.params ;
   const {page = 1 , limit = 5 , sortBy = 'Top' , isComment = false  , comment_id = null} = req.query; 
   const skip = (page - 1) * limit;  
-console.log(req.query);
 
   let totalComments ; 
   
@@ -193,6 +193,7 @@ console.log(req.query);
     ...sortOptions ,
     { $skip : skip} ,
 
+    // reply details
     {$lookup : {
       from : 'comments' ,
       let : { commentId : '$_id'} ,
@@ -215,6 +216,8 @@ console.log(req.query);
       ] ,
       as : 'replyDetails'
     }} ,
+
+    // user details
     {$lookup : {
       from : 'users' ,
       let : { userId : '$user'} ,
@@ -232,12 +235,21 @@ console.log(req.query);
       ] ,
       as : 'userDetails'  
     }} ,
+    //total like
     {$lookup : {
       from : 'likes' ,
       foreignField : 'comment' ,
       localField : '_id' ,
       as : 'totalLike' ,
     }} ,
+    // total dislike
+    {$lookup : {
+      from : 'dislikes' ,
+      foreignField : 'comment' ,
+      localField : '_id' ,
+      as : 'totalDislike' ,
+    }} ,
+    // like status
     {$lookup : {
       from : 'likes' ,
       let : { commentId : '$_id'} ,
@@ -251,13 +263,32 @@ console.log(req.query);
           }
         }} ,
       ] ,
-      as : 'likeStatus' ,
+      as : 'userLike' ,
     }} ,
+    // dislike status
+    {$lookup : {
+      from : 'dislikes' ,
+      let : { commentId : '$_id'} ,
+      pipeline : [
+        {$match : {
+          $expr : {
+            $and : [
+              {$eq : ['$comment' , '$$commentId']} ,
+              {$eq : ['$user' , new ObjectId(`${req.user._id}`)]} ,
+            ]
+          }
+        }} ,
+      ] ,
+      as : 'userDislike' ,
+    }} ,
+
     {$addFields : {
       author : '$userDetails' ,
       replyCount : {$size : '$replyDetails'} ,
-      likeStatus : { $gt : [{ $size : '$likeStatus'} , 0 ]}  ,
+      likeStatus : { $gt : [{ $size : '$userLike'} , 0 ]}  ,
+      dislikeStatus : { $gt : [{ $size : '$userDislike'} , 0 ]}  ,
       likeCount : {$size : '$totalLike'} ,
+      dislikeCount : {$size : '$totalDislike'} ,
     }} ,
 
     {$unwind: {path: '$author',preserveNullAndEmptyArrays: true} } ,
@@ -266,7 +297,9 @@ console.log(req.query);
       replyDetails : 0 ,
       userDetails : 0 ,
       totalLike : 0 ,
+      totalDislike : 0 ,
       userLike : 0 ,
+      userDislike : 0 ,
     }}
 
   ])
@@ -287,21 +320,41 @@ const toggleLikeComment = TryCatch(async (req , res) => {
     await Likes.deleteOne({comment : id , user : req.user._id})
     ResSuccess(res , 200 , {operation : false}) ;
   } else{ 
+    await Dislikes.deleteOne({comment : id , user : req.user._id}) ;
     await Likes.create({
       user : req.user._id ,
       comment : id ,
     }) ;
     ResSuccess(res , 200 , {operation : true}) ;
   } ;
-
-  await Post.findByIdAndUpdate(id , {
-    $inc : {
-      commentCount : isExistLike ? -1 : 1 ,
-    }
-  });
   return ;
 
 } , 'like Comment')
+
+const toggleDislikeComment = TryCatch(async (req , res) => {
+  const {id} = req.params ; 
+  
+  const isExistComment = await Comment.exists({_id : id})
+  if(!isExistComment) return  ResError(res , 404 , 'Comment not found') ;
+
+  const isExistDislike = await Dislikes.exists({comment : id , user : req.user._id})
+  
+
+  if(isExistDislike) {
+    await Dislikes.deleteOne({comment : id , user : req.user._id})
+    ResSuccess(res , 200 , {operation : false}) ;
+  } else{ 
+    await Likes.deleteOne({comment : id , user : req.user._id}) ;
+
+    await Dislikes.create({
+      user : req.user._id ,
+      comment : id ,
+    }) ;
+    ResSuccess(res , 200 , {operation : true}) ;
+  } ;
+  return ;
+
+} , 'dislike Comment')
 
 const deleteComment = TryCatch(async (req , res) => {
   const {id} = req.params ;
@@ -413,6 +466,7 @@ export {
   createComment ,
   getComments ,
   toggleLikeComment ,
+  toggleDislikeComment ,
   deleteComment ,
   getSingleComment ,
 } 

@@ -122,6 +122,13 @@ const api = createApi({
         credentials : 'include' ,
       })
     }) ,
+    toggleDisLikeComment : builder.mutation({
+      query : ({id}) => ({
+        url : `/comment/dislike/${id}` ,
+        method : 'POST' ,
+        credentials : 'include' ,
+      })
+    }) ,
     deleteComment : builder.mutation({
       query : ({id}) => ({
         url : `/comment/${id}` ,
@@ -271,6 +278,7 @@ export const {
   usePostCommentMutation ,
   useLazyGetCommentQuery ,
   useToggleLikeCommentMutation ,
+  useToggleDisLikeCommentMutation ,
   useDeleteCommentMutation ,
 
   useLazyGetACommentQuery ,
