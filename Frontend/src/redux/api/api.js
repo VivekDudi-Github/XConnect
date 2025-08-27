@@ -110,8 +110,8 @@ const api = createApi({
       })
     }) ,
     getComment : builder.query({
-      query : ({id , page , sortBy , isComment , comment_id }) => ({
-        url : `/comment/post/${id}?page=${page}&sortBy=${sortBy}&isComment=${isComment}&comment_id=${comment_id}` ,
+      query : ({id , page , sortBy , isComment , limit = 5 , comment_id }) => ({
+        url : `/comment/post/${id}?page=${page}&sortBy=${sortBy}&isComment=${isComment}&comment_id=${comment_id}&limit=${limit}` ,
         credentials : 'include' ,
       })  
     }) ,

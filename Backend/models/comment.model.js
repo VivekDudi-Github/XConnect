@@ -33,6 +33,10 @@ const commentSchema = new mongoose.Schema({
     type : Boolean ,
     required : true ,
   } ,
+  isDeleted : {
+    type : Boolean ,
+    default : false ,
+  } ,
   user : {
     type : mongoose.Types.ObjectId ,
     ref : 'User' ,

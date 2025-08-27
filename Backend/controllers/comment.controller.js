@@ -133,16 +133,15 @@ const getComments = TryCatch(async(req , res) => {
   let totalComments ; 
   
   let sortOptions = [] ;
-
+  
   switch (sortBy) {
     case 'Top' :
       sortOptions = [
-        {$sample : {size : Number(limit)}}
+        // {$sample : {size : Number(limit)}}
       ]
       break;
     case 'Most Liked' :
       sortOptions = [
-        {$limit : Number(limit)} ,
         {$sort : {
           totalLike : 1 ,
         }}
@@ -150,7 +149,6 @@ const getComments = TryCatch(async(req , res) => {
       break;
     case 'Newest' :
       sortOptions = [
-        {$limit : Number(limit)} ,
         {$sort : {
           createdAt : -1 ,
         }}
@@ -159,7 +157,7 @@ const getComments = TryCatch(async(req , res) => {
   
     default:
       sortOptions = [
-        {$sample : {size : Number(limit)}}
+        // {$sample : {size : Number(limit)}}
       ]
       break;
   }
@@ -190,8 +188,16 @@ const getComments = TryCatch(async(req , res) => {
         ]
       }}
     } ,
+    //total like
+    {$lookup : {
+      from : 'likes' ,
+      foreignField : 'comment' ,
+      localField : '_id' ,
+      as : 'totalLike' ,
+    }} ,
     ...sortOptions ,
     { $skip : skip} ,
+    { $limit : Number(limit)} ,
 
     // reply details
     {$lookup : {
@@ -234,13 +240,6 @@ const getComments = TryCatch(async(req , res) => {
         }}
       ] ,
       as : 'userDetails'  
-    }} ,
-    //total like
-    {$lookup : {
-      from : 'likes' ,
-      foreignField : 'comment' ,
-      localField : '_id' ,
-      as : 'totalLike' ,
     }} ,
     // total dislike
     {$lookup : {
@@ -359,13 +358,15 @@ const toggleDislikeComment = TryCatch(async (req , res) => {
 const deleteComment = TryCatch(async (req , res) => {
   const {id} = req.params ;
   
-  const isExistComment = await Comment.findById({_id : id}).select('user') ;
+  const isExistComment = await Comment.findById({_id : id}).select('user isDeleted content') ;
 
   if(!isExistComment) return  ResError(res , 404 , 'Comment not found') ;
 
   if( !isExistComment.user.equals(req.user._id)) return ResError(res , 403 , 'You are not the owner of this comment') ;
 
-  await Comment.deleteOne({_id : id})
+  isExistComment.isDeleted = true ;
+  isExistComment.content = 'Comment deleted by user' ;
+  await isExistComment.save() ;
   return ResSuccess(res , 200 , 'Comment deleted successfully') ;
 
 } , 'delete Comment')

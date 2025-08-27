@@ -1,14 +1,15 @@
-import { BarChart2Icon, BookmarkIcon, ChevronDown, EllipsisVerticalIcon, FlagIcon, HeartIcon, InfoIcon, Loader2Icon, MessageSquareIcon, Pin, PinIcon, Repeat2Icon, Share2Icon, ShareIcon, ThumbsDownIcon, ThumbsUpIcon } from "lucide-react";
+import { BarChart2Icon, BookmarkIcon, ChevronDown, EllipsisVerticalIcon, FlagIcon, HeartIcon, InfoIcon, Loader2Icon, MessageSquareIcon, Pin, PinIcon, Repeat2Icon, Share2Icon, ShareIcon, ThumbsDownIcon, ThumbsUpIcon, Trash2Icon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { useGetPostQuery, useLazyGetCommentQuery, usePostCommentMutation, useToggleDisLikeCommentMutation, useToggleLikeCommentMutation, useToggleOnPostMutation } from "../../redux/api/api";
+import { useDeleteCommentMutation, useGetPostQuery, useLazyGetCommentQuery, usePostCommentMutation, useToggleDisLikeCommentMutation, useToggleLikeCommentMutation, useToggleOnPostMutation } from "../../redux/api/api";
 import moment from "moment";
 import RenderPostContent from "../specific/RenderPostContent";
 import { toast } from "react-toastify";
 import ImageSlider from "../shared/ImagesSlider";
 import TextArea from 'react-textarea-autosize'
 import CommentCardSkeleton from "../shared/CommentCardSkeleton";
+import { set } from "mongoose";
 
 
 function CommunityPostPage({community}) {
@@ -46,7 +47,7 @@ console.log(comments);
   const [fetchMoreComments , {data : newCommentData , isLoading : isLoadingComments , isError : isErrorComments}] = useLazyGetCommentQuery() ;
 
   useEffect(() => {
-      fetchMoreComments({page : 1 , sortBy , id , isComment : false , comment_id : null}) ;
+      if(page === 1) fetchMoreComments({page : 1 , sortBy , id , isComment : false , comment_id : null}) ;
   } , [])
 
 
@@ -54,7 +55,14 @@ console.log(comments);
     if(newCommentData && newCommentData.data){
       console.log(newCommentData.data);
       
-      setComments((prev) => [...prev , ...newCommentData.data.comments]) ;
+      setComments((prev) => {
+        if (prev.length &&
+          prev.at(-1)?._id === newCommentData.data.comments.at(-1)?._id
+        ) {
+          return prev ;
+        }
+        return [...prev, ...newCommentData.data.comments]}) ;
+        
       setTotalPages(newCommentData.data.totalPages) ;
       setPage(prev => prev + 1) ;
     }
@@ -74,6 +82,7 @@ console.log(comments);
     }
   };
   const [toggleMutation] = useToggleOnPostMutation() ;
+  const [deleteMutation] = useDeleteCommentMutation() ;
 
   const toggleLiketFunc = async(option) => {
     try {
@@ -114,8 +123,6 @@ console.log(comments);
       console.log('error in doing toggle post operation', error);
     }
   }
-
-
   useEffect(() => {
     if(data) 
       setPost(data?.data) ;
@@ -295,9 +302,11 @@ export default CommunityPostPage;
 
 
 
-function Comment({ comment, fetchMoreComments , id }) {
+function Comment({ comment,  id , nestedNo }) {
+
 
   const renderPreRef = useRef(null) ;
+  const [isDeleted , setIsDeleted] = useState(comment?.isDeleted) ;
   const [expandable , setExpandable] = useState(false) ;
   const [textExpended , setTextExpended] = useState(false) ;
   const [commentLoader ,  setCommentLoader] = useState(false) ;
@@ -316,8 +325,24 @@ function Comment({ comment, fetchMoreComments , id }) {
   const [toggleLikeMutation] = useToggleLikeCommentMutation();
   const [toggleDislikeMutation] = useToggleDisLikeCommentMutation();
   const [PostReplyMutation] = usePostCommentMutation();
+  const [deleteCommentMutation] = useDeleteCommentMutation();
 
+  const [replies , setReplies] = useState([]) ;
   const [page , setPage] = useState(1) ;
+
+  const [fetchMoreComments , {data , isLoading , isFetching  ,error,  isError }] = useLazyGetCommentQuery() ;
+
+
+  const deleteCommentFunc = async() => {
+      try {
+        await deleteCommentMutation({id : comment._id}).unwrap() ; 
+        setIsDeleted(true) ;
+        toast.success('Comment deleted successfully!')
+      } catch (error) {
+        console.log('error in deleting comment' , error);
+        toast.error(error?.data?.message || "Couldn't delete the comment. Please try again.");
+      }
+    }
 
 
   const toggleLiketFunc = async() => {
@@ -355,7 +380,13 @@ function Comment({ comment, fetchMoreComments , id }) {
       console.log('error in toggling like' , error);
     }
   }
-
+  const fetchMoreCommentsFunc = async() => {
+    try {
+      fetchMoreComments({page ,id , limit : 2 , sortBy : 'Newest' ,  isComment : true , comment_id : comment._id})
+    } catch (error) {
+      console.log('error in fetching more comments' , error);
+    }
+  }
 
   const handleReply = async(e) => {
     e.preventDefault();
@@ -363,9 +394,12 @@ function Comment({ comment, fetchMoreComments , id }) {
     setCommentLoader(true) ;
 
     try {
-      await PostReplyMutation({postId : id ,  comment_id : comment._id  , content : replyText , isEdited : false , mentions : []}).unwrap() ;
+      const res = await PostReplyMutation({postId : id ,  comment_id : comment._id  , content : replyText , isEdited : false , mentions : []}).unwrap() ;
+      console.log(res);
+      
       setReplyText('');
       setShowReplyBox(false);
+      setReplies(prev => [...prev , res.data]);
     } catch (error) {
       console.log('error in posting reply' , error);
       toast.error(error?.data?.message || "Couldn't post the reply. Please try again.");
@@ -374,10 +408,23 @@ function Comment({ comment, fetchMoreComments , id }) {
     }
   };
 
+  useEffect(() => {
+    if(data && data.data){
+      setReplies((prev) => {
+        if (prev.length &&
+          prev.at(-1)?._id === data.data.comments.at(-1)?._id
+        ) {
+          return prev ;
+        }
+        return [...prev, ...data.data.comments]}) ;
+      setPage(prev => prev + 1) ;
+    }
+
+  } , [data])
 
   useEffect(() => {
     if( page === 1 && showReply){
-      fetchMoreComments({page ,id , isComment : true , comment_id : comment._id})
+      fetchMoreComments({page ,id , limit : 2 ,sortBy : 'Newest' ,  isComment : true , comment_id : comment._id})
     }
   } , [showReply])
 
@@ -391,7 +438,13 @@ function Comment({ comment, fetchMoreComments , id }) {
     } , 50)
 
     return () => clearTimeout(timer) ;
-  } , [])
+  } , []);
+
+  useEffect(() => {
+    if(isError){
+      toast.error(error?.data?.message || "Couldn't fetch the post. Please try again.");
+    }
+  } , [isError])
 
   return (
     <div className="mb-4 ">
@@ -399,27 +452,32 @@ function Comment({ comment, fetchMoreComments , id }) {
       <div className="dark:bg-[#000]  text-black dark:text-white border-t-2 border-gray-700 p-2 rounded-lg">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <img src={comment?.author?.avatar?.url} alt="" className="w-8 h-8 border  rounded-full"/> 
+            <img src={comment?.author?.avatar?.url} alt="" className="w-8 h-8 rounded-full"/> 
             <Link to={'/profile/'+comment.user} className="text-sm text-slate-400">
               <span className="dark:text-cyan-600">{comment.author.username}</span> • {moment(comment.createdAt).fromNow()}
             </Link>
           </div>
 
           {/* options */}
-            <div onClick={() => setOpenOptions(prev => !prev)}
-              className='relative dark:hover:bg-slate-700 hover:bg-gray-300 rounded-full p-2 duration-200'
+          <button onClick={() => setOpenOptions(prev => !prev)}
+            className='relative dark:hover:bg-slate-700 hover:bg-gray-300 rounded-full p-2 duration-200'
+            >
+            <EllipsisVerticalIcon size={17} />
+            <div className={`absolute min-w-40 top-2 right-6 duration-200 bg-white dark:bg-slate-800 shadow-md shadow-black/60 rounded-lg ${isOpenOptions ? 'block' : 'scale-0 translate-x-14 -translate-y-2 ' }  `}> 
+              <div 
+              className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-300 dark:hover:bg-slate-900 cursor-pointer"
               >
-              <EllipsisVerticalIcon onClick={() => setOpenOptions(prev => !prev)} size={17} />
-              <div className={`absolute min-w-40 top-2 right-6 duration-200 bg-white dark:bg-slate-800 shadow-md shadow-black/60 rounded-lg ${isOpenOptions ? 'block' : 'scale-0 translate-x-14 -translate-y-2 ' }  `}> 
-                <div 
-                onClick={() => setPinStatus(!pinStatus)}
-                className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-300 dark:hover:bg-slate-900 cursor-pointer"
-                >
-                    <InfoIcon size={17} className="fill-red-500 text-white" />
-                    <span>Report</span>
-                </div> 
+                  <InfoIcon size={17} className="fill-red-500 text-white" />
+                  <span>Report</span>
               </div>
+              <div onClick={deleteCommentFunc}
+              className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-300 dark:hover:bg-slate-900 cursor-pointer"
+              >
+                  <Trash2Icon size={17} className="fill-red-500 text-white" />
+                  <span>Delete </span>
+              </div> 
             </div>
+          </button>
         </div>
 
         {/* content */}
@@ -428,7 +486,15 @@ function Comment({ comment, fetchMoreComments , id }) {
             maxHeight : textExpended ? '800px' : '48px' ,
           }}
           >
-          <pre ref={renderPreRef} className="dark:text-gray-300 text-sm mb-0.5 font-sans text-wrap"><RenderPostContent text={comment?.content}/></pre>
+          {isDeleted ? (
+            <pre ref={renderPreRef} className="dark:text-gray-300 text-sm mb-0.5 font-sans italic text-wrap">
+              Comment was deleted.
+            </pre>
+            ) : (
+            <pre ref={renderPreRef} className="dark:text-gray-300 text-sm mb-0.5 font-sans text-wrap">
+              <RenderPostContent text={comment?.content}/>
+            </pre>
+          )}
         </div>
         <button 
           onClick={() => setTextExpended((prev) => !prev)}
@@ -443,15 +509,19 @@ function Comment({ comment, fetchMoreComments , id }) {
             onClick={() => setShowReply(!showReply)}
             className={`flex justify-between items-center gap-1 dark:hover:text-white `}>
               {comment?.replyCount || 0 } Replies 
-              <ChevronDown className={` ${!showReply ? '' : ' rotate-180'} duration-200`} size={15}/> 
+              {isLoading ? (
+                <Loader2Icon className="animate-spin" size={15} />
+              ) : (
+                <ChevronDown className={` ${!showReply ? '' : ' rotate-180'} duration-200`} size={15}/>
+              )}
           </button>
           }
           <button onClick={toggleLiketFunc} className="flex items-center dark:hover:text-white gap-1"> 
-            <ThumbsUpIcon className={`${likeStatus ? 'dark:fill-gray-300 dark:text-gray-300 fill-cyan-500 text-cyan-500' : ''}  hover:text-gray-600 dark:hover:text-white active:scale-90 duration-200`} size={17} /> 
+            <ThumbsUpIcon className={`${likeStatus ? 'dark:fill-gray-300 dark:text-gray-300 fill-cyan-500 text-cyan-500' : ''}  hover:text-gray-600 dark:hover:text-white active:scale-75 duration-200`} size={17} /> 
             {' '} {likeCount}
           </button> 
           <button onClick={toggleDisLiketFunc} className="flex items-center dark:hover:text-white gap-1"> 
-            <ThumbsDownIcon className={`${dislikeStatus ? 'dark:fill-gray-300 dark:text-gray-300 fill-cyan-500 text-cyan-500' : ''} active:scale-90  hover:text-gray-600 dark:hover:text-white duration-200`} size={17} /> 
+            <ThumbsDownIcon className={`${dislikeStatus ? 'dark:fill-gray-300 dark:text-gray-300 fill-cyan-500 text-cyan-500' : ''} active:scale-75  hover:text-gray-600 dark:hover:text-white duration-200`} size={17} /> 
             {' '} {dislikeCount} 
           </button> 
           <button className="flex items-center gap-1 dark:hover:text-white" onClick={() => setShowReplyBox(!showReplyBox)}><MessageSquareIcon size={15} /> 
@@ -489,11 +559,19 @@ function Comment({ comment, fetchMoreComments , id }) {
       )}
 
       {/* Child Replies */}
-      {showReply && comment.replies?.length > 0 && (
+      {showReply && comment.replyCount > 0 && (
         <div className="ml-6 mt-3 border-l border-gray-700 pl-4">
-          {comment.replies.map((reply) => (
-            <Comment key={reply.id} comment={reply} id={id} fetchMoreComments={fetchMoreComments} />
+          {replies.map((reply) => (
+            <Comment key={reply._id} nestedNo={nestedNo+1} comment={reply} id={id}  />
           ))}
+          {comment.replyCount > replies.length && (
+            <button
+          onClick={fetchMoreCommentsFunc}
+          className="text-sm text-cyan-600 px-1 font-semibold  flex items-center gap-2 mt-4  rounded-full"
+          >
+            View More Replies {isFetching ? <Loader2Icon size={15} className='animate-spin' /> : <ChevronDown size={15} /> } 
+          </button>
+          )}
         </div>
       )}
 
@@ -501,13 +579,13 @@ function Comment({ comment, fetchMoreComments , id }) {
   );
 }
 
-function CommentsThread({commentsArr = [] , id , fetchMoreComments  }) {
+function CommentsThread({commentsArr = [] , id  }) {
 
   return (
     <div className="w-full mx-auto text-white rounded-xl border custom-box  ">
 
       {commentsArr.map((comment) => (
-        <Comment key={comment._id} id={id} fetchMoreComments={fetchMoreComments} comment={comment} />
+        <Comment key={comment._id} id={id} nestedNo={1} comment={comment} />
       ))}
     </div>
   );
