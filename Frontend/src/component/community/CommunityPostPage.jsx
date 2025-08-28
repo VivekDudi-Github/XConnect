@@ -1,4 +1,4 @@
-import { BarChart2Icon, BookmarkIcon, ChevronDown, EllipsisVerticalIcon, FlagIcon, HeartIcon, InfoIcon, Loader2Icon, MessageSquareIcon, Pin, PinIcon, Repeat2Icon, Share2Icon, ShareIcon, ThumbsDownIcon, ThumbsUpIcon, Trash2Icon } from "lucide-react";
+import { BarChart2Icon, BookmarkIcon, ChevronDown, ChevronRightIcon, EllipsisVerticalIcon, FlagIcon, HeartIcon, InfoIcon, Loader2Icon, MessageSquareIcon, Pin, PinIcon, Repeat2Icon, Share2Icon, ShareIcon, ThumbsDownIcon, ThumbsUpIcon, Trash2Icon, XIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -303,9 +303,11 @@ export default CommunityPostPage;
 
 
 function Comment({ comment,  id , nestedNo }) {
-
+  const {user} = useSelector(state => state.auth) ;
 
   const renderPreRef = useRef(null) ;
+  const [ContinueThread , setContinueThread] = useState(false) ;
+
   const [isDeleted , setIsDeleted] = useState(comment?.isDeleted) ;
   const [expandable , setExpandable] = useState(false) ;
   const [textExpended , setTextExpended] = useState(false) ;
@@ -327,6 +329,7 @@ function Comment({ comment,  id , nestedNo }) {
   const [PostReplyMutation] = usePostCommentMutation();
   const [deleteCommentMutation] = useDeleteCommentMutation();
 
+  const [replyCount , setReplyCount] = useState(comment?.replyCount) ;
   const [replies , setReplies] = useState([]) ;
   const [page , setPage] = useState(1) ;
 
@@ -399,7 +402,17 @@ function Comment({ comment,  id , nestedNo }) {
       
       setReplyText('');
       setShowReplyBox(false);
-      setReplies(prev => [...prev , res.data]);
+      setReplyCount(prev => prev + 1) ;
+      setReplies(prev => [...prev , 
+        {...res.data ,
+          author : {
+            username : user?.username ,
+            avatar : {
+              url : user?.avatar?.url ,
+            } ,
+          }
+         }
+      ]);
     } catch (error) {
       console.log('error in posting reply' , error);
       toast.error(error?.data?.message || "Couldn't post the reply. Please try again.");
@@ -504,11 +517,11 @@ function Comment({ comment,  id , nestedNo }) {
 
         {/* Actions  */}
         <div className="mt-2 text-sm text-gray-500 flex gap-4 items-center">
-          { comment?.replyCount > 0 && 
+          { replyCount > 0 && 
           <button  
             onClick={() => setShowReply(!showReply)}
             className={`flex justify-between items-center gap-1 dark:hover:text-white `}>
-              {comment?.replyCount || 0 } Replies 
+              {replyCount || 0 } Replies  
               {isLoading ? (
                 <Loader2Icon className="animate-spin" size={15} />
               ) : (
@@ -559,21 +572,38 @@ function Comment({ comment,  id , nestedNo }) {
       )}
 
       {/* Child Replies */}
-      {showReply && comment.replyCount > 0 && (
+      {showReply && replyCount > 0 && (
         <div className="ml-6 mt-3 border-l border-gray-700 pl-4">
           {replies.map((reply) => (
             <Comment key={reply._id} nestedNo={nestedNo+1} comment={reply} id={id}  />
           ))}
-          {comment.replyCount > replies.length && (
+
+          {replyCount > replies.length && nestedNo < 4  && (
             <button
-          onClick={fetchMoreCommentsFunc}
-          className="text-sm text-cyan-600 px-1 font-semibold  flex items-center gap-2 mt-4  rounded-full"
-          >
-            View More Replies {isFetching ? <Loader2Icon size={15} className='animate-spin' /> : <ChevronDown size={15} /> } 
-          </button>
+            onClick={fetchMoreCommentsFunc}
+            className="text-sm text-cyan-600 px-1 font-semibold  flex items-center gap-2 mt-4  rounded-full"
+            >
+              View More Replies {isFetching ? <Loader2Icon size={15} className='animate-spin' /> : <ChevronDown size={15} /> } 
+            </button>
+          )}
+          {nestedNo >= 4 && (
+            <button
+            onClick={() => setContinueThread(true)}
+            className="text-sm text-cyan-600 px-1 font-semibold  flex items-center gap-1 mt-4  rounded-full">
+              Continue this thread<ChevronRightIcon size={15} />   
+            </button>
           )}
         </div>
       )}
+
+      {ContinueThread &&<div className="fixed p-4 mx-auto inset-x-10 rounded-lg inset-y-10  z-50 overflow-auto bg-black h-[100% - 50px] max-w-6xl" >
+        <button title='Close' className=' absolute right-2 top-2 p-1 text-gray-600 bg-gray-100 hover:bg-gray-300 rounded-lg dark:bg-black  dark:text-white   dark:hover:bg-white shadow-sm shadow-black/60 dark:hover:text-black duration-300 active:scale-90'
+          onClick={() => {setContinueThread(false)}}
+        >
+          <XIcon />
+        </button>
+        <CommentsThread commentsArr={[comment]} id={id} />
+      </div>}
 
     </div>
   );
