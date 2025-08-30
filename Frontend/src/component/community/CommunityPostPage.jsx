@@ -1,4 +1,4 @@
-import { BarChart2Icon, BookmarkIcon, ChevronDown, ChevronRightIcon, EllipsisVerticalIcon, FlagIcon, HeartIcon, InfoIcon, Loader2Icon, MessageSquareIcon, Pin, PinIcon, Repeat2Icon, Share2Icon, ShareIcon, ThumbsDownIcon, ThumbsUpIcon, Trash2Icon, XIcon } from "lucide-react";
+import { BarChart2Icon, BookmarkIcon, ChevronDown, ChevronLeftIcon, ChevronRightIcon, EllipsisVerticalIcon, FlagIcon, HeartIcon, InfoIcon, Loader2Icon, MessageSquareIcon, Pin, PinIcon, Repeat2Icon, Share2Icon, ShareIcon, ThumbsDownIcon, ThumbsUpIcon, Trash2Icon, XIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -9,12 +9,12 @@ import { toast } from "react-toastify";
 import ImageSlider from "../shared/ImagesSlider";
 import TextArea from 'react-textarea-autosize'
 import CommentCardSkeleton from "../shared/CommentCardSkeleton";
-import { set } from "mongoose";
+
 
 
 function CommunityPostPage({community}) {
- const {user} = useSelector(state => state.auth) ;
   const {id} = useParams() ;
+  const {user} = useSelector(state => state.auth) ;
 
   const [comments, setComments] = useState([]);
   const [communities , setCommunities] = useState([
@@ -23,7 +23,6 @@ function CommunityPostPage({community}) {
     { id: 3, name: 'Gaming', avatar: '🎮' },
     { id: 4, name: 'Startups', avatar: '🚀' },
   ]);
-console.log(comments);
 
   const [commentLoader ,  setCommentLoader] = useState(false) ;
 
@@ -72,8 +71,18 @@ console.log(comments);
     e.preventDefault();
     setCommentLoader(true) ;
     try {
-      await commentPostMutation({postId : id , content : newComment , isEdited : false , mentions : []}).unwrap() ;
+      const res = await commentPostMutation({postId : id , content : newComment , isEdited : false , mentions : []}).unwrap() ;
+      
       setNewComment('');
+      setComments(prev => [ {
+        ...res.data ,
+        author : {
+          username : user?.username ,
+          avatar : {
+            url : user?.avatar?.url ,
+          } ,
+        }
+      } , ...prev])
     } catch (error) {
       console.log('error in posting comment' , error);
       toast.error(error?.data?.message || "Couldn't post the comment. Please try again.");
@@ -302,7 +311,7 @@ export default CommunityPostPage;
 
 
 
-function Comment({ comment,  id , nestedNo }) {
+function Comment({ comment,  id , nestedNo , closePreThreadFunc }) {
   const {user} = useSelector(state => state.auth) ;
 
   const renderPreRef = useRef(null) ;
@@ -334,7 +343,7 @@ function Comment({ comment,  id , nestedNo }) {
   const [page , setPage] = useState(1) ;
 
   const [fetchMoreComments , {data , isLoading , isFetching  ,error,  isError }] = useLazyGetCommentQuery() ;
-
+  
 
   const deleteCommentFunc = async() => {
       try {
@@ -459,10 +468,16 @@ function Comment({ comment,  id , nestedNo }) {
     }
   } , [isError])
 
+  const closeAllThreadFunc = ()=>{
+    if(typeof closePreThreadFunc === 'function') closePreThreadFunc()
+    setContinueThread(false)
+  }
+
   return (
     <div className="mb-4 ">
-      {/* Comment Content */}
       <div className="dark:bg-[#000]  text-black dark:text-white border-t-2 border-gray-700 p-2 rounded-lg">
+        
+        {/* Header and Options */}
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
             <img src={comment?.author?.avatar?.url} alt="" className="w-8 h-8 rounded-full"/> 
@@ -529,11 +544,17 @@ function Comment({ comment,  id , nestedNo }) {
               )}
           </button>
           }
-          <button onClick={toggleLiketFunc} className="flex items-center dark:hover:text-white gap-1"> 
+          <button 
+          disabled={isDeleted} 
+          onClick={toggleLiketFunc} 
+          className="flex items-center dark:hover:text-white gap-1"> 
             <ThumbsUpIcon className={`${likeStatus ? 'dark:fill-gray-300 dark:text-gray-300 fill-cyan-500 text-cyan-500' : ''}  hover:text-gray-600 dark:hover:text-white active:scale-75 duration-200`} size={17} /> 
             {' '} {likeCount}
           </button> 
-          <button onClick={toggleDisLiketFunc} className="flex items-center dark:hover:text-white gap-1"> 
+          <button 
+          disabled={isDeleted} 
+          onClick={toggleDisLiketFunc} 
+          className="flex items-center dark:hover:text-white gap-1"> 
             <ThumbsDownIcon className={`${dislikeStatus ? 'dark:fill-gray-300 dark:text-gray-300 fill-cyan-500 text-cyan-500' : ''} active:scale-75  hover:text-gray-600 dark:hover:text-white duration-200`} size={17} /> 
             {' '} {dislikeCount} 
           </button> 
@@ -596,26 +617,34 @@ function Comment({ comment,  id , nestedNo }) {
         </div>
       )}
 
-      {ContinueThread &&<div className="fixed p-4 mx-auto inset-x-10 rounded-lg inset-y-10  z-50 overflow-auto bg-black h-[100% - 50px] max-w-6xl" >
-        <button title='Close' className=' absolute right-2 top-2 p-1 text-gray-600 bg-gray-100 hover:bg-gray-300 rounded-lg dark:bg-black  dark:text-white   dark:hover:bg-white shadow-sm shadow-black/60 dark:hover:text-black duration-300 active:scale-90'
-          onClick={() => {setContinueThread(false)}}
-        >
-          <XIcon />
-        </button>
-        <CommentsThread commentsArr={[comment]} id={id} />
+      {ContinueThread &&<div className="fixed p-4 mx-auto inset-x-10 rounded-lg border inset-y-10  z-50 overflow-auto bg-black h-[100% - 50px] max-w-6xl" >
+        <div className="flex items-center justify-between text-sm text-gray-500  mb-1">
+          <button title="Moves to previous thread" className=" flex gap-1 text-gray-400"
+            onClick={() => {setContinueThread(false)}}
+          > 
+            <ChevronLeftIcon className="dark:hover:bg-slate-700 hover:bg-gray-300 rounded-full p-0.5 duration-200" /> 
+            Back
+          </button>
+          <button title='Close all the threads' className=' p-1 text-gray-600 bg-gray-100 hover:bg-gray-300 rounded-lg dark:bg-black  dark:text-white   dark:hover:bg-white shadow-sm shadow-black/60 dark:hover:text-black duration-300 active:scale-90'
+            onClick={closeAllThreadFunc}
+          >
+            <XIcon />
+          </button>
+        </div>
+        <CommentsThread commentsArr={[comment]} id={id} closePreThreadFunc={closeAllThreadFunc}/>
       </div>}
 
     </div>
   );
 }
 
-function CommentsThread({commentsArr = [] , id  }) {
+function CommentsThread({commentsArr = [] , id , closePreThreadFunc = () => {} }) {
 
   return (
     <div className="w-full mx-auto text-white rounded-xl border custom-box  ">
 
       {commentsArr.map((comment) => (
-        <Comment key={comment._id} id={id} nestedNo={1} comment={comment} />
+        <Comment key={comment._id} id={id} nestedNo={1} closePreThreadFunc={closePreThreadFunc} comment={comment} />
       ))}
     </div>
   );

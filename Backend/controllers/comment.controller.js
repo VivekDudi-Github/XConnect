@@ -43,8 +43,10 @@ const createComment  = TryCatch( async (req , res ) => {
 
   ResSuccess(res ,200 , comment) ;
 
-  if(!comment_id){
-    const notif = await Notification.create({
+  if(!comment_id ){
+    if(!isExistPost.author._id.equals(req.user._id)){
+      
+      const notif = await Notification.create({
       type : 'comment' ,
       post : id ,
       sender : req.user._id , 
@@ -62,7 +64,8 @@ const createComment  = TryCatch( async (req , res ) => {
         _id : req.user._id ,
       } ,
     })
-  } else {
+    }
+  } else if(mentions.length > 0 || !isExistComment.user.equals(req.user._id)){
     const notif = await Notification.create({
       type : 'reply' ,
       post : id ,
@@ -70,7 +73,7 @@ const createComment  = TryCatch( async (req , res ) => {
       comment_Id : comment._id ,
       receiver : isExistComment.user ,
     })
-    emitEvent('notification:receive' , `user` , [`${isExistComment.user.toString()}`] , {
+    if( !isExistComment.user.equals(req.user._id) ) {emitEvent('notification:receive' , `user` , [`${isExistComment.user.toString()}`] , {
       _id : notif._id ,
       type : 'reply' ,
       post : id ,
@@ -80,7 +83,7 @@ const createComment  = TryCatch( async (req , res ) => {
         username : req.user.username ,
         _id : req.user._id ,
       } ,
-    })
+    })}
   }
   
   if(mentions.length > 0){
@@ -310,7 +313,7 @@ const getComments = TryCatch(async(req , res) => {
 const toggleLikeComment = TryCatch(async (req , res) => {
   const {id} = req.params ; 
   
-  const isExistComment = await Comment.exists({_id : id})
+  const isExistComment = await Comment.exists({_id : id , isDeleted : false})
   if(!isExistComment) return  ResError(res , 404 , 'Comment not found') ;
 
   const isExistLike = await Likes.exists({comment : id , user : req.user._id})
@@ -333,7 +336,7 @@ const toggleLikeComment = TryCatch(async (req , res) => {
 const toggleDislikeComment = TryCatch(async (req , res) => {
   const {id} = req.params ; 
   
-  const isExistComment = await Comment.exists({_id : id})
+  const isExistComment = await Comment.exists({_id : id , isDeleted : false})
   if(!isExistComment) return  ResError(res , 404 , 'Comment not found') ;
 
   const isExistDislike = await Dislikes.exists({comment : id , user : req.user._id})
@@ -364,11 +367,16 @@ const deleteComment = TryCatch(async (req , res) => {
 
   if( !isExistComment.user.equals(req.user._id)) return ResError(res , 403 , 'You are not the owner of this comment') ;
 
-  isExistComment.isDeleted = true ;
-  isExistComment.content = 'Comment deleted by user' ;
-  await isExistComment.save() ;
-  return ResSuccess(res , 200 , 'Comment deleted successfully') ;
-
+  const existsReply = await Comment.exists({ comment_id : id })
+  if(!existsReply){
+    await isExistComment.deleteOne()
+    return ResSuccess(res , 200 , 'Comment deleted successfully') ;
+  } else {
+      isExistComment.isDeleted = true ;
+      isExistComment.content = 'Comment deleted by user' ;
+      await isExistComment.save() ;
+    return ResSuccess(res , 200 , 'Comment deleted successfully') ;
+  }
 } , 'delete Comment')
 
 const getSingleComment = TryCatch(async (req , res) => {
