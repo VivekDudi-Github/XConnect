@@ -24,6 +24,7 @@ import messageListener from "./utils/listners/message.listener.js";
 
 import { User } from "./models/user.model.js";
 import { UserListener } from "./utils/listners/user.listener.js";
+import { Following } from "./models/following.model.js";
 
 dotenv.config() ;
 
@@ -41,11 +42,16 @@ io.use(checkSocketUser) ;
 
 
 
-io.on('connection', (socket) => {
+io.on('connection', async(socket) => {
   console.log(`New client connected: ${socket.id}`);
   // Store the user's socket ID
+
   if (socket.user) {
+    const communities = await Following.find({followedBy : socket.user._id , followingCommunity : {$exists : true}}).select('followingCommunity')
     socket.join(`user:${socket.user._id}`)
+    communities.forEach( c => {
+      socket.join(`community:${c.followingCommunity}`)
+    })
   }
   messageListener(socket , io) ;
   UserListener(socket , io) ;

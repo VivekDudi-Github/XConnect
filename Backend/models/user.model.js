@@ -14,6 +14,11 @@ const userSchema = new mongoose.Schema({
         required : true,
         type : String ,
     } ,
+    streamKey : {
+        type : String ,
+        unique : true ,
+        index : true,
+    } ,
     email : {
         type : String ,
         required : true,
@@ -92,5 +97,7 @@ userSchema.methods.generateRefreshToken = function(){
 userSchema.methods.IsPasswordCorrect =async function(password) {
     return await bcrypt.compare(password, this.password);
 }
+
+
 
 export const User = mongoose.model("User", userSchema);
