@@ -4,6 +4,7 @@ import express from "express";
 import dotenv from 'dotenv' ;
 import cors from 'cors' ;
 import jwt from 'jsonwebtoken' ;
+import * as mediasoup from "mediasoup";
 
 import {createServer} from 'http' ;
 import {Server} from 'socket.io' ;
@@ -31,6 +32,8 @@ dotenv.config() ;
 const app = express() ;
 const newServer = createServer(app)
 
+let worker, router, producerTransport, consumerTransport, producer, consumer;
+
 const io = new Server(newServer ,{
    cors : {
      origin: 'http://localhost:5173',
@@ -40,6 +43,15 @@ const io = new Server(newServer ,{
 
 io.use(checkSocketUser) ;
 
+(async () => {
+  worker = await mediasoup.createWorker();
+  router = await worker.createRouter({
+    mediaCodecs: [
+      { kind: "audio", mimeType: "audio/opus", clockRate: 48000, channels: 2 },
+      { kind: "video", mimeType: "video/VP8", clockRate: 90000 }
+    ]
+  });
+})();
 
 
 io.on('connection', async(socket) => {
@@ -55,6 +67,70 @@ io.on('connection', async(socket) => {
   }
   messageListener(socket , io) ;
   UserListener(socket , io) ;
+
+    socket.on("createProducerTransport", async (callback) => {
+    producerTransport = await router.createWebRtcTransport({
+      listenIps: [{ ip: "0.0.0.0", announcedIp: "127.0.0.1" }],
+      enableUdp: true,
+      enableTcp: true
+    });
+
+    callback({
+      id: producerTransport.id,
+      iceParameters: producerTransport.iceParameters,
+      iceCandidates: producerTransport.iceCandidates,
+      dtlsParameters: producerTransport.dtlsParameters
+    });
+  });
+
+  socket.on("connectProducerTransport", async ({ dtlsParameters }, callback) => {
+    await producerTransport.connect({ dtlsParameters });
+    callback();
+  });
+
+    socket.on("produce", async ({ kind, rtpParameters }, callback) => {
+    producer = await producerTransport.produce({ kind, rtpParameters });
+    callback({ id: producer.id });
+  });
+
+  socket.on("createConsumerTransport", async (callback) => {
+    consumerTransport = await router.createWebRtcTransport({
+      listenIps: [{ ip: "0.0.0.0", announcedIp: "127.0.0.1" }],
+      enableUdp: true,
+      enableTcp: true
+    });
+
+    callback({
+      id: consumerTransport.id,
+      iceParameters: consumerTransport.iceParameters,
+      iceCandidates: consumerTransport.iceCandidates,
+      dtlsParameters: consumerTransport.dtlsParameters
+    });
+  });
+
+   socket.on("connectConsumerTransport", async ({ dtlsParameters }, callback) => {
+    await consumerTransport.connect({ dtlsParameters });
+    callback();
+  });
+
+  socket.on("consume", async ({ rtpCapabilities }, callback) => {
+    if (!router.canConsume({ producerId: producer.id, rtpCapabilities })) {
+      return callback({ error: "cannot consume" });
+    }
+
+    consumer = await consumerTransport.consume({
+      producerId: producer.id,
+      rtpCapabilities,
+      paused: false
+    });
+
+    callback({
+      id: consumer.id,
+      producerId: producer.id,
+      kind: consumer.kind,
+      rtpParameters: consumer.rtpParameters
+    });
+  });
 
   // Handle disconnection
   socket.on('disconnect', async() => {
