@@ -140,7 +140,9 @@ function ProfileHeader() {
           </div>
 
           {user.username === userProfile?.username && (
-          <button title='Settings' className=' absolute sm:hidden block  right-2 p-2 text-gray-600 bg-gray-100 hover:bg-gray-300 rounded-lg dark:bg-black  dark:text-white   dark:hover:bg-white shadow-sm shadow-black/60 dark:hover:text-black duration-300 active:scale-90'>
+          <button
+          onClick={() => navigate('/broadcast')}
+          title='Settings' className=' absolute sm:hidden block  right-2 p-2 text-gray-600 bg-gray-100 hover:bg-gray-300 rounded-lg dark:bg-black  dark:text-white   dark:hover:bg-white shadow-sm shadow-black/60 dark:hover:text-black duration-300 active:scale-90'>
             <SettingsIcon/>
           </button>
           )}

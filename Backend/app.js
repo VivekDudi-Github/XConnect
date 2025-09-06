@@ -68,7 +68,11 @@ io.on('connection', async(socket) => {
   messageListener(socket , io) ;
   UserListener(socket , io) ;
 
-    socket.on("createProducerTransport", async (callback) => {
+  socket.on("getRtpCapabilities", (callback) => {
+    callback(router.rtpCapabilities);
+  });
+
+    socket.on("createWebRtcTransport", async (callback) => {
     producerTransport = await router.createWebRtcTransport({
       listenIps: [{ ip: "0.0.0.0", announcedIp: "127.0.0.1" }],
       enableUdp: true,
@@ -89,7 +93,8 @@ io.on('connection', async(socket) => {
   });
 
     socket.on("produce", async ({ kind, rtpParameters }, callback) => {
-    producer = await producerTransport.produce({ kind, rtpParameters });
+    console.log('producing', kind);
+      producer = await producerTransport.produce({ kind, rtpParameters });
     callback({ id: producer.id });
   });
 
