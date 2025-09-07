@@ -24,6 +24,7 @@ const CommunitiesPage = lazy(() => import('./pages/CommunitiesPage'));
 
 import CommunityHome from './component/community/communityHome';
 import Broadcaster from './component/specific/broadcast/Broadcaster';
+import RecieveBroadcast from './component/specific/broadcast/recieveBroadcast';
 const CommunityHomePage = lazy(() => import('./component/community/CommunityHomePage'))
 const CommunityPostPage = lazy(() => import('./component/community/CommunityPostPage'))
 
@@ -85,7 +86,7 @@ useEffect(() => {
             </Route>
 
             <Route path='/broadcast' element={<Broadcaster />} />
-
+            <Route path='/see/:id' element={<RecieveBroadcast/>} />
             <Route path='/comment/:id' element ={<CommentPage />} />
             
           </Route>

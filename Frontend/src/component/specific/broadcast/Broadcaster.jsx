@@ -8,6 +8,7 @@ export default function Broadcaster() {
   const producerTransportRef = useRef(null);
   const producersRef = useRef([]); // store producer objects (audio/video)
   const localStreamRef = useRef(null);
+  
 
   const [isLive, setIsLive] = useState(false);
   console.log(isLive);
@@ -39,19 +40,22 @@ export default function Broadcaster() {
           // params: { id, iceParameters, iceCandidates, dtlsParameters }
           const producerTransport = device.createSendTransport(params);
           producerTransportRef.current = producerTransport;
+          console.log('createWebRtcTransport created');
+          
 
           // when transport needs to connect (DTLS)
           producerTransport.on("connect", ({ dtlsParameters }, callback, errback) => {
-            socket.emit("connectProducerTransport", { dtlsParameters }, () => {
-              callback(); // tell transport it's connected
-              console.log(errback);
+            socket.emit("connectProducerTransport", { dtlsParameters  }, () => {
+            callback(); // tell transport it's connected
+            console.log('connectProducerTransport connected');
             });
           });
 
           // when transport needs to produce a new track - tell server
           producerTransport.on("produce", async ({ kind, rtpParameters }, callback, errback) => {
-            socket.emit("produce", { kind, rtpParameters }, ({ id }) => {
+            socket.emit("produce", { kind, rtpParameters ,transportId : producerTransport._id }, ({ id }) => {
               callback({ id }); // give the transport the server-side producer id
+              console.log('produce id : ' ,id);
             });
           });
 
@@ -99,7 +103,7 @@ export default function Broadcaster() {
     <div>
       <h3>Broadcaster</h3>
     
-        <video ref={videoRef} style={{ width: "640px", height: "360px", background: "#000" }} autoPlay playsInline />
+        <video ref={videoRef} controls style={{ width: "640px", height: "360px", background: "#000" }} autoPlay playsInline />
       
       <div style={{ marginTop: 8 }}>
         {!isLive ? (
