@@ -86,7 +86,7 @@ useEffect(() => {
             </Route>
 
             <Route path='/broadcast' element={<Broadcaster />} />
-            <Route path='/see/:id' element={<RecieveBroadcast/>} />
+            <Route path='/see' element={<RecieveBroadcast/>} />
             <Route path='/comment/:id' element ={<CommentPage />} />
             
           </Route>

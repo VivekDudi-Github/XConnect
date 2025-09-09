@@ -82,6 +82,8 @@ io.on("connection", async (socket) => {
 
   socket.on("getRtpCapabilities", (callback) => {
     callback(router.rtpCapabilities);
+    console.log('rtpCapabilities : ', router.rtpCapabilities);
+    
   });
 
   socket.on("createWebRtcTransport", async (callback) => {
@@ -117,7 +119,7 @@ io.on("connection", async (socket) => {
     const transports = transportsBySocket.get(socket.id) || [];
     
     const transport = transports.find(t => t.id === transportId);
-    console.log(!!transport , transport);
+    // console.log(!!transport , transport);
     if (!transport) return;
 
     const producer = await transport.produce({ kind, rtpParameters });
@@ -129,6 +131,29 @@ io.on("connection", async (socket) => {
     
     callback({ id: producer.id });
   });
+
+//   socket.on("produce", async ({ kind, rtpParameters, transportId }, callback) => {
+//   const transport = transportsBySocket.get(transportId);
+//   if (!transport) {
+//     return callback({ error: "transport not found" });
+//   }
+
+//   const producer = await transport.produce({ kind, rtpParameters });
+//   producersById.set(producer.id, producer);
+//   console.log("New producer:", producer.id, "kind:", kind);
+
+//   callback({ id: producer.id });
+// });
+
+// ✅ New handler here
+
+socket.on("getProducers", (data, callback) => {
+  const list = [];
+  for (const [id, producer] of producersBySocket.entries()) {
+    list.push({ id, kind: producer.kind });
+  }
+  callback(list);
+});
 
   socket.on("createConsumerTransport", async (callback) => {
     const transport = await router.createWebRtcTransport({
@@ -178,7 +203,7 @@ io.on("connection", async (socket) => {
     const consumer = await transport.consume({
       producerId,
       rtpCapabilities,
-      paused: true
+      paused : false 
     });
     console.log('consuming', consumer.id);
     consumer.requestKeyFrame().catch(() => {console.log('error requesting key frame');
@@ -201,7 +226,9 @@ io.on("connection", async (socket) => {
     const consumer = consumersById.get(consumerId);
     console.log('consumer to resume:', consumerId, !!consumer);
     
-    if (consumer) await consumer.resume();
+    if (consumer) {await consumer.resume();  console.log(consumer?.kind);
+    } else { console.log('no consumer found');
+    }
   });
 
   // === cleanup ===

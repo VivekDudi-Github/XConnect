@@ -45,19 +45,22 @@ export default function Broadcaster() {
 
           // when transport needs to connect (DTLS)
           producerTransport.on("connect", ({ dtlsParameters }, callback, errback) => {
-            socket.emit("connectProducerTransport", { dtlsParameters  }, () => {
-            callback(); // tell transport it's connected
-            console.log('connectProducerTransport connected');
+            socket.emit("connectProducerTransport", { dtlsParameters, transportId: producerTransport.id }, () => {
+              callback(); // tell transport it's connected
+              console.log('connectProducerTransport connected', producerTransport.id);
             });
           });
 
           // when transport needs to produce a new track - tell server
           producerTransport.on("produce", async ({ kind, rtpParameters }, callback, errback) => {
-            socket.emit("produce", { kind, rtpParameters ,transportId : producerTransport._id }, ({ id }) => {
+            socket.emit("produce", { kind, rtpParameters, transportId: producerTransport.id }, ({ id }) => {
               callback({ id }); // give the transport the server-side producer id
-              console.log('produce id : ' ,id);
+              console.log('produce id : ', id);
             });
           });
+
+
+
 
           // 4) produce tracks (video + audio)
           // video
@@ -107,9 +110,9 @@ export default function Broadcaster() {
       
       <div style={{ marginTop: 8 }}>
         {!isLive ? (
-          <button onClick={startBroadcast}>Go Live</button>
+          <button className="border-black border-2"  onClick={startBroadcast}>Go Live</button>
         ) : (
-          <button onClick={stopBroadcast}>Stop</button>
+          <button className="border-black border-2"  onClick={stopBroadcast}>Stop</button>
         )}
       </div>
     </div>
