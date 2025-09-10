@@ -45,7 +45,7 @@ const ReceiveBroadcast = () => {
             console.log("Available producers:", producers);
 
             // 4. Consume each producer
-            for (const p of producers) {
+            for (const p of producers[0].kind) {
               socket.emit(
                 "consume",
                 {

@@ -82,7 +82,7 @@ io.on("connection", async (socket) => {
 
   socket.on("getRtpCapabilities", (callback) => {
     callback(router.rtpCapabilities);
-    console.log('rtpCapabilities : ', router.rtpCapabilities);
+    // console.log('rtpCapabilities : ', router.rtpCapabilities);
     
   });
 
@@ -92,7 +92,7 @@ io.on("connection", async (socket) => {
       enableUdp: true,
       enableTcp: true
     });
-
+    
     // store it
     let transports = transportsBySocket.get(socket.id) || [];
     transports.push(transport);
@@ -123,11 +123,33 @@ io.on("connection", async (socket) => {
     if (!transport) return;
 
     const producer = await transport.produce({ kind, rtpParameters });
-
+    console.log("Producer created:", {
+      id: producer.id,
+      kind: producer.kind,
+      type: producer.type, // "simple", "simulcast", "svc"
+      paused: producer.paused,
+      appData: producer.appData,
+      transportId: producer?.transport?.id
+    });
+    
     let producers = producersBySocket.get(socket.id) || [];
-    producers.push(producer);
+    producers.push({
+      id: producer.id,
+      kind: producer.kind,
+      type: producer.type, // "simple", "simulcast", "svc"
+      paused: producer.paused,
+      appData: producer.appData,
+    });
     producersBySocket.set(socket.id, producers);
     console.log("producerId : " ,producer.id);
+
+    producer.on("transportclose", () => {
+      console.log("Producer closed because transport closed");
+    });
+
+    producer.on("trackended", () => {
+      console.log("Producer track ended (user stopped camera/mic)");
+    });
     
     callback({ id: producer.id });
   });
@@ -150,7 +172,7 @@ io.on("connection", async (socket) => {
 socket.on("getProducers", (data, callback) => {
   const list = [];
   for (const [id, producer] of producersBySocket.entries()) {
-    list.push({ id, kind: producer.kind });
+    list.push({ id, kind: producer });
   }
   callback(list);
 });
