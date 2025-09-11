@@ -24,7 +24,9 @@ const CommunitiesPage = lazy(() => import('./pages/CommunitiesPage'));
 
 import CommunityHome from './component/community/communityHome';
 import Broadcaster from './component/specific/broadcast/Broadcaster';
-import RecieveBroadcast from './component/specific/broadcast/recieveBroadcast';
+// import RecieveBroadcast from './component/specific/broadcast/recieveBroadcast';
+import RecieveBroadcast from './component/Call/MeetLayout';
+
 const CommunityHomePage = lazy(() => import('./component/community/CommunityHomePage'))
 const CommunityPostPage = lazy(() => import('./component/community/CommunityPostPage'))
 

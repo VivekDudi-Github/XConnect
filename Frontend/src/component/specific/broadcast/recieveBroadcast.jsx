@@ -22,7 +22,7 @@ const ReceiveBroadcast = () => {
       // 1. Load RTP capabilities from server
       socket.emit("getRtpCapabilities",async (routerRtpCapabilities) => {
         const dev = new mediasoupClient.Device();
-        await dev.load({ routerRtpCapabilities });
+        await dev.load({routerRtpCapabilities} );
         setDevice(dev);
         console.log("RTP Capabilities");
         
@@ -43,7 +43,9 @@ const ReceiveBroadcast = () => {
           // 3. Get the list of producers from server
           socket.emit("getProducers", {}, async (producers) => {
             console.log("Available producers:", producers);
-
+            
+            const stream = new MediaStream();
+            
             // 4. Consume each producer
             for (const p of producers[0].kind) {
               socket.emit(
@@ -61,18 +63,15 @@ const ReceiveBroadcast = () => {
                     rtpParameters,
                   });
 
-                  const stream = new MediaStream([consumer.track]);
-
-                  if (kind === "video") {
-                    videoRef.current.srcObject = stream;
-                  } else if (kind === "audio") {
-                    const audioEl = document.createElement("audio");
-                    audioEl.srcObject = stream;
-                    audioEl.autoplay = true;
-                    document.body.appendChild(audioEl);
-                  }
-
+                  stream.addTrack(consumer.track);
+                  videoRef.current.srcObject = stream;
+                  
+                  console.log(consumer.track.readyState , consumer.getStats , consumer.track.kind) ;
                   await consumer.resume();
+                  setInterval(async () => {
+                    const stats = await consumer.getStats();
+                  }, 3000);
+                  
                   socket.emit("resumeConsumer", { consumerId: id });
                 }
               );
