@@ -27,9 +27,10 @@ import { User } from "./models/user.model.js";
 import { UserListener } from "./utils/listners/user.listener.js";
 import { Following } from "./models/following.model.js";
 import { setInterval } from "timers/promises";
+import { error } from "console";
 
 dotenv.config() ;
-process
+
 const app = express() ;
 const newServer = createServer(app)
 
@@ -40,6 +41,24 @@ const transportsBySocket = new Map();  // socket.id → array of transports
 const producersBySocket  = new Map();  // socket.id → array of producers
 const consumersBySocket  = new Map();  // socket.id → array of consumers
 const consumersById      = new Map();  // consumer.id → consumer
+
+// rooms = {
+//   "room123": {
+//     transports: Map(socket.id → [transports]),
+//     producers: Map(socket.id → [producers]),
+//     consumers: Map(socket.id → [consumers]),
+//     chat: [ { senderId, message, timestamp } ]
+//     users: [ { userId , avatar , blocked , name, muted } ] 
+//   }
+// }
+
+// first join room → create room -> send back the uuid
+// 
+// then get the rtpCapabilities & create the transport -> which is stored in the room with socket Id.
+// and produce -> store the producerId in the room with socket Id.
+
+const roomMap = new Map();
+
 
 const io = new Server(newServer, {
   cors: {
@@ -81,10 +100,24 @@ io.on("connection", async (socket) => {
 
   // === mediasoup signaling ===
 
+  socket.on('joinMeeting', async (roomId , callback) => {
+    const room = roomMap.get(roomId);
+    if (!room) return callback({error : 'Room not found'});
+    
+    const getUser = room.users.get(socket.user._id) ; 
+    if(getUser?.blocked) return callback({error : 'You are blocked from this room'});
+
+    room.users.set(socket.user._id, { 
+      userId: socket.user._id, 
+      username: socket.user.username,  
+      muted: false, 
+      avatar: socket.user.avatar 
+    });
+    callback({success : true});
+  })
+
   socket.on("getRtpCapabilities", (callback) => {
     callback(router.rtpCapabilities);
-    // console.log('rtpCapabilities : ', router.rtpCapabilities);
-    
   });
 
   socket.on("createWebRtcTransport", async (callback) => {
@@ -108,7 +141,7 @@ io.on("connection", async (socket) => {
     });
   });
 
-  socket.on("connectProducerTransport", async ({ dtlsParameters, transportId }, callback) => {
+  socket.on("connectProducerTransport", async ({ dtlsParameters, transportId , roomId}, callback) => {
     const transports = transportsBySocket.get(socket.id) || [];
     const transport = transports.find(t => t.id === transportId);
     if (transport) {
@@ -164,28 +197,13 @@ io.on("connection", async (socket) => {
   
   });
 
-//   socket.on("produce", async ({ kind, rtpParameters, transportId }, callback) => {
-//   const transport = transportsBySocket.get(transportId);
-//   if (!transport) {
-//     return callback({ error: "transport not found" });
-//   }
-
-//   const producer = await transport.produce({ kind, rtpParameters });
-//   producersById.set(producer.id, producer);
-//   console.log("New producer:", producer.id, "kind:", kind);
-
-//   callback({ id: producer.id });
-// });
-
-// ✅ New handler here
-
-socket.on("getProducers", (data, callback) => {
-  const list = [];
-  for (const [id, producer] of producersBySocket.entries()) {
-    list.push({ id, kind: producer });
-  }
-  callback(list);
-});
+  socket.on("getProducers", (data, callback) => {
+    const list = [];
+    for (const [id, producer] of producersBySocket.entries()) {
+      list.push({ id, kind: producer });
+    }
+    callback(list);
+  });
 
   socket.on("createConsumerTransport", async (callback) => {
     const transport = await router.createWebRtcTransport({
@@ -274,7 +292,7 @@ socket.on("getProducers", (data, callback) => {
 
     // cleanup producers
     const producers = producersBySocket.get(socket.id) || [];
-    // producers.forEach(p => p.close());
+    producers.forEach(p => p?.close());
     producersBySocket.delete(socket.id);
 
     // cleanup consumers

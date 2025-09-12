@@ -8,19 +8,21 @@
 }
 
 .shadowLight {
+  box-shadow: none; /* dark:shadow-none */
+  transition: 0.2s ease-in-out; /*duration-200 / */
+}
+
+/* Dark mode override */
+@media (prefers-color-scheme: light) {
+  .shadowLight {
   background-color: white;
   color: black;
   /* padding: 0.5rem 1.5rem; py-2 px-6 */
   border-radius: 0.5rem; /* rounded-lg */
   box-shadow: 0 4px 6px -1px rgba(66, 105, 164, 0.5),
               0 2px 4px -2px rgba(66, 105, 164, 0.5); /* shadow-md with slate color */
-  transition: 0.2s ease-in-out; /*duration-200 / */
-}
 
-/* Dark mode override */
-@media (prefers-color-scheme: dark) {
-  .shadowLight {
-    box-shadow: none; /* dark:shadow-none */
+    
   }
 }
 
