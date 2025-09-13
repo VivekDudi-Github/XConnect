@@ -9,7 +9,7 @@ export default function Broadcaster() {
   const producersRef = useRef([]); // store producer objects (audio/video)
   const localStreamRef = useRef(null);
   
-
+  const [roomId , setRoomId] = useState(null);
   const [isLive, setIsLive] = useState(false);
   console.log(isLive);
   
@@ -22,6 +22,17 @@ export default function Broadcaster() {
     }
     try {
       // 1) get camera + mic
+      socket.emit("createMeeting", ( res)  => {
+        if(res?.error){
+          console.error("createMeeting error:", res.error);
+          return ;
+        }
+        setRoomId(res.roomId);
+        console.log("createMeeting", res.roomId);
+      });
+
+      
+
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       localStreamRef.current = stream;
       videoRef.current.srcObject = stream;
@@ -52,8 +63,12 @@ export default function Broadcaster() {
           });
 
           // when transport needs to produce a new track - tell server
-          producerTransport.on("produce", async ({ kind, rtpParameters }, callback, errback) => {
-            socket.emit("produce", { kind, rtpParameters, transportId: producerTransport.id }, ({ id }) => {
+          producerTransport.on("produce", async ({ kind, rtpParameters  }, callback, errback) => {
+            socket.emit("produce", { kind, rtpParameters , roomId , transportId: producerTransport.id , roomId }, ({ id , error}) => {
+              if(error){
+                console.error("produce error:", error);
+                return ;
+              }
               callback({ id }); // give the transport the server-side producer id
               console.log('produce id : ', id);
             });

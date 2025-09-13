@@ -28,6 +28,7 @@ import { UserListener } from "./utils/listners/user.listener.js";
 import { Following } from "./models/following.model.js";
 import { setInterval } from "timers/promises";
 import { error } from "console";
+import { v4 } from "uuid";
 
 dotenv.config() ;
 
@@ -38,17 +39,14 @@ const newServer = createServer(app)
 let worker, router;
 
 const transportsBySocket = new Map();  // socket.id → array of transports
-const producersBySocket  = new Map();  // socket.id → array of producers
-const consumersBySocket  = new Map();  // socket.id → array of consumers
-const consumersById      = new Map();  // consumer.id → consumer
+const participants = new Map(); // roomId → array of userIds
 
 // rooms = {
 //   "room123": {
-//     transports: Map(socket.id → [transports]),
 //     producers: Map(socket.id → [producers]),
 //     consumers: Map(socket.id → [consumers]),
 //     chat: [ { senderId, message, timestamp } ]
-//     users: [ { userId , avatar , blocked , name, muted } ] 
+//     users: [ { userId , avatar , blocked , name, muted } ]
 //   }
 // }
 
@@ -103,9 +101,11 @@ io.on("connection", async (socket) => {
   socket.on('joinMeeting', async (roomId , callback) => {
     const room = roomMap.get(roomId);
     if (!room) return callback({error : 'Room not found'});
-    
+    // io.sockets.adapter.rooms.keys
+    participants.set(socket.user._id , roomId) ;
+
     const getUser = room.users.get(socket.user._id) ; 
-    if(getUser?.blocked) return callback({error : 'You are blocked from this room'});
+    if(getUser && getUser?.blocked) return callback({error : 'You are blocked from this room'});
 
     room.users.set(socket.user._id, { 
       userId: socket.user._id, 
@@ -114,6 +114,27 @@ io.on("connection", async (socket) => {
       avatar: socket.user.avatar 
     });
     callback({success : true});
+  })
+
+  socket.on("createMeeting", async (callback) => {
+    const roomId = v4() ;
+    roomMap.set(roomId , { 
+      users : new Map() , 
+      producers : new Map() ,
+      consumers : new Map() ,
+      chat : [] ,
+    });
+
+    roomMap.get(roomId).users.set(socket.user._id , { 
+        userId: socket.user._id, 
+        username: socket.user.username,  
+        muted: false, 
+        avatar: socket.user.avatar
+    }) ;
+    participants.set(socket.user._id , roomId) ;
+    
+    return callback( { roomId , success : true});
+
   })
 
   socket.on("getRtpCapabilities", (callback) => {
@@ -150,34 +171,34 @@ io.on("connection", async (socket) => {
     callback();
   });
 
-  socket.on("produce", async ({ kind, rtpParameters, transportId }, callback) => {
+  // fix the error handling here , missing room 
+  socket.on("produce", async ({ kind, rtpParameters, transportId , roomId }, callback) => {
+    console.log('transportId : ' ,transportId);
+    
     const transports = transportsBySocket.get(socket.id) || [];
     
     const transport = transports.find(t => t.id === transportId);
     // console.log(!!transport , transport);
-    if (!transport) return;
+    if (!transport) {
+      return callback({error : 'Transport not found'});
+    };
 
     const producer = await transport.produce({ kind, rtpParameters });
-    console.log("Producer created:", {
-      id: producer.id,
-      kind: producer.kind,
-      type: producer.type, // "simple", "simulcast", "svc"
-      paused: producer.paused,
-      appData: producer.appData,
-      transportId: producer?.transport?.id , 
-      ...producer ,
-    });
-    
-    let producers = producersBySocket.get(socket.id) || [];
+
+    const room = roomMap.get(roomId) ;
+    if(!room) return callback({error : 'Room not found'}) ;
+
+
+    let producers = room.producers.get(socket.user._id) || [] ;
     producers.push({
       id: producer.id,
       kind: producer.kind,
       type: producer.type, // "simple", "simulcast", "svc"
       paused: producer.paused,
       appData: producer.appData,
-      ...producer ,
+      instance : producer ,
     });
-    producersBySocket.set(socket.id, producers);
+    room.producers.set(socket.user._id , producers)
     console.log("producerId : " ,producer.id);
 
     producer.on("transportclose", () => {
@@ -205,7 +226,7 @@ io.on("connection", async (socket) => {
     callback(list);
   });
 
-  socket.on("createConsumerTransport", async (callback) => {
+  socket.on("createConsumerTransport", async (roomId , callback) => {
     const transport = await router.createWebRtcTransport({
       listenIps: [{ ip: "0.0.0.0", announcedIp: "10.170.156.15" }],
       enableUdp: true,
@@ -216,6 +237,8 @@ io.on("connection", async (socket) => {
     let transports = transportsBySocket.get(socket.id) || [];
     transports.push(transport);
     transportsBySocket.set(socket.id, transports);
+
+    
 
     callback({
       id: transport.id,
@@ -240,12 +263,13 @@ io.on("connection", async (socket) => {
     callback();
   });
 
-  socket.on("consume", async ({ rtpCapabilities, producerId, transportId }, cb) => {
+  socket.on("consume", async ({ rtpCapabilities, producerId, transportId , roomId }, cb) => {
     if (!router.canConsume({ producerId, rtpCapabilities })) {
       return cb({ error: "Cannot consume" });
     }
     console.log('transportId : ' ,transportId);
-    
+    if(!roomMap.has(roomId)) return cb({ error: "Room not found" });  
+
     const transports = transportsBySocket.get(socket.id) || [];
     const transport = transports.find(t => t.id === transportId);
     if (!transport) return cb({ error: "No consumer transport" });
@@ -256,13 +280,12 @@ io.on("connection", async (socket) => {
       paused : false 
     });
     console.log('consuming', consumer.id);
-    consumer.requestKeyFrame().catch(() => {console.log('error requesting key frame');
-    });
+    consumer.requestKeyFrame().catch(() => {console.log('error requesting key frame');});
+    
     let consumers = consumersBySocket.get(socket.id) || [];
     consumers.push(consumer);
-    consumersBySocket.set(socket.id, consumers);
 
-    consumersById.set(consumer.id, consumer);
+    roomMap.get(roomId).consumers.set(socket.user._id , consumers) ;
 
     cb({
       id: consumer.id,
@@ -272,8 +295,8 @@ io.on("connection", async (socket) => {
     });
   });
 
-  socket.on("resumeConsumer", async ({ consumerId }) => {
-    const consumer = consumersById.get(consumerId);
+  socket.on("resumeConsumer", async ({ consumerId , roomId }) => {
+    const consumer = roomMap.get(roomId).consumers.get(socket.user._id)?.find(c => c.id === consumerId);
     
     if (consumer) {await consumer.resume();  console.log(consumer?.kind);
     } else { console.log('no consumer found');
@@ -290,18 +313,27 @@ io.on("connection", async (socket) => {
     transports.forEach(t => t.close());
     transportsBySocket.delete(socket.id);
 
-    // cleanup producers
-    const producers = producersBySocket.get(socket.id) || [];
-    producers.forEach(p => p?.close());
-    producersBySocket.delete(socket.id);
+    let roomId = participants.get(socket.user._id) ;
+    let room = roomMap.get(roomId) ;
+  
+    if(room && room.producers.has(socket.user._id)){
+      const producer = room.producers.get(socket.user._id)
+      producer.forEach(p => p?.close());
+      room.producer.delete(socket.user._id) ;
+    }
+    if(room && room.consumers.has(socket.user._id)){
+      const consumers = room.consumers.get(socket.user._id)
+      consumers.forEach(p => p?.close());
+      room.consumers.delete(socket.user._id) ;
+    }
+    if(room && room.producers.size === 0 && room.consumers.size === 0){
+      roomMap.delete(roomId) ;
+    }
 
-    // cleanup consumers
-    const consumers = consumersBySocket.get(socket.id) || [];
-    consumers.forEach(c => {
-      consumersById.delete(c.id);
-      c.close();
-    });
-    consumersBySocket.delete(socket.id);
+    if(room && room.users.get(socket.user._id)) room.users.delete(socket.user._id) ;
+
+    participants.delete(socket.user._id) ;
+
   });
 });
 
