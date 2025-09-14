@@ -5,6 +5,8 @@ import { useSocket } from "../socket";
 
 
 const ReceiveBroadcast = () => {
+  
+  let roomId = 'ce48af5b-5a75-4c29-95bb-3b6756f14d54' ;
   const videoRef = useRef(null);
   const [device, setDevice] = useState(null);
   const [consumerTransport, setConsumerTransport] = useState(null);
@@ -18,7 +20,6 @@ const ReceiveBroadcast = () => {
         return;
       }
       console.log('init called');
-      
       // 1. Load RTP capabilities from server
       socket.emit("getRtpCapabilities",async (routerRtpCapabilities) => {
         const dev = new mediasoupClient.Device();
@@ -41,40 +42,48 @@ const ReceiveBroadcast = () => {
           setConsumerTransport(transport);
 
           // 3. Get the list of producers from server
-          socket.emit("getProducers", {}, async (producers) => {
+          socket.emit("getProducers", roomId, async (producers) => {
             console.log("Available producers:", producers);
             
             const stream = new MediaStream();
             
             // 4. Consume each producer
-            for (const p of producers[0].kind) {
-              socket.emit(
+            for (const p_ of producers) {
+              //create new mediastream
+              //add the tracks in further loop
+              //and add the stream to Stream-state 
+              for( const p  of p_.p){ 
+                socket.emit(
                 "consume",
                 {
                   rtpCapabilities: dev.rtpCapabilities,
                   producerId: p.id,
                   transportId: transport.id,
+                  roomId
                 },
-                async ({ id, producerId, kind, rtpParameters }) => {
+                async ({ id, producerId, kind, rtpParameters , error }) => {
+                  if(error) {
+                    console.error("Consume error:", error);
+                    return;
+                  }
                   const consumer = await transport.consume({
                     id,
                     producerId,
                     kind,
                     rtpParameters,
                   });
+                  
 
                   stream.addTrack(consumer.track);
                   videoRef.current.srcObject = stream;
                   
                   console.log(consumer.track.readyState , consumer.getStats , consumer.track.kind) ;
                   await consumer.resume();
-                  setInterval(async () => {
-                    const stats = await consumer.getStats();
-                  }, 3000);
                   
-                  socket.emit("resumeConsumer", { consumerId: id });
+                  socket.emit("resumeConsumer", { consumerId: id , roomId });
                 }
               );
+              }
             }
           });
         });
@@ -112,98 +121,5 @@ export default ReceiveBroadcast;
 
 
 
-
-// import { useRef , useState } from "react";
-// import { Device } from "mediasoup-client";
-// import {useSocket} from "../socket";
-
-// function ReceiveBroadcast() {
-//   const socket = useSocket();
-//   const videoRef = useRef(null);
-//   const deviceRef = useRef(null);
-//   const consumerTransportRef = useRef(null);
-
-//   const [producerId, setProducerId] = useState("") ;
-
-//   const joinBroadcast = async () => {
-//     try {
-//       // 1) Ask server for RTP capabilities
-//       socket.emit("getRtpCapabilities", async (routerRtpCapabilities) => {
-//         const device = new Device();
-//         await device.load({ routerRtpCapabilities });
-//         deviceRef.current = device;
-
-//         // 2) Ask server to create a consumer transport
-//         socket.emit("createConsumerTransport", async (params) => {
-//           const consumerTransport = device.createRecvTransport(params);
-//           console.log('createConsumerTransport created');
-          
-//           consumerTransportRef.current = consumerTransport;
-
-//           // Transport DTLS connect
-//           consumerTransport.on("connect", ({ dtlsParameters }, callback, errback) => {
-//             console.log('emitted connectConsumerTransport');
-            
-//             socket.emit("connectConsumerTransport", { dtlsParameters , transportId : consumerTransport._id }, () => {
-//               console.log('connectConsumerTransport connected' , consumerTransport?.id );
-//               callback() ;
-//             }) ;
-//           });
-
-//           // 3) Ask server to consume the given producerId
-//           console.log('consumerTransport._id : ' ,consumerTransport._id);
-          
-//           socket.emit(
-//             "consume",
-//             {
-//               rtpCapabilities: device.rtpCapabilities,
-//               producerId, // comes from URL param ,
-//               transportId : consumerTransport._id
-//             },
-//             async ({ id, producerId, kind, rtpParameters }) => {
-//               const consumer = await consumerTransport.consume({
-//                 id,
-//                 producerId,
-//                 kind,
-//                 rtpParameters,
-//               });
-              
-//               // 4) Wrap into a MediaStream and attach to <video>
-//               const stream = new MediaStream();
-//               stream.addTrack(consumer.track);
-//               videoRef.current.srcObject = stream;
-//               // videoRef.current.play().catch(err => console.warn("Autoplay prevented:", err));
-//               console.log(consumer.track.readyState , consumer.getStats , consumer.track.kind) ;
-              
-//               // await consumer.resume();
-
-//               // 5) Tell server to resume (start sending)
-//               socket.emit("resumeConsumer", { consumerId: id });
-//             }
-//           );
-//         });
-//       });
-//     } catch (error) {
-//       console.error("joinBroadcast error:", error);
-//     }
-//   };
-
-//   return (
-//     <div>
-//       <h2>Receive Broadcast</h2>
-//       <input type="text" className=" m-2 h-8 w-full border border-black" value={producerId} onChange={(e) => setProducerId(e.target.value)} />
-//       <video
-//         ref={videoRef}
-//         style={{ width: "640px", height: "360px", }}
-//         autoPlay
-//         playsInline
-//         controls
-//       />
-
-//       <button onClick={joinBroadcast}>Join Broadcast</button>
-//       <button>Leave Broadcast</button>
-//     </div>
-//   );
-// }
-
-// export default ReceiveBroadcast;
+// crearte join meeting 
+// 

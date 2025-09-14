@@ -117,7 +117,8 @@ io.on("connection", async (socket) => {
   })
 
   socket.on("createMeeting", async (callback) => {
-    const roomId = v4() ;
+    // const roomId = v4() ;
+    let roomId = 'ce48af5b-5a75-4c29-95bb-3b6756f14d54' ;
     roomMap.set(roomId , { 
       users : new Map() , 
       producers : new Map() ,
@@ -173,7 +174,8 @@ io.on("connection", async (socket) => {
 
   // fix the error handling here , missing room 
   socket.on("produce", async ({ kind, rtpParameters, transportId , roomId }, callback) => {
-    console.log('transportId : ' ,transportId);
+    console.log('produce');
+    
     
     const transports = transportsBySocket.get(socket.id) || [];
     
@@ -190,7 +192,13 @@ io.on("connection", async (socket) => {
 
 
     let producers = room.producers.get(socket.user._id) || [] ;
+
+
+    const stats = await producer.getStats();
+    console.log("Producer packetsSent:", stats); 
+
     producers.push({
+      userId : socket.user._id ,
       id: producer.id,
       kind: producer.kind,
       type: producer.type, // "simple", "simulcast", "svc"
@@ -211,22 +219,30 @@ io.on("connection", async (socket) => {
     
     callback({ id: producer.id });
 
-    setInterval(async () => {
-      const stats = await producer.getStats();
-      console.log("Producer packetsSent:", stats); 
-    } , 3000);
+    // setInterval(async () => {
+    //   const stats = await producer.getStats();
+    //   console.log("Producer packetsSent:", stats); 
+    // } , 3000);
   
   });
 
-  socket.on("getProducers", (data, callback) => {
+  socket.on("getProducers", (roomId, callback) => {
     const list = [];
-    for (const [id, producer] of producersBySocket.entries()) {
-      list.push({ id, kind: producer });
-    }
+    let room = roomMap.get(roomId) ;
+    if(!room) return callback(list);
+
+    room.producers.forEach((p , socketId )=> {
+      if(socketId === socket.id) return ;
+      let user =  room.users.get(p.userId)
+      if(user?.blocked || user?.muted) return ;  
+      list.push({p , user}) ;  
+      console.log(p);
+    })
+    
     callback(list);
   });
 
-  socket.on("createConsumerTransport", async (roomId , callback) => {
+  socket.on("createConsumerTransport", async (callback) => {
     const transport = await router.createWebRtcTransport({
       listenIps: [{ ip: "0.0.0.0", announcedIp: "10.170.156.15" }],
       enableUdp: true,
@@ -239,7 +255,6 @@ io.on("connection", async (socket) => {
     transportsBySocket.set(socket.id, transports);
 
     
-
     callback({
       id: transport.id,
       iceParameters: transport.iceParameters,
@@ -282,7 +297,10 @@ io.on("connection", async (socket) => {
     console.log('consuming', consumer.id);
     consumer.requestKeyFrame().catch(() => {console.log('error requesting key frame');});
     
-    let consumers = consumersBySocket.get(socket.id) || [];
+    // let consumers = consumersBySocket.get(socket.id) || [];
+    // consumers.push(consumer);
+
+    let consumers = roomMap.get(roomId).consumers.get(socket.user._id) || [] ;
     consumers.push(consumer);
 
     roomMap.get(roomId).consumers.set(socket.user._id , consumers) ;
@@ -318,8 +336,8 @@ io.on("connection", async (socket) => {
   
     if(room && room.producers.has(socket.user._id)){
       const producer = room.producers.get(socket.user._id)
-      producer.forEach(p => p?.close());
-      room.producer.delete(socket.user._id) ;
+      producer.forEach(p => p.instance?.close());
+      room.producers.delete(socket.user._id) ;
     }
     if(room && room.consumers.has(socket.user._id)){
       const consumers = room.consumers.get(socket.user._id)
@@ -331,7 +349,8 @@ io.on("connection", async (socket) => {
     }
 
     if(room && room.users.get(socket.user._id)) room.users.delete(socket.user._id) ;
-
+    console.log(roomMap);
+    
     participants.delete(socket.user._id) ;
 
   });
