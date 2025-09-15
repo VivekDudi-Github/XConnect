@@ -231,9 +231,9 @@ io.on("connection", async (socket) => {
     let room = roomMap.get(roomId) ;
     if(!room) return callback(list);
 
-    room.producers.forEach((p , socketId )=> {
-      if(socketId === socket.id) return ;
-      let user =  room.users.get(p.userId)
+    room.producers.forEach((p , userId )=> {
+      if(userId === socket.user._id) return ;
+      let user =  room.users.get(p[0].userId)
       if(user?.blocked || user?.muted) return ;  
       list.push({p , user}) ;  
       console.log(p);

@@ -65,7 +65,7 @@ export default function Broadcaster() {
 
           // when transport needs to produce a new track - tell server
           producerTransport.on("produce", async ({ kind, rtpParameters  }, callback, errback) => {
-            socket.emit("produce", { kind, rtpParameters , roomId , transportId: producerTransport.id , roomId }, ({ id , error}) => {
+            socket.emit("produce", { kind, rtpParameters , roomId , transportId: producerTransport.id  }, ({ id , error}) => {
               if(error){
                 console.error("produce error:", error);
                 return ;
