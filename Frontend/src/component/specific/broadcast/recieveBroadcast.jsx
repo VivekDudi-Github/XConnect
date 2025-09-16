@@ -12,6 +12,7 @@ const ReceiveBroadcast = () => {
 
   const socket = useSocket();
 
+  
     const init = async () => {
       if (!socket){
         console.error("Socket not connected");
@@ -50,11 +51,11 @@ const ReceiveBroadcast = () => {
             let obj = {} ;
             // 4. Consume each producer
             for (const p_ of producers) {
-              //create new mediastream
               //add the tracks in further loop
               //and add the stream to Stream-state 
               obj.user = p_.user ;
               obj.producers = [] ;
+
               for( const p  of p_.p){ 
                 socket.emit(
                 "consume",
@@ -62,48 +63,90 @@ const ReceiveBroadcast = () => {
                   rtpCapabilities: dev.rtpCapabilities,
                   producerId: p.id,
                   transportId: transport.id,
-                  roomId
+                  roomId,
                 },
+              
                 async ({ id, producerId, kind, rtpParameters , error }) => {
                   if(error) {
                     console.error("Consume error:", error);
                     return;
                   }
+                  
                   const consumer = await transport.consume({
                     id,
                     producerId,
                     kind,
                     rtpParameters,
                   });
-                  const stream = new MediaStream();
 
-                  stream.addTrack(consumer.track);
-                  obj.producers.push({stream , producerId , kind , consumerId : id}) ;
+                  // stream.addTrack(consumer.track);
+                  obj.producers.push({track : consumer.track , producerId , kind , consumerId : id}) ;
                   
-                  console.log(consumer.track.readyState , await consumer.getStats() , consumer.track.kind) ;
                   await consumer.resume();
                   
                   socket.emit("resumeConsumer", { consumerId: id , roomId });
+
+                  // Update state immutably
+                  setStreams(prev => {
+                    // check if user already exists
+                    const userExists = prev.some(s => s.user.id === p_.user.id);
+
+                    if (userExists) {
+                      // update existing
+                      return prev.map(s =>
+                        s.user.id === p_.user.id
+                          ? {
+                              ...s,
+                              producers: [
+                                ...s.producers,
+                                {
+                                  track: consumer.track,
+                                  producerId,
+                                  kind,
+                                  consumerId: id,
+                                },
+                              ],
+                            }
+                          : s
+                      );
+                    } else {
+                      // add new user entry
+                      return [
+                        ...prev,
+                        {
+                          user: p_.user,
+                          producers: [
+                            {
+                              track: consumer.track,
+                              producerId,
+                              kind,
+                              consumerId: id,
+                            },
+                          ],
+                        },
+                      ];
+                    }
+                  });
                 }
               );
               }
-              console.log(obj);
-              setStreams((prev) => [...prev , obj]) ;
-
             }
           });
         });
       });
     };
-
+  console.log(streams , 'all streams');
   function bundleUserStream(producers) {
     const mediaStream = new MediaStream();
+    const audioStream = new MediaStream();
     producers.forEach(p => {
-      if (p.stream) {
-        p.stream.getTracks().forEach(track => mediaStream.addTrack(track));
+      if (p.track && p.kind === 'video') {
+        mediaStream.addTrack(p.track);
+      } else if (p.track && p.kind === 'audio') {
+        audioStream.addTrack(p.track);
       }
     });
-    return mediaStream;
+    return {mediaStream , audioStream};
   }
 
 
@@ -111,14 +154,14 @@ const ReceiveBroadcast = () => {
     <div>
       <h2>Receiver</h2>
       {streams.map((s , i) => {
-        const stream = bundleUserStream(s.producers);
-        console.log(stream , 'bundled stream');
+        const {mediaStream , audioStream} = bundleUserStream(s.producers);
+        console.log(mediaStream?.active , audioStream?.active , 'bundled stream');
         
         return (
-          <div key={i}>
+          <div className="flex flex-col max-h-[360px] max-w-[640px]" key={i}>
             <h3>User : {s.user.username}</h3>
             
-            <VideoPlayer stream={stream} />
+            <VideoPlayer stream={mediaStream} audioStream={audioStream} />
           </div>
           )
         })

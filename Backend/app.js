@@ -100,6 +100,7 @@ io.on("connection", async (socket) => {
 
   socket.on('joinMeeting', async (roomId , callback) => {
     const room = roomMap.get(roomId);
+    
     if (!room) return callback({error : 'Room not found'});
     // io.sockets.adapter.rooms.keys
     participants.set(socket.user._id , roomId) ;
@@ -278,17 +279,18 @@ io.on("connection", async (socket) => {
     callback();
   });
 
-  socket.on("consume", async ({ rtpCapabilities, producerId, transportId , roomId }, cb) => {
+  socket.on("consume", async ({ rtpCapabilities, producerId, transportId , roomId }, callback) => {
     if (!router.canConsume({ producerId, rtpCapabilities })) {
-      return cb({ error: "Cannot consume" });
+      return callback({ error: "Cannot consume" });
     }
     console.log('transportId : ' ,transportId);
     if(!roomMap.has(roomId)) return cb({ error: "Room not found" });  
 
     const transports = transportsBySocket.get(socket.id) || [];
     const transport = transports.find(t => t.id === transportId);
-    if (!transport) return cb({ error: "No consumer transport" });
-
+    if (!transport) return callback({ error: "No consumer transport" });
+    console.log('----socket id' ,socket.id , );
+    
     const consumer = await transport.consume({
       producerId,
       rtpCapabilities,
@@ -305,7 +307,8 @@ io.on("connection", async (socket) => {
 
     roomMap.get(roomId).consumers.set(socket.user._id , consumers) ;
 
-    cb({
+    console.log('callback fired');
+    callback({
       id: consumer.id,
       producerId,
       kind: consumer.kind,
