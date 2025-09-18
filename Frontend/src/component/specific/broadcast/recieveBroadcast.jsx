@@ -19,12 +19,12 @@ const ReceiveBroadcast = () => {
         return;
       }
       console.log('init called');
-      socket.emit("joinMeeting", roomId, ({error , success}) => {
-        if (error) {
-          console.error("Error joining meeting:", error);
-          return;
-        }
-      });
+      // socket.emit("joinMeeting", roomId, ({error , success}) => {
+      //   if (error) {
+      //     console.error("Error joining meeting:", error);
+      //     return;
+      //   }
+      // });
       // 1. Load RTP capabilities from server
       socket.emit("getRtpCapabilities",async (routerRtpCapabilities) => {
         const dev = new mediasoupClient.Device();
@@ -48,11 +48,12 @@ const ReceiveBroadcast = () => {
           socket.emit("getProducers", roomId, async (producers) => {
             console.log("Available producers:", producers);
             
-            let obj = {} ;
+
             // 4. Consume each producer
             for (const p_ of producers) {
               //add the tracks in further loop
               //and add the stream to Stream-state 
+              let obj = {} ;
               obj.user = p_.user ;
               obj.producers = [] ;
 
@@ -89,12 +90,12 @@ const ReceiveBroadcast = () => {
                   // Update state immutably
                   setStreams(prev => {
                     // check if user already exists
-                    const userExists = prev.some(s => s.user.id === p_.user.id);
+                    const userExists = prev.some(s => s.user.userId === p_.user.userId);
 
                     if (userExists) {
                       // update existing
                       return prev.map(s =>
-                        s.user.id === p_.user.id
+                        s.user.userId === p_.user.userId
                           ? {
                               ...s,
                               producers: [
@@ -149,7 +150,8 @@ const ReceiveBroadcast = () => {
     return {mediaStream , audioStream};
   }
 
-
+  console.log(streams.length , 'streams length');
+  
   return (
     <div>
       <h2>Receiver</h2>
@@ -158,7 +160,7 @@ const ReceiveBroadcast = () => {
         console.log(mediaStream?.active , audioStream?.active , 'bundled stream');
         
         return (
-          <div className="flex flex-col max-h-[360px] max-w-[640px]" key={i}>
+          <div className="flex flex-col max-h-[360px] max-w-[640px] gap-8" key={i}>
             <h3>User : {s.user.username}</h3>
             
             <VideoPlayer stream={mediaStream} audioStream={audioStream} />
@@ -173,18 +175,3 @@ const ReceiveBroadcast = () => {
 };
 
 export default ReceiveBroadcast;
-
-
-
-
-
-
-
-
-
-
-
-
-
-// crearte join meeting 
-// 

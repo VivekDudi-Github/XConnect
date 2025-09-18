@@ -7,6 +7,7 @@ export default function VideoPlayer({ stream , audioStream }) {
   const playerRef = useRef(null);
 
   const audioRef = useRef(null); 
+  const isChromium = !!window.chrome;
 
   useEffect(() => {
     if (!videoRef.current) return;
@@ -108,7 +109,7 @@ export default function VideoPlayer({ stream , audioStream }) {
   useEffect(() => {
     if (playerRef.current && stream) {
       const videoEl = playerRef.current.el().querySelector("video");
-
+      
       if (videoEl && videoEl.srcObject !== stream) {
         videoEl.srcObject = stream;
         videoEl.muted = true; // allow autoplay
@@ -135,38 +136,164 @@ export default function VideoPlayer({ stream , audioStream }) {
     }
   } , [audioStream ]);
 
-  useEffect(() => {
-    if (!audioStream || !audioRef.current || !playerRef.current) return; 
-    const videoEl = playerRef.current.el().querySelector("video");
-    if (!videoEl) return;
+  // useEffect(() => {
+  //   if (!audioStream?.active || !audioRef.current || !playerRef.current) return; 
+  //   const videoEl = playerRef.current.el().querySelector("video");
+  //   if (!videoEl) return;
 
-    const handleVolumeChange = () => {
-      const volume = playerRef.current.volume();    // 0.0 - 1.0
-      const muted = playerRef.current.muted();      // true / false
-      console.log(volume , muted , 'volume change'); ;
+  //     console.log(audioStream?.active , audioStream.getAudioTracks() , 'audio stream in effect');
       
-      audioRef.current.volume = volume;
-      audioRef.current.muted = muted;
-    };
+  //     const audioContext = new AudioContext();
+  //     const source = audioContext.createMediaStreamSource(audioStream);
+  //     const gainNode = audioContext.createGain();
 
-    videoEl.addEventListener("volumechange", handleVolumeChange);
-    return () => {
-      videoEl.removeEventListener("volumechange", handleVolumeChange);
+  //     // Connect nodes
+  //     source.connect(gainNode).connect(audioContext.destination);
 
-    };
-  } , [audioStream]);
+  //     // Save reference so you can control later
+  //     audioRef.current.gainNode = gainNode;
+    
+  //   const resumeAudio = () => {
+  //     audioRef.current
+  //       .play()
+  //       .then(() => console.log("Audio playback started"))
+  //       .catch(err => console.warn("Autoplay blocked:", err));
+  //   };
+
+  //   document.addEventListener("click", resumeAudio, { once: true });
+  //   document.addEventListener("keydown", resumeAudio, { once: true });
+
+  //   const handleVolumeChange = () => {
+  //     const volume = playerRef.current.volume();    // 0.0 - 1.0
+  //     const muted = playerRef.current.muted();      // true / false
+  //     console.log(volume , muted , 'volume change'); ;
+      
+  //     // audioRef.current.volume =  volume;
+  //     audioRef.current.muted = muted;
+  //     audioRef.current.gainNode.gain.value = muted ? 0 : volume;
+  //   };
+
+  //   videoEl.addEventListener("volumechange", handleVolumeChange);
+  //   return () => {
+  //     videoEl.removeEventListener("volumechange", handleVolumeChange);
+  //     document.removeEventListener("click", resumeAudio);
+  //     document.removeEventListener("keydown", resumeAudio);
+  //   };
+  // } , [audioStream]);
+
+  // useEffect(() => {
+  //   if (!audioStream?.active || !playerRef.current) return;
+
+  //   const videoEl = playerRef.current.el().querySelector("video");
+  //   if (!videoEl) return;
+
+  //   console.log(audioStream?.active, audioStream.getAudioTracks(), "audio stream in effect");
+
+  //   // Create context + gain node
+  //   const audioContext = new AudioContext();
+  //   const source = audioContext.createMediaStreamSource(audioStream);
+  //   const gainNode = audioContext.createGain();
+
+  //   source.connect(gainNode).connect(audioContext.destination);
+
+  //   // Save ref for later
+  //   audioRef.current = { gainNode, audioContext };
+
+  //   // Resume AudioContext on user gesture (needed for Firefox/Chrome autoplay policies)
+  //   const resumeAudio = () => {
+  //     if (audioContext.state === "suspended") {
+  //       audioContext.resume().then(() => console.log("AudioContext resumed"));
+  //     }
+  //   };
+  //   document.addEventListener("click", resumeAudio, { once: true });
+  //   document.addEventListener("keydown", resumeAudio, { once: true });
+
+  //   const handleVolumeChange = () => {
+  //     const volume = playerRef.current.volume(); // 0.0 - 1.0
+  //     const muted = playerRef.current.muted();
+  //     console.log(volume, muted, "volume change");
+
+  //     audioRef.current.gainNode.gain.value = muted ? 0 : volume;
+  //   };
+
+  //   videoEl.addEventListener("volumechange", handleVolumeChange);
+
+  //   return () => {
+  //     videoEl.removeEventListener("volumechange", handleVolumeChange);
+  //     document.removeEventListener("click", resumeAudio);
+  //     document.removeEventListener("keydown", resumeAudio);
+  //     audioContext.close();
+  //   };
+  // }, [audioStream]);
 
 
-  
+useEffect(() => {
+  if (!audioStream?.active || !playerRef.current) return;
+  const videoEl = playerRef.current.el().querySelector("video");
+  if (!videoEl) return;
+
+  console.log("Setting up unified audio pipeline");
+
+  let hiddenAudioEl;
+
+  if (isChromium) {
+    // Chrome/Edge needs this trick
+    hiddenAudioEl = document.createElement("audio");
+    hiddenAudioEl.srcObject = audioStream;
+    hiddenAudioEl.autoplay = true;
+    hiddenAudioEl.playsInline = true;
+    hiddenAudioEl.muted = true;
+    hiddenAudioEl.style.display = "none";
+    document.body.appendChild(hiddenAudioEl);
+  }
+
+  // Web Audio setup
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  const audioCtx = new AudioCtx();
+  const source = audioCtx.createMediaStreamSource(audioStream);
+  const gainNode = audioCtx.createGain();
+  source.connect(gainNode).connect(audioCtx.destination);
+
+  const handleVolumeChange = () => {
+    const volume = playerRef.current.volume();
+    const muted = playerRef.current.muted();
+    console.log("volume change:", volume, muted);
+    gainNode.gain.value = muted ? 0 : volume;
+  };
+  videoEl.addEventListener("volumechange", handleVolumeChange);
+
+  const resumeAudio = () => {
+    audioCtx.resume().catch(err => console.warn("resume failed", err));
+    hiddenAudioEl?.play?.().catch(err => console.warn("play failed", err));
+  };
+  document.addEventListener("click", resumeAudio, { once: true });
+  document.addEventListener("keydown", resumeAudio, { once: true });
+
+  return () => {
+    videoEl.removeEventListener("volumechange", handleVolumeChange);
+    document.removeEventListener("click", resumeAudio);
+    document.removeEventListener("keydown", resumeAudio);
+    hiddenAudioEl?.remove?.();
+    audioCtx.close();
+  };
+}, [audioStream]);
+
+
+
+
   return (
     <div className="w-full h-full">
-      <video 
+      {/* <audio ref={audioRef} autoPlay playsInline controls muted className=" h-8 " /> */}
+      <video muted 
         autoPlay
         ref={videoRef}
         className="video-js vjs-big-play-centered rounded-lg overflow-hidden"
         playsInline
       />
-      <audio ref={audioRef} autoPlay playsInline className="hidden" />
+
+      <button onClick={() => {
+        console.log(audioRef.current?.volume , audioRef.current?.muted , 'audio volume');
+      }}>click</button> 
     </div>
   );
 }

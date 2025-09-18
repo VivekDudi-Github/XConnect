@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Device } from "mediasoup-client";
 import { useSocket } from "../socket";
+import ReceiveBroadcast from "./RecieveBroadcast";
 
 export default function Broadcaster() {
   const videoRef = useRef(null);
@@ -21,20 +22,54 @@ export default function Broadcaster() {
       return;
     }
     try {
-      let roomId ;
-
+      let roomId = 'ce48af5b-5a75-4c29-95bb-3b6756f14d54' ;
+      let creator = false ;
       // create or join room
-      socket.emit("createMeeting", ( res)  => {
-        if(res?.error){
-          console.error("createMeeting error:", res.error);
-          return ;
-        }
-        roomId = res.roomId ;
-        console.log("createMeeting", res.roomId);
-      });
+      // await socket.emit("joinMeeting", roomId, ({error , success}) => {
+      //     if (error) {
+      //       console.error("Error joining meeting:", error);
+      //       socket.emit("createMeeting", ( res)  => {
+      //         creator = true ;
+      //         if(res?.error){
+      //           console.error("createMeeting error:", res.error); 
+      //           return ;
+      //         }
+      //         roomId = res.roomId ;
+      //         console.log("createMeeting", res.roomId);
+      //       });
+      //       return;
+      //     }
+      //   });
+      
+      function joinMeeting(socket, roomId) {
+        return new Promise((resolve, reject) => {
+          socket.emit("joinMeeting", roomId, (response) => {
+            if (response.error) {
+              socket.emit("createMeeting", (res) => {
+                if (res?.error) {
+                  return reject(res.error);
+                }
+                return resolve({ creator: true, roomId: res.roomId });
+              });
+            } else {
+              return resolve({ creator: false, roomId });
+            }
+          });
+        });
+      }
 
+      const { creator: isCreator, roomId: joinedRoomId } = await joinMeeting(socket, roomId);
+
+      console.log(creator);
+        
       // 1) get camera + mic
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      let stream ;
+      if(isCreator){
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true }) ;
+      }else {
+        stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true }) ;
+      }
+
       localStreamRef.current = stream;
       videoRef.current.srcObject = stream;
       videoRef.current.muted = true;
@@ -132,6 +167,7 @@ export default function Broadcaster() {
           <button className="border-black border-2"  onClick={stopBroadcast}>Stop</button>
         )}
       </div>
+      <ReceiveBroadcast />
     </div>
   );
 }
