@@ -287,7 +287,7 @@ useEffect(() => {
       <video muted 
         autoPlay
         ref={videoRef}
-        className="video-js vjs-big-play-centered rounded-lg overflow-hidden"
+        className="video-js vjs-big-play-centered rounded-lg overflow-hidden h-full w-full object-scale-down"
         playsInline
       />
 

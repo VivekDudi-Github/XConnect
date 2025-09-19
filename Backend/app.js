@@ -112,7 +112,8 @@ io.on("connection", async (socket) => {
       userId: socket.user._id, 
       username: socket.user.username,  
       muted: false, 
-      avatar: socket.user.avatar 
+      avatar: socket.user.avatar ,
+      socketId : socket.id , 
     });
     callback({success : true});
   })
@@ -131,7 +132,8 @@ io.on("connection", async (socket) => {
         userId: socket.user._id, 
         username: socket.user.username,  
         muted: false, 
-        avatar: socket.user.avatar
+        avatar: socket.user.avatar,
+        socketId : socket.id ,
     }) ;
     participants.set(socket.user._id , roomId) ;
     
@@ -219,11 +221,14 @@ io.on("connection", async (socket) => {
     });
     
     callback({ id: producer.id });
-
-    // setInterval(async () => {
-    //   const stats = await producer.getStats();
-    //   console.log("Producer packetsSent:", stats); 
-    // } , 3000);
+    let userObj = room.users.get(socket.user._id) ;
+    room.users.forEach((_ , userId) => {
+      if(userId !== socket.user._id && !_.blocked){
+        console.log(_.username , 'user obj');
+        
+        io.to(_.socketId).emit("NewUserToBroadcast" , { user : userObj , p : producers }) ;  
+      }
+    })
   
   });
 
@@ -234,8 +239,11 @@ io.on("connection", async (socket) => {
 
     room.producers.forEach((p , userId )=> {
       if(userId === socket.user._id) return ;
-      let user =  room.users.get(p[0].userId)
+      
+      let user =  room.users.get(p[0].userId) ;
+
       if(user?.blocked || user?.muted) return ;  
+      
       list.push({p , user}) ;  
       console.log(p);
     })
@@ -336,6 +344,12 @@ io.on("connection", async (socket) => {
 
     let roomId = participants.get(socket.user._id) ;
     let room = roomMap.get(roomId) ;
+
+    if(room && room?.users?.get(socket.user._id)){  
+      room.users.forEach((_ , key) => {
+        if(key !== socket.user._id) io.to(_?.socketId).emit('removeBroadcastUser' , {userId : key} )  
+      })
+    }
   
     if(room && room.producers.has(socket.user._id)){
       const producer = room.producers.get(socket.user._id)

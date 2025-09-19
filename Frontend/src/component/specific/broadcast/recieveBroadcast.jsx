@@ -9,6 +9,8 @@ const ReceiveBroadcast = () => {
   
   let roomId = 'ce48af5b-5a75-4c29-95bb-3b6756f14d54' ;
   const [streams , setStreams] = useState([]) ;
+  const rtcCapablities = useRef(null) ;
+  const transportRef = useRef(null) ;
 
   const socket = useSocket();
 
@@ -29,8 +31,9 @@ const ReceiveBroadcast = () => {
       socket.emit("getRtpCapabilities",async (routerRtpCapabilities) => {
         const dev = new mediasoupClient.Device();
         await dev.load({routerRtpCapabilities} );
+        rtcCapablities.current = routerRtpCapabilities ;
         console.log("RTP Capabilities");
-        
+
         // 2. Create consumer transport
         socket.emit("createConsumerTransport", async (params) => {
           const transport = dev.createRecvTransport(params);
@@ -43,6 +46,9 @@ const ReceiveBroadcast = () => {
             );
           });
 
+          transportRef.current = transport ;
+          console.log(transport , "setTransport"); 
+          
 
           // 3. Get the list of producers from server
           socket.emit("getProducers", roomId, async (producers) => {
@@ -152,6 +158,91 @@ const ReceiveBroadcast = () => {
 
   console.log(streams.length , 'streams length');
   
+  useEffect(() => {
+    if (!socket) return;
+    socket.on("removeBroadcastUser", ({userId}) => {
+      console.log("Removing consumer:", "for user:", userId);
+      setStreams(prevStreams =>
+        prevStreams.filter(s => s.user.userId !== userId)
+      );
+    });
+
+    socket.on("NewUserToBroadcast", async({ user , p : p_ }) => {
+      console.log("New user to broadcast:", user);
+      
+      for( const p  of p_){
+        socket.emit("consume", {
+          rtpCapabilities: rtcCapablities.current,
+          producerId: p.id,
+          transportId: transportRef.current.id,
+          roomId,
+        },
+      
+        async ({ id, producerId, kind, rtpParameters , error }) => {
+          if(error) {
+            console.error("Consume error:", error);
+            return;
+          }
+          
+          const consumer = await transportRef.current.consume({
+            id,
+            producerId,
+            kind,
+            rtpParameters,
+          });
+
+          // stream.addTrack(consumer.track);
+          await consumer.resume();
+          
+          socket.emit("resumeConsumer", { consumerId: id , roomId });
+
+          // Update state immutably
+          setStreams(prev => {
+            // check if user already exists
+            const userExists = prev.some(s => s.user.userId === p_.user.userId);
+
+            if (userExists) {
+              // update existing
+              return prev.map(s =>
+                s.user.userId === p_.user.userId
+                  ? {
+                      ...s,
+                      producers: [
+                        ...s.producers,
+                        {
+                          track: consumer.track,
+                          producerId,
+                          kind,
+                          consumerId: id,
+                        },
+                      ],
+                    }
+                  : s
+              );
+            } else {
+              // add new user entry
+              return [
+                ...prev,
+                {
+                  user: user,
+                  producers: [
+                    {
+                      track: consumer.track,
+                      producerId,
+                      kind,
+                      consumerId: id,
+                    },
+                  ],
+                },
+              ];
+            }
+          });
+        }
+      );
+      }
+    })
+  } , [socket])
+
   return (
     <div>
       <h2>Receiver</h2>

@@ -116,13 +116,17 @@ export default function Broadcaster() {
           // 4) produce tracks (video + audio)
           // video
           const videoTrack = stream.getVideoTracks()[0];
-          const videoProducer = await producerTransport.produce({ track: videoTrack });
-          producersRef.current.push(videoProducer);
+          if(videoTrack){
+            const videoProducer = await producerTransport.produce({ track: videoTrack });
+            producersRef.current.push(videoProducer);
+          }
 
           // audio
           const audioTrack = stream.getAudioTracks()[0];
-          const audioProducer = await producerTransport.produce({ track: audioTrack });
-          producersRef.current.push(audioProducer);
+          if(audioTrack){
+            const audioProducer = await producerTransport.produce({ track: audioTrack });
+            producersRef.current.push(audioProducer);
+          }
 
           setIsLive(true);
           console.log("Broadcast started");
