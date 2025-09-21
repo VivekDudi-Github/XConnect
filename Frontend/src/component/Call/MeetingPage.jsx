@@ -22,7 +22,7 @@ export default function MeetingPage() {
       
       {/* Left sidebar */}
       
-      <aside className={` flex overflow-clip backdrop-blur-sm filter dark:bg-black rounded-2xl p-4 flex-col gap-4 ${collapsed ? 'w-10 p-0' : 'w-3/12 min-w-56'} duration-300`}> 
+      <aside className={` flex overflow-clip backdrop-blur-sm filter dark:bg-black rounded-2xl  flex-col gap-4 ${collapsed ? 'w-10 p-0' : 'w-3/12 min-w-56 p-4'} duration-300`}> 
         <div className="flex gap-2 mb-4">
           <button
             onClick={() => setActiveSidebar("chat")}
@@ -55,7 +55,7 @@ export default function MeetingPage() {
 
         {/* Right chat / notes */}
         {activeSidebar === "chat" && (
-          <aside className={` dark:text-white text-black bg-slate-800 rounded-2xl p-4 shadow-sm flex flex-col shadowLight ${collapsed ? 'overflow-x-hidden p-0 w-0' : 'w-full'}`}>
+          <aside className={` dark:text-white text-black bg-slate-800 rounded-2xl  shadow-sm flex flex-col shadowLight ${collapsed ? 'overflow-x-hidden  p-0 w-0' : 'w-full p-4'}`}>
           
             <div className="flex items-center text-black dark:text-white justify-between w-full">
               <div className="text-lg font-semibold ">Chat & Notes</div>
@@ -78,7 +78,7 @@ export default function MeetingPage() {
         
         {/* Participants */}
         {activeSidebar === "participants" && (
-          <aside className={`p-4 flex flex-col gap-4  shadowLight ${collapsed ? 'w-0 overflow-x-hidden p-0' : 'w-full'}`}>
+          <aside className={`flex flex-col gap-4  shadowLight ${collapsed ? 'w-0 overflow-x-hidden p-0' : 'w-full p-4'}`}>
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold dark:text-white text-black">Participants</h3>
               <div className="text-sm text-slate-400">{participants.length}</div>

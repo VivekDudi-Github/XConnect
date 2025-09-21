@@ -21,12 +21,6 @@ const ReceiveBroadcast = () => {
         return;
       }
       console.log('init called');
-      // socket.emit("joinMeeting", roomId, ({error , success}) => {
-      //   if (error) {
-      //     console.error("Error joining meeting:", error);
-      //     return;
-      //   }
-      // });
       // 1. Load RTP capabilities from server
       socket.emit("getRtpCapabilities",async (routerRtpCapabilities) => {
         const dev = new mediasoupClient.Device();
@@ -160,6 +154,7 @@ const ReceiveBroadcast = () => {
   
   useEffect(() => {
     if (!socket) return;
+    init();
     socket.on("removeBroadcastUser", ({userId}) => {
       console.log("Removing consumer:", "for user:", userId);
       setStreams(prevStreams =>
@@ -168,7 +163,7 @@ const ReceiveBroadcast = () => {
     });
 
     socket.on("NewUserToBroadcast", async({ user , p : p_ }) => {
-      console.log("New user to broadcast:", user);
+      console.log("New user to broadcast:", user , p_);
       
       for( const p  of p_){
         socket.emit("consume", {
@@ -199,12 +194,12 @@ const ReceiveBroadcast = () => {
           // Update state immutably
           setStreams(prev => {
             // check if user already exists
-            const userExists = prev.some(s => s.user.userId === p_.user.userId);
+            const userExists = prev.some(s => s.user.userId === user.userId);
 
             if (userExists) {
               // update existing
               return prev.map(s =>
-                s.user.userId === p_.user.userId
+                s.user.userId === user.userId
                   ? {
                       ...s,
                       producers: [
@@ -243,6 +238,8 @@ const ReceiveBroadcast = () => {
     })
   } , [socket])
 
+
+
   return (
     <div>
       <h2>Receiver</h2>
@@ -251,7 +248,7 @@ const ReceiveBroadcast = () => {
         console.log(mediaStream?.active , audioStream?.active , 'bundled stream');
         
         return (
-          <div className="flex flex-col max-h-[360px] max-w-[640px] gap-8" key={i}>
+          <div className="flex flex-col gap-8" key={i}>
             <h3>User : {s.user.username}</h3>
             
             <VideoPlayer stream={mediaStream} audioStream={audioStream} />

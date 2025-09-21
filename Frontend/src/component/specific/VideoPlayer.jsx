@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from "react";
 import videojs from "video.js";
 import "video.js/dist/video-js.css";
 
-export default function VideoPlayer({ stream , audioStream }) {
+export default function VideoPlayer({ stream , audioStream  , src}) {
   const videoRef = useRef(null);
   const playerRef = useRef(null);
 
@@ -11,76 +11,17 @@ export default function VideoPlayer({ stream , audioStream }) {
 
   useEffect(() => {
     if (!videoRef.current) return;
-
     // Init player without source
     playerRef.current = videojs(videoRef.current, {
       controls: true,
       autoplay: false,
+      aspectRatio: "16:9", 
       fluid: true,
       preload: "auto",
-      // userActions: {
-      //   click: false,   // 🚫 disables click-to-play/pause on the video display
-      // }
     });
     
     const player = playerRef.current;
 
-    // player.ready(() => {
-    //   const playToggle = player.controlBar.playToggle;
-
-    //   // 1. Disable default click-to-toggle on the player *completely*
-    //   // player.off('tap');   // for mobile tap
-    //   // player.off('click'); // for desktop click
-
-    //   // // 2. Add our custom click handler on the *video surface*
-    //   // const videoEl = player.el().querySelector("video");
-
-    //   // if (videoEl) {
-    //   //   videoEl.onclick = () => {
-    //   //     const stream = videoEl.srcObject;
-    //   //     if (!stream) return;
-
-    //   //     const videoTrack = stream.getVideoTracks()[0];
-    //   //     if (!videoTrack) return;
-
-    //   //     if (videoTrack.enabled) {
-    //   //       console.log("Custom pause -> disabling track");
-    //   //       videoTrack.enabled = false;
-    //   //       playToggle.removeClass('vjs-playing');
-    //   //       playToggle.addClass('vjs-paused');
-    //   //     } else {
-    //   //       console.log("Custom play -> enabling track");
-    //   //       videoTrack.enabled = true;
-    //   //       playToggle.removeClass('vjs-paused');
-    //   //       playToggle.addClass('vjs-playing');
-    //   //     }
-    //   //   };
-    //   // }
-
-    //   // 3. Remove default click handler on the button
-    //   if (playToggle) {
-    //     playToggle.off('click');
-    //     playToggle.on('click', () => {
-    //       const stream = player.tech().el().srcObject;
-    //       if (!stream) return;
-
-    //       const videoTrack = stream.getVideoTracks()[0];
-    //       if (!videoTrack) return;
-
-    //       if (videoTrack.enabled) {
-    //         console.log("Custom pause -> disabling track");
-    //         videoTrack.enabled = false;
-    //         playToggle.removeClass('vjs-playing');
-    //         playToggle.addClass('vjs-paused');
-    //       } else {
-    //         console.log("Custom play -> enabling track");
-    //         videoTrack.enabled = true;
-    //         playToggle.removeClass('vjs-paused');
-    //         playToggle.addClass('vjs-playing');
-    //       }
-    //     });
-    //   }
-    // });
 
     player.ready(() => {
       const playToggle = player.controlBar.playToggle;
@@ -107,8 +48,10 @@ export default function VideoPlayer({ stream , audioStream }) {
   }, []);
 
   useEffect(() => {
+    if(src) return;
     if (playerRef.current && stream) {
       const videoEl = playerRef.current.el().querySelector("video");
+      console.log(stream);
       
       if (videoEl && videoEl.srcObject !== stream) {
         videoEl.srcObject = stream;
@@ -121,9 +64,10 @@ export default function VideoPlayer({ stream , audioStream }) {
       }
     } 
     
-  }, [stream , stream.active]); 
+  }, [stream , stream?.active]); 
 
   useEffect(() => {
+    if(src) return;
     if (!audioStream) return;
     if(audioStream.getAudioTracks().length === 0) return ;
 
@@ -136,99 +80,11 @@ export default function VideoPlayer({ stream , audioStream }) {
     }
   } , [audioStream ]);
 
-  // useEffect(() => {
-  //   if (!audioStream?.active || !audioRef.current || !playerRef.current) return; 
-  //   const videoEl = playerRef.current.el().querySelector("video");
-  //   if (!videoEl) return;
-
-  //     console.log(audioStream?.active , audioStream.getAudioTracks() , 'audio stream in effect');
-      
-  //     const audioContext = new AudioContext();
-  //     const source = audioContext.createMediaStreamSource(audioStream);
-  //     const gainNode = audioContext.createGain();
-
-  //     // Connect nodes
-  //     source.connect(gainNode).connect(audioContext.destination);
-
-  //     // Save reference so you can control later
-  //     audioRef.current.gainNode = gainNode;
-    
-  //   const resumeAudio = () => {
-  //     audioRef.current
-  //       .play()
-  //       .then(() => console.log("Audio playback started"))
-  //       .catch(err => console.warn("Autoplay blocked:", err));
-  //   };
-
-  //   document.addEventListener("click", resumeAudio, { once: true });
-  //   document.addEventListener("keydown", resumeAudio, { once: true });
-
-  //   const handleVolumeChange = () => {
-  //     const volume = playerRef.current.volume();    // 0.0 - 1.0
-  //     const muted = playerRef.current.muted();      // true / false
-  //     console.log(volume , muted , 'volume change'); ;
-      
-  //     // audioRef.current.volume =  volume;
-  //     audioRef.current.muted = muted;
-  //     audioRef.current.gainNode.gain.value = muted ? 0 : volume;
-  //   };
-
-  //   videoEl.addEventListener("volumechange", handleVolumeChange);
-  //   return () => {
-  //     videoEl.removeEventListener("volumechange", handleVolumeChange);
-  //     document.removeEventListener("click", resumeAudio);
-  //     document.removeEventListener("keydown", resumeAudio);
-  //   };
-  // } , [audioStream]);
-
-  // useEffect(() => {
-  //   if (!audioStream?.active || !playerRef.current) return;
-
-  //   const videoEl = playerRef.current.el().querySelector("video");
-  //   if (!videoEl) return;
-
-  //   console.log(audioStream?.active, audioStream.getAudioTracks(), "audio stream in effect");
-
-  //   // Create context + gain node
-  //   const audioContext = new AudioContext();
-  //   const source = audioContext.createMediaStreamSource(audioStream);
-  //   const gainNode = audioContext.createGain();
-
-  //   source.connect(gainNode).connect(audioContext.destination);
-
-  //   // Save ref for later
-  //   audioRef.current = { gainNode, audioContext };
-
-  //   // Resume AudioContext on user gesture (needed for Firefox/Chrome autoplay policies)
-  //   const resumeAudio = () => {
-  //     if (audioContext.state === "suspended") {
-  //       audioContext.resume().then(() => console.log("AudioContext resumed"));
-  //     }
-  //   };
-  //   document.addEventListener("click", resumeAudio, { once: true });
-  //   document.addEventListener("keydown", resumeAudio, { once: true });
-
-  //   const handleVolumeChange = () => {
-  //     const volume = playerRef.current.volume(); // 0.0 - 1.0
-  //     const muted = playerRef.current.muted();
-  //     console.log(volume, muted, "volume change");
-
-  //     audioRef.current.gainNode.gain.value = muted ? 0 : volume;
-  //   };
-
-  //   videoEl.addEventListener("volumechange", handleVolumeChange);
-
-  //   return () => {
-  //     videoEl.removeEventListener("volumechange", handleVolumeChange);
-  //     document.removeEventListener("click", resumeAudio);
-  //     document.removeEventListener("keydown", resumeAudio);
-  //     audioContext.close();
-  //   };
-  // }, [audioStream]);
-
 
 useEffect(() => {
-  if (!audioStream?.active || !playerRef.current) return;
+  if(src) return;
+  if (!audioStream?.active || !playerRef.current || !audioStream) return;
+   if(audioStream?.getAudioTracks().length === 0) return ;
   const videoEl = playerRef.current.el().querySelector("video");
   if (!videoEl) return;
 
@@ -282,18 +138,32 @@ useEffect(() => {
 
 
   return (
-    <div className="w-full h-full">
-      {/* <audio ref={audioRef} autoPlay playsInline controls muted className=" h-8 " /> */}
-      <video muted 
-        autoPlay
-        ref={videoRef}
-        className="video-js vjs-big-play-centered rounded-lg overflow-hidden h-full w-full object-scale-down"
-        playsInline
-      />
+    // {<div className="w-full h-full max-w-[640px] max-h-[360px] bg-black rounded-lg overflow-hidden">
+    //   <video muted 
+    //     autoPlay 
+    //     ref={videoRef} 
+    //     className="video-js vjs-big-play-centered rounded-lg  h-full w-full object-contain" 
+    //     playsInline 
+    //     />
+    // </div>}
+      // <div className="w-full h-full max-w-[640px] max-h-[360px] bg-black rounded-lg overflow-hidden flex items-center justify-center" >
+      //   <video 
+      //     ref={videoRef}
+      //     className="video-js vjs-big-play-centered w-[640px] h-[360px] rounded-lg  object-contain"
+      //     playsInline autoPlay
+      //   />
+      // </div>
+      <div className="w-full h-full max-w-[640px] max-h-[360px] bg-black rounded-lg overflow-hidden flex items-center justify-center">
+        <video
+          ref={videoRef}
+          className="video-js vjs-big-play-centered h-full w-full rounded-lg"
+          playsInline
+          muted
+          autoPlay
+          controls
+        />
+      </div>
 
-      <button onClick={() => {
-        console.log(audioRef.current?.volume , audioRef.current?.muted , 'audio volume');
-      }}>click</button> 
-    </div>
+  
   );
 }

@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { Device } from "mediasoup-client";
 import { useSocket } from "../socket";
 import ReceiveBroadcast from "./RecieveBroadcast";
+import VideoPlayer from "../VideoPlayer";
 
 export default function Broadcaster() {
   const videoRef = useRef(null);
@@ -71,9 +72,9 @@ export default function Broadcaster() {
       }
 
       localStreamRef.current = stream;
-      videoRef.current.srcObject = stream;
-      videoRef.current.muted = true;
-      await videoRef.current.play();
+      // videoRef.current?.srcObject = stream;
+      // videoRef.current?.muted = true;
+      // await videoRef?.current?.play();
       console.log(!!socket);
       
       // 2) ask server for router RTP capabilities, load Device
@@ -162,8 +163,12 @@ export default function Broadcaster() {
     <div>
       <h3>Broadcaster</h3>
     
-        <video ref={videoRef} controls style={{ width: "640px", height: "360px", background: "#000" }} autoPlay playsInline />
-      
+        {/* <video ref={videoRef} controls style={{ width: "640px", height: "360px", background: "#000" }} autoPlay playsInline /> */}
+        <VideoPlayer 
+          stream={localStreamRef.current} 
+          audioStream={localStreamRef.current} 
+          />
+
       <div style={{ marginTop: 8 }}>
         {!isLive ? (
           <button className="border-black border-2"  onClick={startBroadcast}>Go Live</button>
