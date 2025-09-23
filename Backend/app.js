@@ -47,6 +47,7 @@ const participants = new Map(); // roomId → array of userIds
 //     consumers: Map(socket.id → [consumers]),
 //     chat: [ { senderId, message, timestamp } ]
 //     users: [ { userId , avatar , blocked , name, muted } ]
+//     password : [id , password]
 //   }
 // }
 
@@ -98,11 +99,16 @@ io.on("connection", async (socket) => {
 
   // === mediasoup signaling ===
 
-  socket.on('joinMeeting', async (roomId , callback) => {
+  socket.on('joinMeeting', async ({roomId , password = ''} , callback) => {
     const room = roomMap.get(roomId);
     
     if (!room) return callback({error : 'Room not found'});
     // io.sockets.adapter.rooms.keys
+    console.log(room.password , password);
+    
+    if( room.password[1] !== password ) return callback({error : 'Wrong password'});
+    
+
     participants.set(socket.user._id , roomId) ;
 
     const getUser = room.users.get(socket.user._id) ; 
@@ -118,7 +124,7 @@ io.on("connection", async (socket) => {
     callback({success : true});
   })
 
-  socket.on("createMeeting", async (callback) => {
+  socket.on("createMeeting", async ({password} , callback) => {
     // const roomId = v4() ;
     let roomId = 'ce48af5b-5a75-4c29-95bb-3b6756f14d54' ;
     roomMap.set(roomId , { 
@@ -126,6 +132,7 @@ io.on("connection", async (socket) => {
       producers : new Map() ,
       consumers : new Map() ,
       chat : [] ,
+      password : [] ,
     });
 
     roomMap.get(roomId).users.set(socket.user._id , { 
@@ -135,6 +142,7 @@ io.on("connection", async (socket) => {
         avatar: socket.user.avatar,
         socketId : socket.id ,
     }) ;
+    roomMap.get(roomId).password = [socket.user._id , password ? password : ''] ;
     participants.set(socket.user._id , roomId) ;
     
     return callback( { roomId , success : true});

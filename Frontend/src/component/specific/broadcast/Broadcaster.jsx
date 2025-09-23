@@ -10,13 +10,50 @@ export default function Broadcaster() {
   const producerTransportRef = useRef(null);
   const producersRef = useRef([]); // store producer objects (audio/video)
   const localStreamRef = useRef(null);
+
   
   // const [roomId , setRoomId] = useState(null);
   const [isLive, setIsLive] = useState(false);
+  const [videoProducer , setVideoProducer] = useState(null);
+  const [cameraOn , setCameraOn] = useState(false);
+
   console.log(isLive);
   
   const socket = useSocket();
   
+  const getCamera = async() => {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true }) ;
+    localStreamRef.current = stream;
+    setCameraOn(true);
+  }
+  const getDisplay = async() => {
+    const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true }) ;
+    localStreamRef.current = stream;
+    setCameraOn(false);
+  }
+
+  const changeVideoSource = async() => {
+    if(!videoProducer) return ;
+      let stream ;
+      if(cameraOn){
+        stream = await navigator.mediaDevices.getDisplayMedia({ video : true , audio : false })
+      }else {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true }) 
+      }
+      let oldTrack  = videoProducer.track ;
+      let newTrack = stream.getVideoTracks()[0];
+
+      if(!newTrack) return ;
+      
+      await videoProducer.replaceTrack({ track: newTrack });
+      if(oldTrack) oldTrack.stop();
+
+      localStreamRef.current.removeTrack(oldTrack);
+      localStreamRef.current.addTrack(newTrack);
+      
+      setCameraOn(!cameraOn);
+  }
+
   async function startBroadcast() {
   if (!socket) {
       console.error("Socket not connected");
@@ -44,9 +81,10 @@ export default function Broadcaster() {
       
       function joinMeeting(socket, roomId) {
         return new Promise((resolve, reject) => {
-          socket.emit("joinMeeting", roomId, (response) => {
+          socket.emit("joinMeeting", {roomId , password : ''}, (response) => {
             if (response.error) {
-              socket.emit("createMeeting", (res) => {
+              console.log('joining meeting failed' , response);
+              socket.emit("createMeeting", {password : ''} ,(res) => {
                 if (res?.error) {
                   return reject(res.error);
                 }
@@ -61,9 +99,15 @@ export default function Broadcaster() {
 
       const { creator: isCreator, roomId: joinedRoomId } = await joinMeeting(socket, roomId);
 
-      console.log(creator);
+      console.log(isCreator);
         
       // 1) get camera + mic
+      if(isCreator) {
+        getCamera();
+      }else {
+        getDisplay();
+      }
+
       let stream ;
       if(isCreator){
         stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true }) ;
@@ -72,10 +116,6 @@ export default function Broadcaster() {
       }
 
       localStreamRef.current = stream;
-      // videoRef.current?.srcObject = stream;
-      // videoRef.current?.muted = true;
-      // await videoRef?.current?.play();
-      console.log(!!socket);
       
       // 2) ask server for router RTP capabilities, load Device
       socket.emit("getRtpCapabilities", async (routerRtpCapabilities) => {
@@ -116,14 +156,15 @@ export default function Broadcaster() {
 
           // 4) produce tracks (video + audio)
           // video
-          const videoTrack = stream.getVideoTracks()[0];
+          const videoTrack = localStreamRef.current.getVideoTracks()[0];
           if(videoTrack){
             const videoProducer = await producerTransport.produce({ track: videoTrack });
             producersRef.current.push(videoProducer);
+            setVideoProducer(videoProducer);
           }
 
           // audio
-          const audioTrack = stream.getAudioTracks()[0];
+          const audioTrack = localStreamRef.current.getAudioTracks()[0];
           if(audioTrack){
             const audioProducer = await producerTransport.produce({ track: audioTrack });
             producersRef.current.push(audioProducer);
@@ -168,7 +209,7 @@ export default function Broadcaster() {
           stream={localStreamRef.current} 
           audioStream={localStreamRef.current} 
           />
-
+        <button className="border-black border-2"  onClick={changeVideoSource}>Change Video Source</button>
       <div style={{ marginTop: 8 }}>
         {!isLive ? (
           <button className="border-black border-2"  onClick={startBroadcast}>Go Live</button>

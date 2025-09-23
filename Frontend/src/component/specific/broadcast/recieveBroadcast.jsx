@@ -239,7 +239,8 @@ const ReceiveBroadcast = () => {
   } , [socket])
 
 
-
+// create layout for each user // create mute linked to list , mute all , unmute all , mute individual // 
+// add more funtion like add password , add audio only , add video only , add screen share , add chat 
   return (
     <div>
       <h2>Receiver</h2>
