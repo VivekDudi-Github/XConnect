@@ -241,7 +241,13 @@ const ReceiveBroadcast = () => {
 
 // create layout for each user // create mute linked to list , mute all , unmute all , mute individual // 
 // add more funtion like add password , add audio only , add video only , add screen share , add chat 
-  return (
+
+// add the reciever im the meeting page and the add the broadcasting as a hook in the meeting layout
+// joining and creating rooms will be managed in the meeting layout
+// streams and their layout with producers will be managed in the meeting page.
+
+
+return (
     <div>
       <h2>Receiver</h2>
       {streams.map((s , i) => {

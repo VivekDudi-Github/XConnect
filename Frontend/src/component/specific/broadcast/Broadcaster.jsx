@@ -4,33 +4,19 @@ import { useSocket } from "../socket";
 import ReceiveBroadcast from "./RecieveBroadcast";
 import VideoPlayer from "../VideoPlayer";
 
-export default function Broadcaster() {
-  const videoRef = useRef(null);
-  const deviceRef = useRef(null);
-  const producerTransportRef = useRef(null);
-  const producersRef = useRef([]); // store producer objects (audio/video)
-  const localStreamRef = useRef(null);
+
+  // const videoRef = useRef(null);
+  // const deviceRef = useRef(null);
+  // const producerTransportRef = useRef(null);
+  // const producersRef = useRef([]); // store producer objects (audio/video)
+  // const localStreamRef = useRef(null);
 
   
-  // const [roomId , setRoomId] = useState(null);
-  const [isLive, setIsLive] = useState(false);
-  const [videoProducer , setVideoProducer] = useState(null);
-  const [cameraOn , setCameraOn] = useState(false);
-
-  console.log(isLive);
+  // // const [roomId , setRoomId] = useState(null);
+  // const [isLive, setIsLive] = useState(false);
+  // const [videoProducer , setVideoProducer] = useState(null);
+  // const [cameraOn , setCameraOn] = useState(false);
   
-  const socket = useSocket();
-  
-  const getCamera = async() => {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true }) ;
-    localStreamRef.current = stream;
-    setCameraOn(true);
-  }
-  const getDisplay = async() => {
-    const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true }) ;
-    localStreamRef.current = stream;
-    setCameraOn(false);
-  }
 
   const changeVideoSource = async() => {
     if(!videoProducer) return ;
@@ -54,68 +40,32 @@ export default function Broadcaster() {
       setCameraOn(!cameraOn);
   }
 
-  async function startBroadcast() {
-  if (!socket) {
-      console.error("Socket not connected");
+  async function startBroadcast(roomId , cameraOn = true , socket ) {
+    const localStreamRef = useRef(null);
+    const producerTransportRef = useRef(null);
+    const producersRef = useRef([]); // store producer objects (audio/video)
+
+    const [videoProducer , setVideoProducer] = useState(null);
+
+  if (!socket || !roomId) {
+      console.error("Socket or RoomId not connected");
       return;
     }
     try {
-      let roomId = 'ce48af5b-5a75-4c29-95bb-3b6756f14d54' ;
-      let creator = false ;
-      // create or join room
-      // await socket.emit("joinMeeting", roomId, ({error , success}) => {
-      //     if (error) {
-      //       console.error("Error joining meeting:", error);
-      //       socket.emit("createMeeting", ( res)  => {
-      //         creator = true ;
-      //         if(res?.error){
-      //           console.error("createMeeting error:", res.error); 
-      //           return ;
-      //         }
-      //         roomId = res.roomId ;
-      //         console.log("createMeeting", res.roomId);
-      //       });
-      //       return;
-      //     }
-      //   });
-      
-      function joinMeeting(socket, roomId) {
-        return new Promise((resolve, reject) => {
-          socket.emit("joinMeeting", {roomId , password : ''}, (response) => {
-            if (response.error) {
-              console.log('joining meeting failed' , response);
-              socket.emit("createMeeting", {password : ''} ,(res) => {
-                if (res?.error) {
-                  return reject(res.error);
-                }
-                return resolve({ creator: true, roomId: res.roomId });
-              });
-            } else {
-              return resolve({ creator: false, roomId });
-            }
-          });
-        });
-      }
-
-      const { creator: isCreator, roomId: joinedRoomId } = await joinMeeting(socket, roomId);
-
-      console.log(isCreator);
-        
+    const getCamera = async() => {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true }) ;
+      localStreamRef.current = stream;
+    }
+    const getDisplay = async() => {
+      const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true }) ;
+      localStreamRef.current = stream;
+    }
       // 1) get camera + mic
-      if(isCreator) {
+      if(cameraOn) {
         getCamera();
       }else {
         getDisplay();
       }
-
-      let stream ;
-      if(isCreator){
-        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true }) ;
-      }else {
-        stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true }) ;
-      }
-
-      localStreamRef.current = stream;
       
       // 2) ask server for router RTP capabilities, load Device
       socket.emit("getRtpCapabilities", async (routerRtpCapabilities) => {
@@ -174,12 +124,13 @@ export default function Broadcaster() {
           console.log("Broadcast started");
         });
       });
+      return {localStreamRef , producerTransportRef , producersRef , videoProducer };
     } catch (err) {
       console.error("startBroadcast error:", err);
     }
   }
 
-  async function stopBroadcast() {
+  async function stopBroadcast(producersRef , localStreamRef) {
     // close producers
     for (const p of producersRef.current) {
       try { await p.close(); } catch(_) {}
@@ -195,29 +146,27 @@ export default function Broadcaster() {
       localStreamRef.current = null;
     }
 
-    setIsLive(false);
     console.log("Broadcast stopped");
-    videoRef.current.srcObject = null;
   }
 
-  return (
-    <div>
-      <h3>Broadcaster</h3>
+  export {startBroadcast , stopBroadcast} ; 
+    // <div>
+    //   <h3>Broadcaster</h3>
     
-        {/* <video ref={videoRef} controls style={{ width: "640px", height: "360px", background: "#000" }} autoPlay playsInline /> */}
-        <VideoPlayer 
-          stream={localStreamRef.current} 
-          audioStream={localStreamRef.current} 
-          />
-        <button className="border-black border-2"  onClick={changeVideoSource}>Change Video Source</button>
-      <div style={{ marginTop: 8 }}>
-        {!isLive ? (
-          <button className="border-black border-2"  onClick={startBroadcast}>Go Live</button>
-        ) : (
-          <button className="border-black border-2"  onClick={stopBroadcast}>Stop</button>
-        )}
-      </div>
-      <ReceiveBroadcast />
-    </div>
-  );
-}
+    //     {/* <video ref={videoRef} controls style={{ width: "640px", height: "360px", background: "#000" }} autoPlay playsInline /> */}
+    //     <VideoPlayer 
+    //       stream={localStreamRef.current} 
+    //       audioStream={localStreamRef.current} 
+    //       />
+    //     <button className="border-black border-2"  onClick={changeVideoSource}>Change Video Source</button>
+    //   <div style={{ marginTop: 8 }}>
+    //     {!isLive ? (
+    //       <button className="border-black border-2"  onClick={startBroadcast}>Go Live</button>
+    //     ) : (
+    //       <button className="border-black border-2"  onClick={stopBroadcast}>Stop</button>
+    //     )}
+    //   </div>
+    //   <ReceiveBroadcast />
+    // </div>
+  
+
