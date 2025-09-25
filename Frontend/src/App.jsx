@@ -23,9 +23,9 @@ const NotificationPage = lazy(() => import('./pages/NotificationPage'));
 const CommunitiesPage = lazy(() => import('./pages/CommunitiesPage'));
 
 import CommunityHome from './component/community/communityHome';
-import Broadcaster from './component/specific/broadcast/Broadcaster';
+// import Broadcaster from './component/specific/broadcast/Broadcaster';
 // import RecieveBroadcast from './component/specific/broadcast/recieveBroadcast';
-import RecieveBroadcast from './component/Call/MeetLayout';
+// import RecieveBroadcast from './component/Call/MeetLayout';
 import MeetPage from './pages/MeetPage';
 
 const CommunityHomePage = lazy(() => import('./component/community/CommunityHomePage'))
@@ -88,7 +88,7 @@ useEffect(() => {
               <Route path="chat/:username" element={<MessagesPage />} />
             </Route>
 
-            <Route path='/broadcast' element={<Broadcaster />} />
+            {/* <Route path='/broadcast' element={<Broadcaster />} /> */}
             <Route path='/meet' element={<MeetPage/>} />
             <Route path='/comment/:id' element ={<CommentPage />} />
             
