@@ -138,22 +138,7 @@ useEffect(() => {
 
 
   return (
-    // {<div className="w-full h-full max-w-[640px] max-h-[360px] bg-black rounded-lg overflow-hidden">
-    //   <video muted 
-    //     autoPlay 
-    //     ref={videoRef} 
-    //     className="video-js vjs-big-play-centered rounded-lg  h-full w-full object-contain" 
-    //     playsInline 
-    //     />
-    // </div>}
-      // <div className="w-full h-full max-w-[640px] max-h-[360px] bg-black rounded-lg overflow-hidden flex items-center justify-center" >
-      //   <video 
-      //     ref={videoRef}
-      //     className="video-js vjs-big-play-centered w-[640px] h-[360px] rounded-lg  object-contain"
-      //     playsInline autoPlay
-      //   />
-      // </div>
-      <div className="w-full h-full max-w-[640px] max-h-[360px] bg-black rounded-lg overflow-hidden flex items-center justify-center">
+      <div className="w-full h-full bg-black rounded-lg overflow-hidden flex items-center justify-center">
         <video
           ref={videoRef}
           className="video-js vjs-big-play-centered h-full w-full rounded-lg"

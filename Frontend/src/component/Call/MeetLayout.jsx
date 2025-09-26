@@ -2,17 +2,16 @@ import React, { useState } from 'react';
 import MeetingPage from './MeetingPage';
 import { useBroadcast } from '../specific/broadcast/Broadcaster';
 import { useSocket } from '../specific/socket';
-import { KeyRound, LoaderCircleIcon, LockKeyhole, ReceiptIndianRupee } from "lucide-react";
+import { KeyRound, LoaderCircleIcon, LockKeyhole } from "lucide-react";
 import { toast } from 'react-toastify';
 
 export default function MeetLayout() {
   const [page, setPage] = useState(true);
   const [roomId , setRoomId] = useState('ce48af5b-5a75-4c29-95bb-3b6756f14d54');
-  const [password, setPassword] = useState("");
   const [loading , setLoading] = useState(false) ;
 
   const socket = useSocket();
-  const { isLive, videoProducer, startBroadcast, stopBroadcast, localStreamRef} = useBroadcast(socket, roomId); 
+  const { isLive, videoProducer, startBroadcast, audioProducer , stopBroadcast, localStreamRef} = useBroadcast(socket, roomId); 
 
 
   const joinMeeting = async (roomId , password = '') => {
@@ -59,7 +58,7 @@ export default function MeetLayout() {
         </div>
       </nav>
 
-      {isLive ? <MeetingPage roomId={roomId} /> : (
+      {isLive ? <MeetingPage roomId={roomId} localStreamRef={localStreamRef} audioproducer={audioProducer} videoProducer={videoProducer} stopBroadcast={stopBroadcast} /> : (
         <div>
           <AddMeeting onJoin={joinMeeting} onCreate={createMeeting} loading={loading} />
         </div>

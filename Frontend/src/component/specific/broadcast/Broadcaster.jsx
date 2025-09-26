@@ -178,6 +178,7 @@ export function useBroadcast(socket, roomId) {
 
   const [isLive, setIsLive] = useState(false);
   const [videoProducer, setVideoProducer] = useState(null);
+  const [audioProducer, setAudioProducer] = useState(null);
 
   // Start broadcast
   const startBroadcast = useCallback(
@@ -240,6 +241,7 @@ export function useBroadcast(socket, roomId) {
             if (audioTrack) {
               const ap = await producerTransport.produce({ track: audioTrack });
               producersRef.current.push(ap);
+              setAudioProducer(ap);
             }
 
             setIsLive(true);
@@ -288,6 +290,7 @@ export function useBroadcast(socket, roomId) {
   return {
     isLive,
     videoProducer,
+    audioProducer,
     startBroadcast,
     stopBroadcast,
     localStreamRef,

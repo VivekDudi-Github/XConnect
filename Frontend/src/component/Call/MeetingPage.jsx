@@ -1,23 +1,33 @@
 import { useEffect, useState } from 'react';
-import { Video, Users, MessageCircle, Phone, Mic, Video as VideoIcon, Share2, Settings, X, MicOff, PhoneCall , ChevronRight, ChevronLeft } from 'lucide-react';
+import { MessageCircle, Phone, Mic, Video as VideoIcon, Share2, Settings, X, MicOff , ChevronRight, ChevronLeft, MonitorIcon, MonitorCheckIcon, VideoOffIcon } from 'lucide-react';
 import '../../assets/styles.css'
 import { useSocket } from '../specific/socket';
 import { useMediasoupConsumers } from '../specific/broadcast/RecieveBroadcast';
 import VideoPlayer from '../specific/VideoPlayer';
+import { toast } from 'react-toastify';
 
 
 
-export default function MeetingPage({roomId}) {  
+export default function MeetingPage({roomId , stopBroadcast , audioproducer ,videoProducer ,localStreamRef}) {  
   const socket = useSocket();
 
 
   const [participants , setParticipants] = useState( new Map());
-  const [view, setView] = useState('grid'); // grid | spotlight
+  
+  const [view, setView] = useState('spotlight'); // grid | spotlight
 
   const [activeSidebar, setActiveSidebar] = useState("chat"); // "chat" | "participants"
   const [collapsed, setCollapsed] = useState(false);
+  const [cameraOn , setCameraOn] = useState(true);
+  
+  const [isMuted , setIsMuted] = useState(audioproducer.paused);
+  const [isVideoPaused , setIsVideoPaused] = useState(videoProducer.paused);
 
-
+  const [activeStream , setActiveStream] = useState({
+    user : 'You',  
+    audioStream : localStreamRef.current ,
+    videoStream : localStreamRef.current ,
+  }); 
 
   const { streams, rtcCapabilities, transportRef, init , cleanup } = useMediasoupConsumers(roomId, socket);
 
@@ -29,7 +39,8 @@ export default function MeetingPage({roomId}) {
   useEffect(() => {
     setParticipants(prev => {
       const updated = new Map();
-
+      console.log(updated);
+      
       streams.forEach(s => {
         const existing = prev.get(s.user.userId);
         updated.set(s.user.userId, {
@@ -43,6 +54,16 @@ export default function MeetingPage({roomId}) {
   }, [streams]);
 
   const toggleMute = (userId) => {
+    if(userId == 'You') {
+      if(isMuted){
+        audioproducer.resume();
+        setIsMuted(false);
+      }else {
+        audioproducer.pause();
+        setIsMuted(true);
+      }
+      return ;
+    } ;
     setParticipants(prev => {
       const updated = new Map(prev);
       const user = updated.get(userId);
@@ -70,6 +91,28 @@ export default function MeetingPage({roomId}) {
     });
   };
 
+  function changeActiveStream(username) {
+    if(activeStream.user.username === username) return ;
+
+    if(username === 'You') return setActiveStream({
+      user : 'You',
+      audioStream : localStreamRef.current , 
+      videoStream : localStreamRef.current ,
+    });
+
+    const user = streams.find(s => s.user.username === username) ;
+    if(!user) {
+      toast.error('User not found');
+      return ;
+    } ;
+    const {mediaStream , audioStream} = bundleUserStream(user.producers);
+    setActiveStream({
+      user : user.user.username , 
+      audioStream : audioStream , 
+      videoStream : mediaStream ,
+    })
+
+  }
 
   function bundleUserStream(producers) {
     const mediaStream = new MediaStream();
@@ -84,6 +127,36 @@ export default function MeetingPage({roomId}) {
     return {mediaStream , audioStream};
   }
 
+  const changeVideoSource = async() => {
+    if(!videoProducer) return ;
+      let stream ;
+      if(cameraOn){
+        stream = await navigator.mediaDevices.getDisplayMedia({ video : true , audio : false })
+      }else {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true }) 
+      }
+      let oldTrack  = videoProducer.track ;
+      let newTrack = stream.getVideoTracks()[0];
+      if(oldTrack) oldTrack.stop();
+      await videoProducer.replaceTrack({ track: newTrack });
+      if(oldTrack) oldTrack.stop();
+      localStreamRef.current.removeTrack(oldTrack);
+      localStreamRef.current.addTrack(newTrack);  
+      setCameraOn(!cameraOn);
+  }
+
+  const pauseVideoSource = async() => {
+    if(!videoProducer) return ;
+    if(isVideoPaused) {
+      await videoProducer.resume();
+      setIsVideoPaused(false);
+    }else {
+      await videoProducer.pause();
+      setIsVideoPaused(true);
+    }
+  }
+
+console.log(participants);
 
   return (
     <div className={`min-h-screen flex gap-4 p-6  dark:bg-gradient-to-t to-slate-900 from-gray-900 text-white`}> 
@@ -154,13 +227,17 @@ export default function MeetingPage({roomId}) {
             </div>
 
             <div className="flex-1 overflow-auto space-y-2">
-              {/* {participants.forEach((v , k) => {  
-                  
-                  return <ParticipantCard key={k} name={v.username} muted={v.muted} userId={k} toggleMute={toggleMute} />
-                })} */}
-            <ParticipantCard name={'Ravi'} muted={false} userId={'1'} toggleMute={toggleMute} />
-            <ParticipantCard name={'You'} muted={false} userId={'2'} toggleMute={toggleMute} />
-            <ParticipantCard name={'John'} muted={false} userId={'3'} toggleMute={toggleMute} />
+              <ParticipantCard name={'You'} muted={isMuted} userId={'You'} changeActive={changeActiveStream} toggleMute={toggleMute} /> 
+              {[...participants.entries()].map(([k, v]) => (
+                <ParticipantCard
+                  key={k}
+                  name={v.username}
+                  muted={v.muted}
+                  userId={k}
+                  toggleMute={toggleMute}
+                />
+              ))} 
+              <ParticipantCard name={'John'} muted={false} userId={'3'} toggleMute={toggleMute} />
             </div>
 
             <div className="flex gap-2">
@@ -183,8 +260,8 @@ export default function MeetingPage({roomId}) {
 
         {view === 'spotlight' ? (
           <div className="rounded-2xl bg-black aspect-video flex items-center justify-center text-white relative overflow-hidden">
-            <div className="absolute left-4 top-4 p-2 bg-black/60 rounded-md text-sm">Live • Spotlight View</div>
-              <VideoPlayer stream={streams[0].mediaStream} audioStream={streams[0].audioStream} />
+            <div className="absolute left-4 top-4 p-2 bg-black/60 rounded-md text-sm">Live •{activeStream?.user} Spotlight View</div>
+              <VideoPlayer stream={activeStream?.videoStream} audioStream={activeStream?.audioStream} />  
             
             {/* <div className="text-center">
               <Video className="mx-auto w-16 h-16 opacity-80" />
@@ -223,17 +300,20 @@ export default function MeetingPage({roomId}) {
         )}
 
         <div className="flex items-center justify-center gap-4">
-          <ControlButton>
-            <Mic />
+          <ControlButton onClick={() => toggleMute('You')}>
+            {isMuted ? <MicOff /> : <Mic />}
           </ControlButton>
-          <ControlButton>
-            <VideoIcon />
+          <ControlButton onClick={() => pauseVideoSource()}>
+            {isVideoPaused ? <VideoOffIcon /> : <VideoIcon />}  
           </ControlButton>
           <ControlButton danger>
             <Phone />
           </ControlButton>
           <ControlButton>
             <Share2 />
+          </ControlButton>
+          <ControlButton onClick={() => changeVideoSource()}>
+            {cameraOn ? <MonitorIcon /> : <MonitorCheckIcon />}
           </ControlButton>
         </div>
       </main>
@@ -242,14 +322,16 @@ export default function MeetingPage({roomId}) {
 }
 
 
-function ParticipantCard({ name, muted , userId , toggleMute }) {
+function ParticipantCard({ name, muted , userId , toggleMute , changeActive }) {
   return (
-    <div className="flex items-center gap-3 p-2 rounded-lg border-2 border-cyan-400 custom-box fade-in">
-      <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold">{name[0]}</div>
-      <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-black dark:text-white truncate">{name}</div>
-        <div className="text-xs text-slate-400">{muted ? 'Muted' : 'Active'}</div>
-      </div>
+    <div className="flex items-center justify-between gap-3 p-2 rounded-lg border-2 border-cyan-400 custom-box fade-in">
+      <button className='flex gap-3 ' onClick={() => changeActive(name)}>
+        <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold">{name[0]}</div>
+        <div className="flex-1 min-w-0">
+          <div className="text-sm font-medium text-black dark:text-white truncate">{name}</div>
+          <div className="text-xs text-slate-400">{muted ? 'Muted' : 'Active'}</div>
+        </div>
+      </button>
       <button className=' pr-1' onClick={() => toggleMute(userId)}>
         {muted ? <MicOff className="w-4 h-4 text-slate-400" /> : <Mic className="w-4 h-4 text-slate-400" />}
       </button>
@@ -257,10 +339,11 @@ function ParticipantCard({ name, muted , userId , toggleMute }) {
   );
 }
 
-function ControlButton({ children, label, danger }) {
+function ControlButton({ children, label, danger , onClick }) {
   return (
     <button
-      className={`flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition active:scale-75 ${danger ? 'bg-red-600 text-white' : ' bg-white text-black hover:bg-gray-200'} shadowLight `} 
+      onClick={onClick}
+      className={`flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg shadow-sm hover:shadow-md transition active:scale-90 ${danger ? 'bg-red-600 text-white' : ' bg-white text-black hover:bg-gray-200'} shadowLight `} 
     >
       {children}
       <span className={`text-[11px] ${danger ? 'text-white' : 'text-slate-400'}`}>{label}</span>
