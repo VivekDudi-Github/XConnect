@@ -128,7 +128,7 @@ io.on("connection", async (socket) => {
     // const roomId = v4() ;
     let roomId = 'ce48af5b-5a75-4c29-95bb-3b6756f14d54' ;
     roomMap.set(roomId , { 
-      users : new Map() , 
+      users : new Map() ,      
       producers : new Map() ,
       consumers : new Map() ,
       chat : [] ,
@@ -144,6 +144,7 @@ io.on("connection", async (socket) => {
     }) ;
     roomMap.get(roomId).password = [socket.user._id , password ? password : ''] ;
     participants.set(socket.user._id , roomId) ;
+    console.log('line:147 , createMeeting' ,roomMap );
     
     return callback( { roomId , success : true});
 
@@ -231,10 +232,12 @@ io.on("connection", async (socket) => {
     callback({ id: producer.id });
     let userObj = room.users.get(socket.user._id) ;
     room.users.forEach((_ , userId) => {
+      console.log('new User emitted');
+      
       if(userId !== socket.user._id && !_.blocked){
         console.log(_.username , 'user obj');
         
-        io.to(_.socketId).emit("NewUserToBroadcast" , { user : userObj , p : producers }) ;  
+        io.to(_.socketId).emit("NewUserToMeeting" , { user : userObj , p : producers }) ;  
       }
     })
   
@@ -261,7 +264,7 @@ io.on("connection", async (socket) => {
 
   socket.on("createConsumerTransport", async (callback) => {
     const transport = await router.createWebRtcTransport({
-      listenIps: [{ ip: "0.0.0.0", announcedIp: "10.170.156.15" }],
+      listenIps: [{ ip: "0.0.0.0", announcedIp: process.env.IP_ADDRESS  }],
       enableUdp: true,
       enableTcp: true
     });
@@ -300,7 +303,7 @@ io.on("connection", async (socket) => {
       return callback({ error: "Cannot consume" });
     }
     console.log('transportId : ' ,transportId);
-    if(!roomMap.has(roomId)) return cb({ error: "Room not found" });  
+    if(!roomMap.has(roomId)) return callback({ error: "Room not found" });  
 
     const transports = transportsBySocket.get(socket.id) || [];
     const transport = transports.find(t => t.id === transportId);
@@ -355,7 +358,7 @@ io.on("connection", async (socket) => {
 
     if(room && room?.users?.get(socket.user._id)){  
       room.users.forEach((_ , key) => {
-        if(key !== socket.user._id) io.to(_?.socketId).emit('removeBroadcastUser' , {userId : key} )  
+        if(key !== socket.user._id) io.to(_?.socketId).emit('removeUserFromMeeting' , {userId : key} )  
       })
     }
   

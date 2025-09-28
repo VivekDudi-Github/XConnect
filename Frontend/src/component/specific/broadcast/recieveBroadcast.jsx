@@ -416,16 +416,15 @@ export function useMediasoupConsumers(roomId, socket) {
     if (!socket) return;
     
      const AddNewUser = async({ user , p : p_ }) => {
+      console.log('new User added' , roomId);
       
       for( const p  of p_){
         socket.emit("consume", {
-          rtpCapabilities: rtcCapablities.current,
+          rtpCapabilities: rtcCapabilities.current,
           producerId: p.id,
           transportId: transportRef.current.id,
           roomId,
-        },
-      
-        async ({ id, producerId, kind, rtpParameters , error }) => {
+        },async ({ id, producerId, kind, rtpParameters , error }) => {
           if(error) {
             console.error("Consume error:", error);
             return;

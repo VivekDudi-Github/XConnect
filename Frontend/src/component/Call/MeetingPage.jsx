@@ -20,8 +20,8 @@ export default function MeetingPage({roomId , stopBroadcast , audioproducer ,vid
   const [collapsed, setCollapsed] = useState(false);
   const [cameraOn , setCameraOn] = useState(true);
   
-  const [isMuted , setIsMuted] = useState(audioproducer.paused);
-  const [isVideoPaused , setIsVideoPaused] = useState(videoProducer.paused);
+  const [isMuted , setIsMuted] = useState(audioproducer?.paused );
+  const [isVideoPaused , setIsVideoPaused] = useState(videoProducer?.paused);
 
   const [activeStream , setActiveStream] = useState({
     user : 'You',  
@@ -39,7 +39,6 @@ export default function MeetingPage({roomId , stopBroadcast , audioproducer ,vid
   useEffect(() => {
     setParticipants(prev => {
       const updated = new Map();
-      console.log(updated);
       
       streams.forEach(s => {
         const existing = prev.get(s.user.userId);
@@ -48,13 +47,19 @@ export default function MeetingPage({roomId , stopBroadcast , audioproducer ,vid
           muted: existing ? existing.muted : false // preserve mute state if already present
         });
       });
-
+      console.log(updated , streams);
+      
       return updated;
     });
+    
   }, [streams]);
 
   const toggleMute = (userId) => {
-    if(userId == 'You') {
+    if(!audioproducer &&  userId == 'You') {
+      setIsMuted(true);
+      return ;
+    }
+    if(userId == 'You' && audioproducer ) {
       if(isMuted){
         audioproducer.resume();
         setIsMuted(false);
@@ -91,7 +96,7 @@ export default function MeetingPage({roomId , stopBroadcast , audioproducer ,vid
     });
   };
 
-  function changeActiveStream(username) {
+  const changeActiveStream = async(username) => {
     if(activeStream.user.username === username) return ;
 
     if(username === 'You') return setActiveStream({
@@ -235,9 +240,9 @@ console.log(participants);
                   muted={v.muted}
                   userId={k}
                   toggleMute={toggleMute}
+                  changeActive={changeActiveStream}
                 />
               ))} 
-              <ParticipantCard name={'John'} muted={false} userId={'3'} toggleMute={toggleMute} />
             </div>
 
             <div className="flex gap-2">

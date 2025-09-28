@@ -14,13 +14,12 @@ export default function MeetLayout() {
   const { isLive, videoProducer, startBroadcast, audioProducer , stopBroadcast, localStreamRef} = useBroadcast(socket, roomId); 
 
 
-  const joinMeeting = async (roomId , password = '') => {
+  const joinMeeting = async (roomId , password = '' ) => {
     try {
       setLoading(true) ;
-      socket.emit('joinMeeting' , { roomId , password } , async ({success , error}) => {
+      socket.emit('joinMeeting' , { roomId , password } , async ({success , error , }) => {
         if(success) {
-          setRoomId(roomId) ;
-          startBroadcast(true) ;
+          startBroadcast(false) ;
         };
         if(error) toast.error(error) ;
       });
@@ -31,8 +30,8 @@ export default function MeetLayout() {
   const createMeeting = async (password = '') => {
     try {
       setLoading(true) ;
-      socket.emit('createMeeting' , { password } , async (roomId) => {
-      setRoomId(roomId);
+      socket.emit('createMeeting' , { password } , async ({roomId , success}) => {
+      // setRoomId(roomId);
       startBroadcast(true) ;
     });
     } catch (error) {
@@ -82,6 +81,7 @@ function AddMeeting({ onJoin, onCreate , loading }) {
         if(!roomId) {
           toast.error('Please enter a room ID');
         }
+        console.log(roomId);
         onJoin(roomId, password)
       }else{
         onCreate(password)
