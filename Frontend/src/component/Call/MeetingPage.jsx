@@ -25,8 +25,8 @@ export default function MeetingPage({roomId , stopBroadcast , audioproducer ,vid
 
   const [activeStream , setActiveStream] = useState({
     user : 'You',  
-    audioStream : localStreamRef.current ,
-    videoStream : localStreamRef.current ,
+    audioStream : localStreamRef.current.audioStream ,
+    videoStream : localStreamRef.current.videoStream ,
   }); 
 
   const { streams, rtcCapabilities, transportRef, init , cleanup } = useMediasoupConsumers(roomId, socket);
@@ -101,8 +101,8 @@ export default function MeetingPage({roomId , stopBroadcast , audioproducer ,vid
 
     if(username === 'You') return setActiveStream({
       user : 'You',
-      audioStream : localStreamRef.current , 
-      videoStream : localStreamRef.current ,
+      audioStream : localStreamRef.current.audioStream , 
+      videoStream : localStreamRef.current.videoStream ,
     });
 
     const user = streams.find(s => s.user.username === username) ;
@@ -161,7 +161,10 @@ export default function MeetingPage({roomId , stopBroadcast , audioproducer ,vid
     }
   }
 
-console.log(participants);
+  const copyRoomId = () => {
+    navigator.clipboard.writeText(roomId);
+    toast.info('Room ID copied to clipboard');
+  }
 
   return (
     <div className={`min-h-screen flex gap-4 p-6  dark:bg-gradient-to-t to-slate-900 from-gray-900 text-white`}> 
@@ -256,7 +259,9 @@ console.log(participants);
       {/* Main video area */}
       <main className={` flex flex-col gap-4 w-full ${collapsed ? '' : ' w-full'} `} >
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Meeting Room</h2>
+          <h2 className="text-lg font-semibold flex">Meeting Room
+            <div className='ml-3 text-xs text-slate-400'>{roomId}</div>
+          </h2>
           <div className="flex gap-2">
             <button onClick={() => setView('grid')} className={`px-3 py-1  rounded-md ${view==='grid' ? 'bg-slate-700 text-slate-300 ' : 'shadowLight'}`}>Grid</button>
             <button onClick={() => setView('spotlight')} className={`px-3 py-1 rounded-md ${view==='spotlight' ? 'bg-slate-700 text-slate-300' : 'shadowLight'}`}>Spotlight</button>
@@ -276,31 +281,24 @@ console.log(participants);
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-2">
+            <VideoPlayer stream={localStreamRef.current.videoStream} audioStream={localStreamRef.current.audioStream} />
             {streams.map((p, i) => {
               const {mediaStream , audioStream} = bundleUserStream(p.producers);
               return (
-              <div key={p.user.userId } className="rounded-lg bg-black aspect-video flex items-center justify-center  border-slate-700">
+              <div key={p.user.userId } className="rounded-lg bg-black aspect-video flex items-center justify-center relative border-slate-700">
                 <VideoPlayer stream={mediaStream} audioStream={audioStream} />
-                {/* <div className="text-center">
-                  <div className="w-14 h-14 bg-slate-600 rounded-full mb-2 flex items-center justify-center text-white font-bold">{p.name[0]}</div>
-                  <div className="text-sm font-medium">{p.name}</div>
-                </div> */}
+                {!mediaStream ? (
+                  <div className="text-center">
+                    <div className="w-14 h-14 bg-slate-600 rounded-full mb-2 flex items-center justify-center text-white font-bold">{p?.user?.username}</div>
+                    <div className="text-sm font-medium">{p?.user?.muted}</div>
+                  </div>
+                ) : (
+                  <div className="absolute top-1 left-1 p-1 py-0.5 bg-white rounded-lg">
+                    <div className=" flex items-center justify-center text-black font-bold text-sm">{p?.user?.username}</div>
+                  </div>
+                ) }
               </div>
             )})}
-
-            {/* {streams.map((s , i) => {
-        const {mediaStream , audioStream} = bundleUserStream(s.producers);
-        console.log(mediaStream?.active , audioStream?.active , 'bundled stream');
-        
-        return (
-          <div className="flex flex-col gap-8" key={i}>
-            <h3>User : {s.user.username}</h3>
-            
-            <VideoPlayer stream={mediaStream} audioStream={audioStream} />
-          </div>
-          )
-        })
-      } */}
           </div>
         )}
 
@@ -311,10 +309,10 @@ console.log(participants);
           <ControlButton onClick={() => pauseVideoSource()}>
             {isVideoPaused ? <VideoOffIcon /> : <VideoIcon />}  
           </ControlButton>
-          <ControlButton danger>
+          <ControlButton danger onClick={() => stopBroadcast(roomId)}>
             <Phone />
           </ControlButton>
-          <ControlButton>
+          <ControlButton onClick={() => copyRoomId()}>
             <Share2 />
           </ControlButton>
           <ControlButton onClick={() => changeVideoSource()}>

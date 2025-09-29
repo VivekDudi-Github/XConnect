@@ -7,7 +7,6 @@ function Layout({children}) {
 
   const handleResize = (value) => {
       setCollapse(value);
-      console.log(collapse);
   }
   useEffect(() => {
     const handleResize = () => {

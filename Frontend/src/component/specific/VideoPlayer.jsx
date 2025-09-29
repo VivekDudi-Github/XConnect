@@ -51,7 +51,6 @@ export default function VideoPlayer({ stream , audioStream  , src}) {
     if(src) return;
     if (playerRef.current && stream) {
       const videoEl = playerRef.current.el().querySelector("video");
-      console.log(stream);
       
       if (videoEl && videoEl.srcObject !== stream) {
         videoEl.srcObject = stream;
@@ -88,7 +87,6 @@ useEffect(() => {
   const videoEl = playerRef.current.el().querySelector("video");
   if (!videoEl) return;
 
-  console.log("Setting up unified audio pipeline");
 
   let hiddenAudioEl;
 

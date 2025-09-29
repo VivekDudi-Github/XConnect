@@ -7,7 +7,7 @@ import { toast } from 'react-toastify';
 
 export default function MeetLayout() {
   const [page, setPage] = useState(true);
-  const [roomId , setRoomId] = useState('ce48af5b-5a75-4c29-95bb-3b6756f14d54');
+  const [roomId , setRoomId] = useState('');
   const [loading , setLoading] = useState(false) ;
 
   const socket = useSocket();
@@ -19,7 +19,8 @@ export default function MeetLayout() {
       setLoading(true) ;
       socket.emit('joinMeeting' , { roomId , password } , async ({success , error , }) => {
         if(success) {
-          startBroadcast(false) ;
+          setRoomId(roomId);
+          startBroadcast(false , roomId) ;
         };
         if(error) toast.error(error) ;
       });
@@ -30,9 +31,9 @@ export default function MeetLayout() {
   const createMeeting = async (password = '') => {
     try {
       setLoading(true) ;
-      socket.emit('createMeeting' , { password } , async ({roomId , success}) => {
-      // setRoomId(roomId);
-      startBroadcast(true) ;
+      socket.emit('createMeeting' , { password } , async ({roomId }) => {
+      setRoomId(roomId);
+      startBroadcast(true , roomId) ;
     });
     } catch (error) {
       console.error('Error creating meeting:', error);
