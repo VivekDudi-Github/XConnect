@@ -29,7 +29,7 @@ export default function MeetingPage({roomId , stopBroadcast , audioproducer ,vid
     videoStream : localStreamRef.current.videoStream ,
   }); 
 
-  const { streams, rtcCapabilities, transportRef, init , cleanup } = useMediasoupConsumers(roomId, socket);
+  const { streams, rtcCapabilities, transportRef, init , cleanup , consumersRef} = useMediasoupConsumers(roomId, socket);
 
   useEffect(() => {
     init() ;
@@ -103,6 +103,7 @@ export default function MeetingPage({roomId , stopBroadcast , audioproducer ,vid
       user : 'You',
       audioStream : localStreamRef.current.audioStream , 
       videoStream : localStreamRef.current.videoStream ,
+      consumer : null ,
     });
 
     const user = streams.find(s => s.user.username === username) ;
@@ -111,13 +112,17 @@ export default function MeetingPage({roomId , stopBroadcast , audioproducer ,vid
       return ;
     } ;
     const {mediaStream , audioStream} = bundleUserStream(user.producers);
+    const producer = user.producers.find(pr => pr.kind === 'video' && pr.consumer) ;
+    console.log(producer);
+    
     setActiveStream({
       user : user.user.username , 
       audioStream : audioStream , 
       videoStream : mediaStream ,
+      consumer : producer?.consumer ,
     })
-
   }
+console.log(activeStream);
 
   function bundleUserStream(producers) {
     const mediaStream = new MediaStream();
@@ -270,31 +275,38 @@ export default function MeetingPage({roomId , stopBroadcast , audioproducer ,vid
 
         {view === 'spotlight' ? (
           <div className="rounded-2xl bg-black aspect-video flex items-center justify-center text-white relative overflow-hidden">
-            <div className="absolute left-4 top-4 p-2 bg-black/60 rounded-md text-sm">Live •{activeStream?.user} Spotlight View</div>
-              <VideoPlayer stream={activeStream?.videoStream} audioStream={activeStream?.audioStream} />  
+            <VideoPlayer stream={activeStream?.videoStream} audioStream={activeStream?.audioStream} consumer={activeStream?.consumer} />  
+              <div className="absolute left-1 top-1 p-1 bg-black/60 rounded-md text-sm text-white">Live {activeStream?.user} • Spotlight View</div> 
             
-            {/* <div className="text-center">
-              <Video className="mx-auto w-16 h-16 opacity-80" />
-              <div className="mt-2 text-lg font-semibold">Presenter: Ravi</div>
-              <div className="text-sm text-slate-400 mt-1">Screen sharing — 720p</div>
-            </div> */}
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-2">
             <VideoPlayer stream={localStreamRef.current.videoStream} audioStream={localStreamRef.current.audioStream} />
             {streams.map((p, i) => {
               const {mediaStream , audioStream} = bundleUserStream(p.producers);
+
+              const ref = p.producers.find(pr => pr.kind === 'video' && pr.consumer)?.consumer ;
+              const consumer = consumersRef.current.get(ref?.id) ;
+
+              console.log("consumer from map", consumer, typeof consumer, consumer.setPreferredLayers);
+              
+              
               return (
               <div key={p.user.userId } className="rounded-lg bg-black aspect-video flex items-center justify-center relative border-slate-700">
-                <VideoPlayer stream={mediaStream} audioStream={audioStream} />
+                <VideoPlayer stream={mediaStream} audioStream={audioStream} consumer={consumer}/>
                 {!mediaStream ? (
                   <div className="text-center">
                     <div className="w-14 h-14 bg-slate-600 rounded-full mb-2 flex items-center justify-center text-white font-bold">{p?.user?.username}</div>
                     <div className="text-sm font-medium">{p?.user?.muted}</div>
                   </div>
                 ) : (
-                  <div className="absolute top-1 left-1 p-1 py-0.5 bg-white rounded-lg">
+                  <div className="absolute flex top-1 left-1 p-1 py-0.5 bg-white rounded-lg">
                     <div className=" flex items-center justify-center text-black font-bold text-sm">{p?.user?.username}</div>
+                    <select className='p-1 bg-white text-black'>
+                      <option value="low" onClick={() => consumer.setPreferredLayers({ spatialLayer: 0 , temporalLayer : 0 })}>180p</option>
+                      <option value="med" onClick={() => consumer.setPreferredLayers({ spatialLayer: 1 , temporalLayer : 0 })}>360p</option>
+                      <option value="high" onClick={() => consumer.setPreferredLayers({ spatialLayer: 2 , temporalLayer : 0 })}>720p</option>
+                    </select>
                   </div>
                 ) }
               </div>

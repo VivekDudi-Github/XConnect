@@ -217,7 +217,7 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
         rtpCapabilities,
         paused : false 
       });
-      console.log('consuming', consumer.id);
+      console.log('rtp capablities', consumer?.rtpParameters?.encodings); 
       consumer.requestKeyFrame().catch(() => {console.log('error requesting key frame');});
       
       // let consumers = consumersBySocket.get(socket.id) || [];
@@ -228,7 +228,6 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
   
       roomMap.get(roomId).consumers.set(socket.user._id , consumers) ;
   
-      console.log('callback fired');
       callback({
         id: consumer.id,
         producerId,

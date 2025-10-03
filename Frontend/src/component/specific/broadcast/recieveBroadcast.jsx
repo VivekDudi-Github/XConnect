@@ -13,7 +13,7 @@ export function useMediasoupConsumers(roomId, socket) {
   const rtcCapabilities = useRef(null);
   const transportRef = useRef(null);
   const deviceRef = useRef(null);
-  const consumersRef = useRef([]);
+  const consumersRef = useRef(new Map());
 
   const init = useCallback(async () => {
     if(!roomId) return console.error('Room ID not provided');
@@ -28,7 +28,8 @@ export function useMediasoupConsumers(roomId, socket) {
         await dev.load({ routerRtpCapabilities });
         deviceRef.current = dev;
         rtcCapabilities.current = routerRtpCapabilities;
-
+        console.log(dev.rtpCapabilities , 'rtp capabilities');
+        
         // 2. Create consumer transport
         socket.emit("createConsumerTransport", async (params) => {
           const transport = dev.createRecvTransport(params);
@@ -66,9 +67,14 @@ export function useMediasoupConsumers(roomId, socket) {
                       kind,
                       rtpParameters,
                     });
-
-                    consumersRef.current.push(consumer); 
-
+                    console.log("Consumer encodings:", consumer.rtpParameters.encodings);
+                    if(consumer.kind === 'video' && consumer?.setPreferredLayers){
+                      console.log('setting preferred layers to 0');
+                      await consumer.setPreferredLayers({ spatialLayer: null  , temporalLayer : 0 });
+                    }
+                    consumersRef.current.set(consumer.id , consumer);
+                    console.log(typeof consumer?.setPreferredLayers , kind , 'preferred layers');
+                    
                     obj.producers.push({
                       track: consumer.track,
                       producerId,
@@ -116,7 +122,7 @@ export function useMediasoupConsumers(roomId, socket) {
         c.close();
       } catch (e) {}
     });
-    consumersRef.current = [];
+    consumersRef.current = new Map();
 
     // Close transport
     if (transportRef.current) {
@@ -168,7 +174,7 @@ export function useMediasoupConsumers(roomId, socket) {
 
           // stream.addTrack(consumer.track);
           await consumer.resume();
-          consumersRef.current.push(consumer);
+          consumersRef.current.set(consumer.id , consumer);
           socket.emit("resumeConsumer", { consumerId: id , roomId });
 
           setStreams(prev => {
@@ -238,5 +244,5 @@ export function useMediasoupConsumers(roomId, socket) {
     } 
   } , [socket , init , roomId])
 
-  return { streams, rtcCapabilities, transportRef, init, cleanup };
+  return { streams, rtcCapabilities, transportRef, init, cleanup , consumersRef};
 }

@@ -66,7 +66,20 @@ export function useBroadcast(socket) {
             // 4) Produce tracks
             const videoTrack = localStreamRef.current.getVideoTracks()[0];
             if (videoTrack) {
-              const vp = await producerTransport.produce({ track: videoTrack });
+              const vp = await producerTransport.produce({
+                track: videoTrack,
+                encodings: [
+                  { rid: '0', scaleResolutionDownBy: 4, maxBitrate: 150_000 , },  // low 
+                  { rid: '1', scaleResolutionDownBy: 2, maxBitrate: 500_000 },  // mid
+                  { rid: '2', scaleResolutionDownBy: 1, maxBitrate: 1_500_000 } // high
+                ],
+                codecOptions: {
+                  videoGoogleStartBitrate: 1000,
+                }
+              });
+
+              
+              console.log("Producer encodings:", vp?.rtpParameters?.encodings);
               producersRef.current.push(vp);
               setVideoProducer(vp);
             }
@@ -109,7 +122,8 @@ export function useBroadcast(socket) {
 
     // Stop tracks
     if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach((t) => t.stop());
+      localStreamRef.current?.videoStream.getTracks().forEach((t) => t.stop());
+      localStreamRef.current?.audioStream.getTracks().forEach((t) => t.stop());
       localStreamRef.current = null;
     }
 
