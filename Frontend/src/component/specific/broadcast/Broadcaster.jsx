@@ -33,6 +33,8 @@ export function useBroadcast(socket) {
           const device = new Device();
           await device.load({ routerRtpCapabilities });
           deviceRef.current = device;
+          console.log(routerRtpCapabilities , device?.rtpCapabilities);
+          
 
           // 3) Ask server for send transport
           socket.emit("createWebRtcTransport", async (params) => {
@@ -68,14 +70,9 @@ export function useBroadcast(socket) {
             if (videoTrack) {
               const vp = await producerTransport.produce({
                 track: videoTrack,
-                encodings: [
-                  { rid: '0', scaleResolutionDownBy: 4, maxBitrate: 150_000 , },  // low 
-                  { rid: '1', scaleResolutionDownBy: 2, maxBitrate: 500_000 },  // mid
-                  { rid: '2', scaleResolutionDownBy: 1, maxBitrate: 1_500_000 } // high
-                ],
-                codecOptions: {
-                  videoGoogleStartBitrate: 1000,
-                }
+                // encodings: [
+                //   { scalabilityMode: 'L3T3_KEY' , maxBitrate: 2_000_000  } 
+                // ]
               });
 
               

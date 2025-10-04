@@ -2,57 +2,8 @@ import React, { useEffect, useRef } from "react";
 import videojs from "video.js";
 import "video.js/dist/video-js.css";
 
-const MenuButton = videojs.getComponent('MenuButton');
-const MenuItem = videojs.getComponent('MenuItem');
 
-
-
-
-class QualityMenuButton extends MenuButton {
-  constructor(player, options) {
-    super(player, options);
-    // console.log(options , 'menu options');
-    
-    this.consumer = options?.consumer;
-    this.controlText('Quality');
-    // this.addClass('vjs-quality-button'); // custom CSS hook
-  }
-
-  buildCSSClass() {
-    return `vjs-icon-cog ${super.buildCSSClass()}`;
-    // Try replacing with "vjs-icon-hd" or your own class
-  }
-  createItems() {
-    return [
-      new QualityMenuItem(this.player(), { label: 'Auto', spatialLayer: 'auto', option: this, selectable: true }),
-      new QualityMenuItem(this.player(), { label: '180p', spatialLayer: 0, option: this, selectable: true }),
-      new QualityMenuItem(this.player(), { label: '360p', spatialLayer: 1, option: this, selectable: true }),
-      new QualityMenuItem(this.player(), { label: '720p', spatialLayer: 2, option: this, selectable: true }),
-    ];
-  }
-}
-
-class QualityMenuItem extends MenuItem {
-  constructor(player, options) {
-    super(player, options);
-
-    this.spatialLayer = options.spatialLayer;
-    this.button = options.button;
-    // console.log(options , 'item options');
-    
-  }
-
-  handleClick() {
-    super.handleClick();
-    if (this.spatialLayer === 'auto') {
-      this.button.consumer.setPreferredLayers({ spatialLayer: null, temporalLayer: null });
-    } else {
-      this.button.consumer.setPreferredLayers({ spatialLayer: this.spatialLayer, temporalLayer: null });
-    }
-  }
-}
-
-export default function VideoPlayer({ stream , audioStream  , src , consumer}) {
+export default function VideoPlayer({ stream , audioStream  , src }) {
   const videoRef = useRef(null);
   const playerRef = useRef(null);
 
@@ -77,7 +28,6 @@ export default function VideoPlayer({ stream , audioStream  , src , consumer}) {
 
 
     player.ready(() => {
-      // if(consumer) player.getChild('controlBar').addChild('QualityMenuButton', { consumer }, 10);
       const playToggle = player.controlBar.playToggle;
 
       playToggle.off('click');
@@ -100,25 +50,6 @@ export default function VideoPlayer({ stream , audioStream  , src , consumer}) {
       }
     };
   }, []);
-
-  useEffect(() => {
-    if (!playerRef.current) return;
-    const controlBar = playerRef.current.getChild('controlBar');
-
-    // Remove existing button if present
-    const existing = controlBar.getChild('QualityMenuButton');
-    if (existing) {
-      controlBar.removeChild(existing);
-    }
-
-    // Add new button only if consumer is valid
-    if (consumer) {
-      console.log(consumer?.setPreferredLayers);
-      
-      controlBar.addChild('QualityMenuButton', { consumer }, 10);
-    }
-
-  }, [consumer]);
 
 
   useEffect(() => {

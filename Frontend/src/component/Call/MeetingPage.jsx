@@ -275,7 +275,7 @@ console.log(activeStream);
 
         {view === 'spotlight' ? (
           <div className="rounded-2xl bg-black aspect-video flex items-center justify-center text-white relative overflow-hidden">
-            <VideoPlayer stream={activeStream?.videoStream} audioStream={activeStream?.audioStream} consumer={activeStream?.consumer} />  
+            <VideoPlayer stream={activeStream?.videoStream} audioStream={activeStream?.audioStream}  />  
               <div className="absolute left-1 top-1 p-1 bg-black/60 rounded-md text-sm text-white">Live {activeStream?.user} • Spotlight View</div> 
             
           </div>
@@ -284,12 +284,6 @@ console.log(activeStream);
             <VideoPlayer stream={localStreamRef.current.videoStream} audioStream={localStreamRef.current.audioStream} />
             {streams.map((p, i) => {
               const {mediaStream , audioStream} = bundleUserStream(p.producers);
-
-              const ref = p.producers.find(pr => pr.kind === 'video' && pr.consumer)?.consumer ;
-              const consumer = consumersRef.current.get(ref?.id) ;
-
-              console.log("consumer from map", consumer, typeof consumer, consumer.setPreferredLayers);
-              
               
               return (
               <div key={p.user.userId } className="rounded-lg bg-black aspect-video flex items-center justify-center relative border-slate-700">

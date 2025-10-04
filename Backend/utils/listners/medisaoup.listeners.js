@@ -100,7 +100,8 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
       };
   
       const producer = await transport.produce({ kind, rtpParameters });
-  
+      console.log('prdducer encodings' ,producer?.rtpParameters?.encodings);
+      
       const room = roomMap.get(roomId) ;
       if(!room) return callback({error : 'Room not found'}) ;
   
@@ -158,7 +159,6 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
         if(user?.blocked || user?.muted) return ;  
         
         list.push({p , user}) ;  
-        console.log(p);
       })
       
       callback(list);
@@ -186,13 +186,10 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
     });
   
     socket.on("connectConsumerTransport", async ({ dtlsParameters, transportId }, callback) => {
-      console.log('transportId : ' ,transportId);
-      
       const transports = transportsBySocket.get(socket.id) || [];
       const transport = transports.find(t => t.id === transportId);
       
       if (transport) {
-        console.log('Connecting consumer transport:', transportId);
         await transport.connect({ dtlsParameters });
       }else {
         console.log('Consumer transport not found:', transportId);
@@ -204,7 +201,6 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
       if (!router.canConsume({ producerId, rtpCapabilities })) {
         return callback({ error: "Cannot consume" });
       }
-      console.log('transportId : ' ,transportId);
       if(!roomMap.has(roomId)) return callback({ error: "Room not found" });  
   
       const transports = transportsBySocket.get(socket.id) || [];
@@ -217,7 +213,6 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
         rtpCapabilities,
         paused : false 
       });
-      console.log('rtp capablities', consumer?.rtpParameters?.encodings); 
       consumer.requestKeyFrame().catch(() => {console.log('error requesting key frame');});
       
       // let consumers = consumersBySocket.get(socket.id) || [];

@@ -67,7 +67,7 @@ export function useMediasoupConsumers(roomId, socket) {
                       kind,
                       rtpParameters,
                     });
-                    console.log("Consumer encodings:", consumer.rtpParameters.encodings);
+                    console.log("Consumer spatialLayers:", consumer?.setPreferredSpatialLayer , consumer?.setPreferredLayers); 
                     if(consumer.kind === 'video' && consumer?.setPreferredLayers){
                       console.log('setting preferred layers to 0');
                       await consumer.setPreferredLayers({ spatialLayer: null  , temporalLayer : 0 });
@@ -148,7 +148,6 @@ export function useMediasoupConsumers(roomId, socket) {
 
   useEffect(() => {
     if (!socket) return;
-    console.log(socket , socket?.id); 
     
      const AddNewUser = async({ user , p : p_ }) => {
       console.log('new User added' , roomId);
@@ -171,7 +170,7 @@ export function useMediasoupConsumers(roomId, socket) {
             kind,
             rtpParameters,
           });
-
+          console.log("Consumer spatialLayers:", consumer?.setPreferredSpatialLayer , consumer?.setPreferredLayers); 
           // stream.addTrack(consumer.track);
           await consumer.resume();
           consumersRef.current.set(consumer.id , consumer);
