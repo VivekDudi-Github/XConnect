@@ -52,6 +52,43 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
   
     })
   
+    socket.on('addMessage' , async({message , roomId } , callback) => {
+      const room = roomMap.get(roomId) ;
+      if(!room) return callback({error : "Room doesn't exist"}) ;
+
+      const user = room.users.get(socket.user._id) ;
+      if(!user|| user.blocked) return  callback({error : 'You are not currently active in meeting.'})
+        
+        const newObj = {
+        message , 
+        id : v4() ,
+        user : {
+          userId : socket.user._id ,
+          username : socket.user.username ,
+        } , 
+        timeStamp : new Date().toUTCString() ,
+      } 
+      
+      room.chat.push(newObj) ;
+      
+      room.users.forEach((_) => {
+        if(!_.blocked){
+          io.to(_.socketId).emit("NewMessageToMeeting" , { message : newObj , roomId }) ;  
+        }
+      })
+      callback() ;
+    })
+
+    socket.on('getAllMessages' , async({roomId} , callback) => {
+      const room = roomMap.get(roomId) ;
+      if(!room) return callback({error : "Room doesn't exist"})
+        
+      const user = room.users.get(socket.user._id) ;
+      if(!user|| user.blocked) return  callback({error : 'You are not currently active in meeting.'})
+            
+      return callback({chat : room.chat}) ;
+    })
+
     socket.on("getRtpCapabilities", (callback) => {
       callback(router.rtpCapabilities);
     });
@@ -213,6 +250,8 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
         rtpCapabilities,
         paused : false 
       });
+      console.log('consumer encodings :' ,consumer?.rtpParameters?.encodings);
+      await consumer.setPreferredLayers({ spatialLayer: 2  , temporalLayer : 0 });
       consumer.requestKeyFrame().catch(() => {console.log('error requesting key frame');});
       
       // let consumers = consumersBySocket.get(socket.id) || [];

@@ -70,11 +70,15 @@ export function useBroadcast(socket) {
             if (videoTrack) {
               const vp = await producerTransport.produce({
                 track: videoTrack,
-                // encodings: [
-                //   { scalabilityMode: 'L3T3_KEY' , maxBitrate: 2_000_000  } 
-                // ]
+                encodings: [
+                  { rid: "r0", scaleResolutionDownBy: 4, maxBitrate: 300_000 },
+                  { rid: "r1", scaleResolutionDownBy: 2, maxBitrate: 900_000 },
+                  { rid: "r2", scaleResolutionDownBy: 1, maxBitrate: 2_500_000 },
+                ] ,
+                codecOptions: {
+                  videoGoogleStartBitrate: 1000, // optional but helps Chrome/Firefox
+                },
               });
-
               
               console.log("Producer encodings:", vp?.rtpParameters?.encodings);
               producersRef.current.push(vp);

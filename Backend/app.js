@@ -57,7 +57,16 @@ io.use(checkSocketUser);
   router = await worker.createRouter({
     mediaCodecs: [
       { kind: "audio", mimeType: "audio/opus", clockRate: 48000, channels: 2 },
-      { kind: "video", mimeType: "video/VP9", clockRate: 90000 ,  }
+      {
+        kind: "video",
+        mimeType: "video/H264",
+        clockRate: 90000,
+        parameters: {
+          "packetization-mode": 1,
+          "profile-level-id": "42e01f", // baseline
+          "level-asymmetry-allowed": 1
+        }
+      }
     ]
   }) ;
 })();

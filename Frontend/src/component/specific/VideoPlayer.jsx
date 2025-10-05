@@ -12,9 +12,6 @@ export default function VideoPlayer({ stream , audioStream  , src }) {
 
   useEffect(() => {
     if (!videoRef.current) return;
-
-    videojs.registerComponent('QualityMenuButton', QualityMenuButton);
-    
     // Init player without source
     playerRef.current = videojs(videoRef.current, {
       controls: true,

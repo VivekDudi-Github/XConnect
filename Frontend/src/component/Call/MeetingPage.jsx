@@ -5,12 +5,14 @@ import { useSocket } from '../specific/socket';
 import { useMediasoupConsumers } from '../specific/broadcast/RecieveBroadcast';
 import VideoPlayer from '../specific/VideoPlayer';
 import { toast } from 'react-toastify';
-
-
+import moment from 'moment' ;
+import {useSelector} from 'react-redux'
+import Textarea from 'react-textarea-autosize'
+import { useCallback } from 'react';
 
 export default function MeetingPage({roomId , stopBroadcast , audioproducer ,videoProducer ,localStreamRef}) {  
   const socket = useSocket();
-
+  const auth = useSelector(state => state.auth) ;
 
   const [participants , setParticipants] = useState( new Map());
   
@@ -19,6 +21,7 @@ export default function MeetingPage({roomId , stopBroadcast , audioproducer ,vid
   const [activeSidebar, setActiveSidebar] = useState("chat"); // "chat" | "participants"
   const [collapsed, setCollapsed] = useState(false);
   const [cameraOn , setCameraOn] = useState(true);
+  const [message , setMessage] = useState('');
   
   const [isMuted , setIsMuted] = useState(audioproducer?.paused );
   const [isVideoPaused , setIsVideoPaused] = useState(videoProducer?.paused);
@@ -29,8 +32,14 @@ export default function MeetingPage({roomId , stopBroadcast , audioproducer ,vid
     videoStream : localStreamRef.current.videoStream ,
   }); 
 
-  const { streams, rtcCapabilities, transportRef, init , cleanup , consumersRef} = useMediasoupConsumers(roomId, socket);
+  const { streams, chats , rtcCapabilities, transportRef, init , cleanup , consumersRef} = useMediasoupConsumers(roomId, socket);
 
+  const handleAddMessage = () => {
+    socket.emit('addMessage' , { message , roomId } , ({error}) => {
+      if(error) return toast.error(error);
+      setMessage('');
+    })}
+  
   useEffect(() => {
     init() ;
     return () => cleanup();
@@ -53,6 +62,7 @@ export default function MeetingPage({roomId , stopBroadcast , audioproducer ,vid
     });
     
   }, [streams]);
+
 
   const toggleMute = (userId) => {
     if(!audioproducer &&  userId == 'You') {
@@ -122,7 +132,6 @@ export default function MeetingPage({roomId , stopBroadcast , audioproducer ,vid
       consumer : producer?.consumer ,
     })
   }
-console.log(activeStream);
 
   function bundleUserStream(producers) {
     const mediaStream = new MediaStream();
@@ -171,6 +180,8 @@ console.log(activeStream);
     toast.info('Room ID copied to clipboard');
   }
 
+  
+
   return (
     <div className={`min-h-screen flex gap-4 p-6  dark:bg-gradient-to-t to-slate-900 from-gray-900 text-white`}> 
       
@@ -217,16 +228,28 @@ console.log(activeStream);
               <MessageCircle className="w-5 h-5 text-slate-400" />
             </div>
 
+            {/* chats */}
             <div className="flex-1 mt-3 overflow-auto space-y-3  fade-in text-white">
-              <div className="text-xs text-slate-500">09:10 • Neon</div>
-              <div className="bg-slate-700 p-3 rounded-lg text-sm">Please check the slide deck I shared.</div>
-              <div className="text-xs text-slate-500">09:12 • You</div>
-              <div className="bg-indigo-600/30 p-3 rounded-lg text-sm">On it — switching to screen share.</div>
+              {chats.map((c , i) => {
+                return (
+                  <>
+                    <div key={c?.id} className="text-xs text-slate-500">{moment(c?.timeStamp).fromNow()} • {c?.user?.username}</div> 
+                    {c.user?.username === auth?.user?.username ? (
+                      <div className="bg-slate-700 p-3 rounded-lg text-sm">{c?.message}</div>
+                    ) : (
+                    <div className="bg-indigo-600/30 p-3 rounded-lg text-sm">{c?.message}</div>
+                    )}
+                  </>
+                )
+              })}
             </div>
 
             <div className="mt-3 flex sm:flex-row flex-wrap flex-col gap-2">
-              <input className=" rounded-lg border border-slate-700 bg-slate-900 text-white px-3 py-2 w-full" placeholder="Send a message..." />
-              <button className="px-3 py-2 rounded-lg w-full bg-indigo-600 text-white">Send</button>
+              <Textarea onChange={(e) => setMessage(e.target.value)} value={message}
+                className=" w-full p-1 focus:pl-3 rounded dark:bg-gradient-to-t dark:from-gray-800 dark:to-black duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 dark:text-white shadowLight" 
+                placeholder="Send a message..."
+              />
+              <button onClick={handleAddMessage} className="px-3 py-2 rounded-lg w-full bg-indigo-600 text-white">Send</button>
             </div>
           </aside>  
         )}
@@ -287,7 +310,7 @@ console.log(activeStream);
               
               return (
               <div key={p.user.userId } className="rounded-lg bg-black aspect-video flex items-center justify-center relative border-slate-700">
-                <VideoPlayer stream={mediaStream} audioStream={audioStream} consumer={consumer}/>
+                <VideoPlayer stream={mediaStream} audioStream={audioStream} />
                 {!mediaStream ? (
                   <div className="text-center">
                     <div className="w-14 h-14 bg-slate-600 rounded-full mb-2 flex items-center justify-center text-white font-bold">{p?.user?.username}</div>
@@ -296,11 +319,11 @@ console.log(activeStream);
                 ) : (
                   <div className="absolute flex top-1 left-1 p-1 py-0.5 bg-white rounded-lg">
                     <div className=" flex items-center justify-center text-black font-bold text-sm">{p?.user?.username}</div>
-                    <select className='p-1 bg-white text-black'>
+                    {/* <select className='p-1 bg-white text-black'>
                       <option value="low" onClick={() => consumer.setPreferredLayers({ spatialLayer: 0 , temporalLayer : 0 })}>180p</option>
                       <option value="med" onClick={() => consumer.setPreferredLayers({ spatialLayer: 1 , temporalLayer : 0 })}>360p</option>
                       <option value="high" onClick={() => consumer.setPreferredLayers({ spatialLayer: 2 , temporalLayer : 0 })}>720p</option>
-                    </select>
+                    </select> */}
                   </div>
                 ) }
               </div>

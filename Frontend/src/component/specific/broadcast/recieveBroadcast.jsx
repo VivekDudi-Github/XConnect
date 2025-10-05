@@ -4,16 +4,18 @@ import * as mediasoupClient from "mediasoup-client";
 import { useSocket } from "../socket";
 import Videojs from "video.js"
 import VideoPlayer from "../VideoPlayer";
+import { toast } from "react-toastify";
 
 
 export function useMediasoupConsumers(roomId, socket) {
-  console.log(roomId);
   
   const [streams, setStreams] = useState([]);
   const rtcCapabilities = useRef(null);
   const transportRef = useRef(null);
   const deviceRef = useRef(null);
   const consumersRef = useRef(new Map());
+
+  const [chats , setChats] = useState([]) ;
 
   const init = useCallback(async () => {
     if(!roomId) return console.error('Room ID not provided');
@@ -67,7 +69,6 @@ export function useMediasoupConsumers(roomId, socket) {
                       kind,
                       rtpParameters,
                     });
-                    console.log("Consumer spatialLayers:", consumer?.setPreferredSpatialLayer , consumer?.setPreferredLayers); 
                     if(consumer.kind === 'video' && consumer?.setPreferredLayers){
                       console.log('setting preferred layers to 0');
                       await consumer.setPreferredLayers({ spatialLayer: null  , temporalLayer : 0 });
@@ -109,6 +110,10 @@ export function useMediasoupConsumers(roomId, socket) {
           });
         });
       });
+      socket.emit('getAllMessages' , { roomId } , ({chat , error}) => {
+        if(error) return toast.error(error);
+        setChats(chat);
+      }) ;
     } catch (err) {
       console.error("Init error:", err);
     }
@@ -233,15 +238,27 @@ export function useMediasoupConsumers(roomId, socket) {
       });
     };
 
+    const newMessageMeeting = ({ message , roomId : recivedRoomId}) => {
+      if(recivedRoomId !== roomId) return ;
+      setChats(prev => [
+        ...prev , 
+        message ,
+      ]) ;
+      console.log(message);
+      
+    } 
 
+    socket.on("NewMessageToMeeting" , newMessageMeeting)
     socket.on("removeUserFromMeeting", removeOldUser ) 
     socket.on("NewUserToMeeting", AddNewUser)
 
     return () => {
       socket.off("removeUserFromMeeting" , removeOldUser);
+      socket.off('newMessageMeeting' , newMessageMeeting) ;
       socket.off("NewUserToMeeting" , AddNewUser);
+
     } 
   } , [socket , init , roomId])
 
-  return { streams, rtcCapabilities, transportRef, init, cleanup , consumersRef};
+  return { streams, rtcCapabilities, transportRef, init, cleanup , consumersRef , chats};
 }
