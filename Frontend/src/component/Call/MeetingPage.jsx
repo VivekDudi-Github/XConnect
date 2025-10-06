@@ -30,10 +30,11 @@ export default function MeetingPage({roomId , stopBroadcast , audioproducer ,vid
     user : 'You',  
     audioStream : localStreamRef.current.audioStream ,
     videoStream : localStreamRef.current.videoStream ,
+    consumer : null 
   }); 
 
   const { streams, chats , rtcCapabilities, transportRef, init , cleanup , consumersRef} = useMediasoupConsumers(roomId, socket);
-
+  
   const handleAddMessage = () => {
     socket.emit('addMessage' , { message , roomId } , ({error}) => {
       if(error) return toast.error(error);
@@ -122,15 +123,19 @@ export default function MeetingPage({roomId , stopBroadcast , audioproducer ,vid
       return ;
     } ;
     const {mediaStream , audioStream} = bundleUserStream(user.producers);
-    const producer = user.producers.find(pr => pr.kind === 'video' && pr.consumer) ;
-    console.log(producer);
+    const consumerId = user.producers.map(p => p.consumer) ;
     
+    consumerId.forEach(c => {
+      consumersRef?.current?.get(c)?.resume() ;
+    })
+
     setActiveStream({
       user : user.user.username , 
       audioStream : audioStream , 
       videoStream : mediaStream ,
-      consumer : producer?.consumer ,
+      consumer : consumerId ,
     })
+    pauseAll(consumerId) ;
   }
 
   function bundleUserStream(producers) {
@@ -180,6 +185,27 @@ export default function MeetingPage({roomId , stopBroadcast , audioproducer ,vid
     toast.info('Room ID copied to clipboard');
   }
 
+  const pauseAll  = (consumerId) => {
+    if(activeStream?.consumer && view === 'spotlight'){
+      consumersRef.current.forEach(async (c , id ) => {
+        if(consumerId && consumerId.includes(id)) {
+          c.resume() ;
+          return ;
+        } 
+        if(!consumerId && activeStream.consumer.includes(id) ) {
+          c.resume() ;
+          return ;
+        }
+        c.pause();
+      })
+    }
+  }
+
+  const resumeAll = () => {
+    consumersRef.current.forEach( async (c) => {
+      await c?.resume() ;
+    })
+  }
   
 
   return (
@@ -291,8 +317,14 @@ export default function MeetingPage({roomId , stopBroadcast , audioproducer ,vid
             <div className='ml-3 text-xs text-slate-400'>{roomId}</div>
           </h2>
           <div className="flex gap-2">
-            <button onClick={() => setView('grid')} className={`px-3 py-1  rounded-md ${view==='grid' ? 'bg-slate-700 text-slate-300 ' : 'shadowLight'}`}>Grid</button>
-            <button onClick={() => setView('spotlight')} className={`px-3 py-1 rounded-md ${view==='spotlight' ? 'bg-slate-700 text-slate-300' : 'shadowLight'}`}>Spotlight</button>
+            <button onClick={() => {
+              setView('grid');
+              resumeAll() ;
+            }} className={`px-3 py-1  rounded-md ${view==='grid' ? 'bg-slate-700 text-slate-300 ' : 'shadowLight'}`}>Grid</button>
+            <button onClick={() => {
+              setView('spotlight');
+              pauseAll() ;
+            }} className={`px-3 py-1 rounded-md ${view==='spotlight' ? 'bg-slate-700 text-slate-300' : 'shadowLight'}`}>Spotlight</button>
           </div>
         </div>
 
@@ -307,7 +339,14 @@ export default function MeetingPage({roomId , stopBroadcast , audioproducer ,vid
             <VideoPlayer stream={localStreamRef.current.videoStream} audioStream={localStreamRef.current.audioStream} />
             {streams.map((p, i) => {
               const {mediaStream , audioStream} = bundleUserStream(p.producers);
-              
+                p.producers.forEach(async (p) => {
+                  try {
+                    await consumersRef.current.get(p.consumer)?.resume() ;
+                  } catch (error) {
+                    console.log(error);
+                  }
+                })
+
               return (
               <div key={p.user.userId } className="rounded-lg bg-black aspect-video flex items-center justify-center relative border-slate-700">
                 <VideoPlayer stream={mediaStream} audioStream={audioStream} />

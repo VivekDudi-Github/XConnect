@@ -30,7 +30,6 @@ export function useMediasoupConsumers(roomId, socket) {
         await dev.load({ routerRtpCapabilities });
         deviceRef.current = dev;
         rtcCapabilities.current = routerRtpCapabilities;
-        console.log(dev.rtpCapabilities , 'rtp capabilities');
         
         // 2. Create consumer transport
         socket.emit("createConsumerTransport", async (params) => {
@@ -69,18 +68,14 @@ export function useMediasoupConsumers(roomId, socket) {
                       kind,
                       rtpParameters,
                     });
-                    if(consumer.kind === 'video' && consumer?.setPreferredLayers){
-                      console.log('setting preferred layers to 0');
-                      await consumer.setPreferredLayers({ spatialLayer: null  , temporalLayer : 0 });
-                    }
+                    
                     consumersRef.current.set(consumer.id , consumer);
-                    console.log(typeof consumer?.setPreferredLayers , kind , 'preferred layers');
                     
                     obj.producers.push({
                       track: consumer.track,
                       producerId,
                       kind,
-                      consumer: consumer,
+                      consumer: consumer.id,
                     });
 
                     await consumer.resume();
@@ -231,7 +226,7 @@ export function useMediasoupConsumers(roomId, socket) {
         const leavingUser = prevStreams.find(s => s.user.userId === userId)
         if(leavingUser){
           leavingUser.producers.forEach((p) => {
-            if(p.consumer) p.consumer.close();
+            consumersRef.current.get(p.consumer)?.close();
           })
         }
         return prevStreams.filter(s => s.user.userId !== userId)

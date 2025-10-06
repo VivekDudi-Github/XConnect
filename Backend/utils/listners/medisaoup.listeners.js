@@ -145,10 +145,6 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
   
       let producers = room.producers.get(socket.user._id) || [] ;
   
-  
-      const stats = await producer.getStats();
-      console.log("Producer packetsSent:", stats); 
-  
       producers.push({
         userId : socket.user._id ,
         id: producer.id,
@@ -259,7 +255,9 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
   
       let consumers = roomMap.get(roomId).consumers.get(socket.user._id) || [] ;
       consumers.push(consumer);
-  
+consumer.on("pause", () => console.log("Consumer paused (client)"));
+consumer.on("resume", () => console.log("Consumer resumed (client)"));
+      
       roomMap.get(roomId).consumers.set(socket.user._id , consumers) ;
   
       callback({
