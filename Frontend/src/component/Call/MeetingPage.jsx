@@ -8,7 +8,6 @@ import { toast } from 'react-toastify';
 import moment from 'moment' ;
 import {useSelector} from 'react-redux'
 import Textarea from 'react-textarea-autosize'
-import { useCallback } from 'react';
 
 export default function MeetingPage({roomId , stopBroadcast , audioproducer ,videoProducer ,localStreamRef}) {  
   const socket = useSocket();
@@ -110,6 +109,13 @@ export default function MeetingPage({roomId , stopBroadcast , audioproducer ,vid
   const changeActiveStream = async(username) => {
     if(activeStream.user.username === username) return ;
 
+    if(activeStream.consumer && view === 'spotlight'){
+      for (const c of activeStream.consumer ?? []) {
+        const consumer = consumersRef.current?.get(c);
+        if (consumer && !consumer.paused) await consumer.pause();
+      }
+    }
+
     if(username === 'You') return setActiveStream({
       user : 'You',
       audioStream : localStreamRef.current.audioStream , 
@@ -123,19 +129,19 @@ export default function MeetingPage({roomId , stopBroadcast , audioproducer ,vid
       return ;
     } ;
     const {mediaStream , audioStream} = bundleUserStream(user.producers);
-    const consumerId = user.producers.map(p => p.consumer) ;
+    const consumerIds = user.producers.map(p => p.consumer) ;
     
-    consumerId.forEach(c => {
-      consumersRef?.current?.get(c)?.resume() ;
-    })
+    for (const c of consumerIds) {
+      const consumer = consumersRef.current?.get(c);
+      if (consumer && consumer.paused) await consumer.resume();
+    }
 
     setActiveStream({
       user : user.user.username , 
       audioStream : audioStream , 
       videoStream : mediaStream ,
-      consumer : consumerId ,
+      consumer : consumerIds ,
     })
-    pauseAll(consumerId) ;
   }
 
   function bundleUserStream(producers) {
