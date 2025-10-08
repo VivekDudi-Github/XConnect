@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import LiveCard from "./LiveCard";
 
 export default function StartLive() {
   const [title, setTitle] = useState("");
@@ -12,11 +13,10 @@ export default function StartLive() {
 
   const goLive = () => {
     setIsLive(true);
-    // TODO: integrate mediasoup publish logic
   };
 
   return (
-    <div className="p-6 flex flex-col items-center">
+    <div className="p-6 flex flex-col items-center min-h-screen dark:text-white bg-gray-50 dark:bg-black">
       <h1 className="text-2xl font-bold mb-4">🎬 Go Live</h1>
       <div className="w-full max-w-lg space-y-3">
         <input
@@ -40,6 +40,11 @@ export default function StartLive() {
           </button>
         )}
       </div>
+      <LiveCard />
     </div>
   );
 }
+// 1 there is live home page - has all live streams running // 
+// 2 there is live stream room - has all live chats //
+// 3 there is start live component - to start live stream //
+// 4 there is live chats component - to show all chats //
