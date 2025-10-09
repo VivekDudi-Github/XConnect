@@ -12,11 +12,14 @@ const liveChatSchema = new mongoose.Schema({
   } ,
   roomId : {
     type : mongoose.Types.ObjectId ,
-    ref : "LiveStream"
+    ref : "LiveStream" ,
+    index : true ,
+    required : true ,
   } ,
   isSuperChat : {
     type : Boolean ,
     default : false ,
+    index : true ,
   } , 
   amount : {
     type : Number ,
@@ -24,4 +27,4 @@ const liveChatSchema = new mongoose.Schema({
   }
 } , {timestamps : true} )
 
-export const liveChat = mongoose.model('liveChat' , liveChatSchema)
+export const LiveChat = mongoose.model('LiveChat' , liveChatSchema)

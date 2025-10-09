@@ -22,3 +22,8 @@ export default function WatchLive() {
     </div>
   );
 }
+
+// > layout for watch live page
+// >> video player
+// >> chats
+// >> list of live streams on the right/bottom

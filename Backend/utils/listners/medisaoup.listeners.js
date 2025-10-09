@@ -255,9 +255,6 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
   
       let consumers = roomMap.get(roomId).consumers.get(socket.user._id) || [] ;
       consumers.push(consumer);
-consumer.on("pause", () => console.log("Consumer paused (client)"));
-consumer.on("resume", () => console.log("Consumer resumed (client)"));
-      
       roomMap.get(roomId).consumers.set(socket.user._id , consumers) ;
   
       callback({
@@ -312,3 +309,38 @@ consumer.on("resume", () => console.log("Consumer resumed (client)"));
       console.log('user left meeting' , room.users);
     })
  }
+
+export const MediaSoupCleanup = (socket , io , roomMap , participants , transportsBySocket , router) => {
+  // cleanup transports
+        const transports = transportsBySocket.get(socket.id) || [];
+        transports.forEach(t => t.close());
+        transportsBySocket.delete(socket.id);
+
+        let roomId = participants.get(socket.user._id) ;
+        let room = roomMap.get(roomId) ;
+
+        if(room && room?.users?.get(socket.user._id)){  
+          room.users.forEach((_ , key) => {
+            if(socket.user._id !== key) io.to(_?.socketId).emit('removeUserFromMeeting' , {userId : socket.user._id} )
+          })
+        }
+      
+        if(room && room.producers.has(socket.user._id)){
+          const producer = room.producers.get(socket.user._id)
+          producer.forEach(p => p.instance?.close());
+          room.producers.delete(socket.user._id) ;
+        }
+        if(room && room.consumers.has(socket.user._id)){
+          const consumers = room.consumers.get(socket.user._id)
+          consumers.forEach(p => p?.close());
+          room.consumers.delete(socket.user._id) ;
+        }
+        if(room && room.producers.size === 0 && room.consumers.size === 0){
+          roomMap.delete(roomId) ;
+        }
+
+        if(room && room.users.get(socket.user._id)) room.users.delete(socket.user._id) ;
+        console.log(roomMap);
+        
+        participants.delete(socket.user._id) ;
+}
