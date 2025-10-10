@@ -1,10 +1,11 @@
 import React, { useRef, useState, useEffect , useCallback } from "react";
 import { Device } from "mediasoup-client";
+import { toast } from "react-toastify";
 
 
 
 
-export function useBroadcast(socket) {
+export function useBroadcast(socket , isStream = false ) {
   const localStreamRef = useRef(null);
   const producerTransportRef = useRef(null);
   const producersRef = useRef([]); // all producers (audio + video)
@@ -16,10 +17,14 @@ export function useBroadcast(socket) {
 
   // Start broadcast
   const startBroadcast = useCallback(
-    async (cameraOn = true , roomId) => {
-      if (!socket || !roomId) {
-        console.error("Socket or RoomId not connected");
+    async (cameraOn = true , roomId ) => {
+      if (!socket) {
+        console.error("Socket not connected");
         return;
+      }
+      if(!isStream && !roomId){
+        toast.error('roomId not found')
+        return ;
       }
 
       try {
@@ -51,21 +56,36 @@ export function useBroadcast(socket) {
             });
 
             // Transport produce
+            
             producerTransport.on("produce", async ({ kind, rtpParameters }, callback) => {
-              socket.emit(
-                "produce",
-                { kind, rtpParameters, roomId, transportId: producerTransport.id },
-                ({ id, error }) => {
-                  if (error) {
-                    console.error("produce error:", error);
-                    return;
+              if(!isStream){
+                socket.emit(
+                  "produce",
+                  { kind, rtpParameters, roomId, transportId: producerTransport.id },
+                  ({ id, error }) => {
+                    if (error) {
+                      console.error("produce error:", error);
+                      return;
+                    }
+                    callback({ id });
                   }
-                  callback({ id });
-                }
-              );
-            });
-
-            // 4) Produce tracks
+                )
+              }else {
+                socket.emit(
+                  "produce_stream" ,
+                  { kind, rtpParameters, transportId: producerTransport.id },
+                  ({ id , error }) => {
+                    if(error){
+                      console.error('produce_stream error:' , error) ;
+                      return ;
+                    }
+                    callback({ id });
+                  }
+                )
+              }
+            })
+              
+          // 4) Produce tracks
             const videoTrack = localStreamRef.current.getVideoTracks()[0];
             if (videoTrack) {
               const vp = await producerTransport.produce({
@@ -76,11 +96,11 @@ export function useBroadcast(socket) {
                   { rid: "r2", scaleResolutionDownBy: 1, maxBitrate: 2_500_000 },
                 ] ,
                 codecOptions: {
-                  videoGoogleStartBitrate: 1000, // optional but helps Chrome/Firefox
+                  videoGoogleStartBitrate: 1000, 
                 },
               });
+              console.log(vp);
               
-              console.log("Producer encodings:", vp?.rtpParameters?.encodings);
               producersRef.current.push(vp);
               setVideoProducer(vp);
             }
@@ -97,8 +117,10 @@ export function useBroadcast(socket) {
               audioStream: new MediaStream(localStreamRef.current.getAudioTracks()),
               videoStream: new MediaStream(localStreamRef.current.getVideoTracks()),
             };
-          });
+            
         });
+        });
+        return {videoProducerId : vp.id , audioProducerId : ap.id}
       } catch (err) {
         console.error("startBroadcast error:", err);
       }
@@ -151,5 +173,42 @@ export function useBroadcast(socket) {
   };
 }
 
-  
+export function useLiveBroadcast(socket){
+// this hook is for creating the live stream setup
+// this will handle the 
+// it will return the isLive , localStreamRef , startLive , stopLive , video-audio - producers
+
+  const localStreamRef = useRef(null);
+  const producerTransportRef = useRef(null);
+  const producersRef = useRef([]); // all producers (audio + video)
+  const deviceRef = useRef(null);
+
+  const [isLive, setIsLive] = useState(false);
+  const [videoProducer, setVideoProducer] = useState(null);
+  const [audioProducer, setAudioProducer] = useState(null);
+
+  //start live
+
+  const startLive = async() => {
+    if(!socket) {
+      console.error('Socket not connected');
+      return ;
+    }
+    try {
+      // 1) Capture media
+      localStreamRef.current = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      
+      // 2) Get router RTP caps & load device
+      socket.emit('getRtpCapabilities' , async (routerRtpCapabilities) => {
+        const device = new Device();
+        await device.load({ routerRtpCapabilities });
+        deviceRef.current = device;
+      });
+    } catch (error) {
+      console.error('startLive error:' , error);
+      toast.error(error || 'Something went wrong. Please try again.')
+    }
+  }
+
+}
 

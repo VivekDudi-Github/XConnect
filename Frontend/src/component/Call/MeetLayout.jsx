@@ -51,11 +51,6 @@ export default function MeetLayout() {
             onClick={() => setPage(!page)}
           >Meetings</div>
         </div>
-
-        <div className="flex items-center gap-2">
-          {/* <button onClick={() => setPage('meeting')} className={`px-3 py-2 rounded ${page === 'meeting' ? 'bg-indigo-600 text-white' : 'bg-slate-700 text-slate-300'} shadowLight`}>Meeting</button>
-          <button onClick={() => setPage('call')} className={`px-3 py-2 rounded ${page === 'call' ? 'bg-indigo-600 text-white' : 'bg-slate-700 text-slate-300'} shadowLight`}>Call</button> */}
-        </div>
       </nav>
 
       {isLive ? <MeetingPage roomId={roomId} localStreamRef={localStreamRef} audioproducer={audioProducer} videoProducer={videoProducer} stopBroadcast={stopBroadcast} /> : (

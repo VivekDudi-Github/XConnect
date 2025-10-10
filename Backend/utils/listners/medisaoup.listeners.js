@@ -1,4 +1,5 @@
 import { v4 } from "uuid";
+import {LiveStream} from '../../models/liveStream.model.js'
 
 export const MediaSoupListener = (socket , io , roomMap, participants , transportsBySocket , router) => {
   
@@ -114,7 +115,7 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
       });
     });
   
-    socket.on("connectProducerTransport", async ({ dtlsParameters, transportId , roomId}, callback) => {
+    socket.on("connectProducerTransport", async ({ dtlsParameters, transportId }, callback) => {
       const transports = transportsBySocket.get(socket.id) || [];
       const transport = transports.find(t => t.id === transportId);
       if (transport) {
@@ -125,7 +126,7 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
   
     // fix the error handling here , missing room 
     socket.on("produce", async ({ kind, rtpParameters, transportId , roomId }, callback) => {
-      console.log('produce');
+      console.log('producing meeting');
       
       
       const transports = transportsBySocket.get(socket.id) || [];
@@ -178,6 +179,21 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
       })
     
     });
+
+    socket.on("produce_stream", async ({ kind, rtpParameters, transportId  }, callback) => {
+      const transports = transportsBySocket.get(socket.id) || [];
+
+      const transport = transports.find(t => t.id === transportId);
+      // console.log(!!transport , transport);
+      if (!transport) {
+        return callback({error : 'Transport not found'});
+      };
+      const producer = await transport.produce({ kind, rtpParameters });
+      console.log('prdducer encodings' ,producer?.rtpParameters?.encodings);
+
+      callback({ id: producer.id }) ;
+
+    })
   
     socket.on("getProducers", (roomId, callback) => {
       const list = [];

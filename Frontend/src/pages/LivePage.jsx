@@ -6,8 +6,8 @@ import WatchLive from '../component/live/WatchLive'
 function LivePage() {
   return (
     <Layout>
-      {/* <StartLive/> */}
-      <WatchLive />
+      <StartLive/>
+      {/* <WatchLive /> */}
     </Layout>
   )
 }

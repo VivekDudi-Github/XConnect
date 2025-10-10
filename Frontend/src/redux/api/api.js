@@ -248,6 +248,16 @@ const api = createApi({
         credentials : 'include'
       })
     }) ,
+
+    //live
+    createLive : builder.mutation({
+      query : (data) => ({
+        url : '/live/create' ,
+        method : 'POST' ,
+        body : data ,
+        credentials : 'include'
+      })
+    })
   })
 })
 
@@ -306,4 +316,7 @@ export const {
   useToggleFollowCommunityMutation ,
   useLazyGetCommunityPostsQuery ,
   useDeleteCommunityMutation ,
+
+  //live
+  useCreateLiveMutation ,
 } = api ;

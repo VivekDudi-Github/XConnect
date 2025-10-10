@@ -27,3 +27,4 @@ export default function WatchLive() {
 // >> video player
 // >> chats
 // >> list of live streams on the right/bottom
+// > go live page

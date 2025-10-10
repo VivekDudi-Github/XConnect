@@ -1,4 +1,4 @@
-import { Bell, Settings, RocketIcon, SearchIcon, User2Icon, HomeIcon, LucideMessagesSquare, Users2, BookmarkIcon, CameraOff, VideoIcon, Ellipsis, PlaySquare } from 'lucide-react';
+import { Bell, Settings, RocketIcon, SearchIcon, User2Icon, HomeIcon, LucideMessagesSquare, Users2, BookmarkIcon, CameraOff, VideoIcon, Ellipsis, PlayIcon, PlaySquareIcon } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { useSocket } from '../component/specific/socket';
 import { useEffect, useState } from 'react';
@@ -13,7 +13,7 @@ const navItems = [
   { name: 'Bookmarks', icon: <BookmarkIcon />, path: '/bookmarks' },
   { name: 'Notifications', icon: <Bell />, path: '/notifications' },
   { name: 'Meet' , icon: <VideoIcon /> , path: '/meet' }, 
-  { name: 'Live Home' , icon: <PlaySquare /> , path: '/live/home' },  
+  { name: 'Go Live' , icon: <PlaySquareIcon /> , path: '/live' },   
   { name: 'Settings', icon: <Settings />, path: '/settings' },
 ];
 
@@ -55,7 +55,7 @@ export default function Sidebar({collapseFunc}) {
             className="flex items-center relative gap-3 p-2 rounded-lg dark:hover:bg-gray-100  dark:hover:text-gray-700 dark:text-gray-300 hover:bg-gray-300 text-gray-700 duration-200"
           >
             <span className="text-lg" title={item.name}>{item.icon}</span>
-            <span className={`font-medium overflow-hidden ${collapse ? "w-0" : "w-full"} `}>{item.name}</span> 
+            <span className={`font-medium text-nowrap overflow-hidden ${collapse ? "w-0" : "w-full"} `}>{item.name}</span> 
             {/* <div className='' > */}
               {item.name === 'Notifications' && unreadCount > 0 && (
                 <span className="md:ml-auto md:size-6 md:static md:px-2 sm:absolute hidden top-1   sm:size-3  bg-red-500 text-white rounded-full duration-200  p-[0.45rem]  md:text-xs sm:text-[0.62rem] sm:flex items-center justify-center">

@@ -26,14 +26,9 @@ const createLiveStream = TryCatch(async (req , res) => {
       res = await uploadFilesTOCloudinary(media)
     }
 
-
     const liveStream = new LiveStream({
         title ,
         description ,
-        thumbnail : {
-          public_id : res[0].public_id ,
-          url : res[0].url ,
-        } ,
         host : req.user._id ,
         startedAt : Date.now() ,
         endedAt : Date.now() ,
@@ -42,6 +37,12 @@ const createLiveStream = TryCatch(async (req , res) => {
             audioId : audioProducerId ,
         }
     })
+
+    if(res.length) liveStream.thumbnail = {
+      public_id : res[0].public_id ,
+      url : res[0].url ,
+    }
+    
 
     await liveStream.save()
     return ResSuccess(res , 201 , liveStream)
