@@ -257,6 +257,14 @@ const api = createApi({
         body : data ,
         credentials : 'include'
       })
+    }) ,
+    updateLive : builder.mutation({
+      query : ({id , ...data}) => ({
+       url : '/live/update/'+id ,
+       body : data ,
+       method : 'PATCH' ,
+       credentials : 'include' , 
+      })
     })
   })
 })
@@ -319,4 +327,5 @@ export const {
 
   //live
   useCreateLiveMutation ,
+  useUpdateLiveMutation ,
 } = api ;

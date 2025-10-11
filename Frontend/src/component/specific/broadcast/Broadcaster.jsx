@@ -99,8 +99,6 @@ export function useBroadcast(socket , isStream = false ) {
                   videoGoogleStartBitrate: 1000, 
                 },
               });
-              console.log(vp);
-              
               producersRef.current.push(vp);
               setVideoProducer(vp);
             }
@@ -117,10 +115,8 @@ export function useBroadcast(socket , isStream = false ) {
               audioStream: new MediaStream(localStreamRef.current.getAudioTracks()),
               videoStream: new MediaStream(localStreamRef.current.getVideoTracks()),
             };
-            
+          });
         });
-        });
-        return {videoProducerId : vp.id , audioProducerId : ap.id}
       } catch (err) {
         console.error("startBroadcast error:", err);
       }
@@ -133,7 +129,7 @@ export function useBroadcast(socket , isStream = false ) {
     // Close producers
     producersRef.current.forEach((p) => {
       try {
-        p.close();
+        if(p) p.close();
       } catch (_) {}
     });
     producersRef.current = [];
@@ -145,8 +141,8 @@ export function useBroadcast(socket , isStream = false ) {
 
     // Stop tracks
     if (localStreamRef.current) {
-      localStreamRef.current?.videoStream.getTracks().forEach((t) => t.stop());
-      localStreamRef.current?.audioStream.getTracks().forEach((t) => t.stop());
+      localStreamRef.current?.videoStream?.getTracks()?.forEach((t) => t?.stop());
+      localStreamRef.current?.audioStream?.getTracks()?.forEach((t) => t?.stop());
       localStreamRef.current = null;
     }
 

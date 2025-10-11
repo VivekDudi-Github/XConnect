@@ -1,11 +1,10 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Textarea from 'react-textarea-autosize';
 import '../../assets/styles.css'
 import { useSocket } from "../specific/socket";
 import { useBroadcast } from "../specific/broadcast/Broadcaster";
-import { useCreateLiveMutation } from "../../redux/api/api";
+import { useCreateLiveMutation, useUpdateLiveMutation } from "../../redux/api/api";
 import { toast } from "react-toastify";
-
 
 export default function StartLive() {
   const socket = useSocket();
@@ -14,44 +13,58 @@ export default function StartLive() {
   const [isLive, setIsLive] = useState(false);
   const [description, setDescription] = useState('');
   const [thumbnail, setThumbnail] = useState('');
+  const [streamId , setStreamId ] = useState('') ;
   const videoRef = useRef();
+  const inputRef = useRef();
 
   const [createLive ] = useCreateLiveMutation() ;
+  const [updateLiveMutation] = useUpdateLiveMutation() ;
 
   const startPreview = async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-    videoRef.current.srcObject = localStreamRef?.current?.videoStream;
+    videoRef.current.srcObject = stream ;
   };
 
   const {startBroadcast , stopBroadcast , videoProducer , audioProducer , isLive : mediasoupReady , localStreamRef } = useBroadcast(socket , true ) ;
 
   const goLive = async() => {
-    let docId = null ;
 
     const formData = new FormData() ;
     formData.append('title' , title) ;
     formData.append('description' , description) ;
     if(thumbnail) formData.append('media' , thumbnail) ;
 
-
     try {
-      await startBroadcast(true , null , docId);
-      
-
-      // const data = await createLive(formData).unwrap() ;
-      console.log('live');
-
+      await startBroadcast(true , null );
+      const data = await createLive(formData).unwrap() ;
+      console.log('live' ,data.data);
+      setStreamId(data.data._id);
 
     } catch (error) {
-      console.log(error);
-      return toast.error('Error creating live stream' , error);
+      stopBroadcast() ;
+      console.log(error?.data?.message);
+      return toast.error(error?.data?.message || 'Error creating live stream' );
     }
   };
 
+  useEffect(() => {
+    const update = async() => {
+      if(videoProducer && mediasoupReady && streamId){
+        await updateLiveMutation({id : streamId , videoId : videoProducer.id})
+      }
+      if(audioProducer && mediasoupReady && streamId){
+        await updateLiveMutation({id :streamId , audioId : audioProducer.id})
+      }
+      if(videoProducer && mediasoupReady && streamId && audioProducer) setIsLive(true) ;
+    }
+    // update() ;
+  } , [videoProducer , audioProducer , streamId ])
+
   return (
-    <div className="p-6 flex flex-col items-center min-h-screen dark:text-white bg-gray-50 dark:bg-black">
-      <h1 className="text-2xl font-bold mb-4">Go Live</h1>
-      <div className="w-full max-w-lg space-y-3">
+    <div className="p-6 flex md:flex-row flex-col gap-4  min-h-screen dark:text-white bg-gray-50 dark:bg-black">
+      
+      <div className="w-full  space-y-3">
+        <h1 className="text-2xl font-bold mb-4 flex ">Go Live</h1>
         <div>
           <label className="block text-sm font-medium mb-1">Title</label>
           <input
@@ -70,19 +83,19 @@ export default function StartLive() {
             onChange={(e) => setDescription(e.target.value)}
           />
         </div>
-        {/* <div>
-          <label className="block text-sm font-medium mb-1">Thumbnail Select<span className="text-red-500">*</span></label>
+        <div>
+          <label className="block text-sm font-medium mb-1 px-4 py-2 shadowLight dark:border-[1px] border-white rounded-md" onClick={()=> inputRef.current.click()}
+            >Thumbnail Select
+          </label>
           <input
+            ref={inputRef}
             type="file"
             accept="image/*"
             onChange={(e) => setThumbnail(e.target.files[0])}
             className="hidden" 
           />
-        </div> */}
-        <button onClick={startPreview} className=" px-5 py-3 flex justify-center rounded-xl font-semibold duration-200 text-black bg-white hover:bg-slate-200 transition-all shadow-lg shadowLight">
-          Start Preview
-        </button>
-        <video ref={videoRef} autoPlay muted className="w-full rounded-2xl" />
+          {thumbnail && <img src={URL.createObjectURL(thumbnail)} onClick={() => inputRef.current.click()} className="w-full h-full max-h-80 object-contain rounded-2xl" />}
+        </div>
         {!isLive ? (
           <button onClick={goLive} className="px-6 py-3 bg-red-600 text-white rounded-xl w-full showdow-lg shadow-red-400/20 hover:bg-red-700 transition">
             🔴 Go Live
@@ -92,6 +105,12 @@ export default function StartLive() {
             Live...
           </button>
         )}
+      </div>
+      <div className=" flex flex-col  h-full md:max-w-[50%] sm:mt-20 mt-2 ">
+        <button onClick={startPreview} className="shadowLight w-full px-4 py-2 rounded-xl mb-2  dark:bg-white text-black active:scale-95 ">
+          Start Preview
+        </button>
+        <video ref={videoRef} autoPlay className="w-full rounded-2xl" />
       </div>
     </div>
   );

@@ -10,21 +10,20 @@ const createLiveStream = TryCatch(async (req , res) => {
     const {title , description } = req.body ;
     const {media} = req.files ;
 
-    req.CreateMediaForDelete = [media[0]] ;
+    req.CreateMediaForDelete = [media?.[0]] ;
 
-  if(!title || !description || !thumbnail  ) return ResError(res , 400 , 'All fields are required') ;
-
-    const user = await User.findOne({username : req.user.host}) ;
-    if(!user) return ResError('User not found' , 404 , res) ;
+  if(!title || !description ) return ResError(res , 400 , 'All fields are required') ;
+    console.log(media , 'media');
     
-    if(!host || host != user.username) return ResError(res , 400 , 'Host is required and should be the same as the logged in user') ;
+    const user = await User.findOne({_id : req.user._id}) ;
+    if(!user) return ResError(res , 400 ,'User not found' ) ;
+    
+    // if(!videoProducerId || !videoConsumerId) return ResError(res , 400 , 'Video producer and consumer ids are required') ;
 
-    if(!videoProducerId || !videoConsumerId) return ResError(res , 400 , 'Video producer and consumer ids are required') ;
-
-    let res = [] ;
-    if(media && media.length > 0){
-      res = await uploadFilesTOCloudinary(media)
-    }
+    let results = [] ;
+    // if(media && media.length > 0){
+    //   results = await uploadFilesTOCloudinary(media)
+    // }
 
     const liveStream = new LiveStream({
         title ,
@@ -32,19 +31,17 @@ const createLiveStream = TryCatch(async (req , res) => {
         host : req.user._id ,
         startedAt : Date.now() ,
         endedAt : Date.now() ,
-        producers : {
-            videoId : videoProducerId ,
-            audioId : audioProducerId ,
-        }
     })
 
-    if(res.length) liveStream.thumbnail = {
-      public_id : res[0].public_id ,
-      url : res[0].url ,
+    if(results.length > 0) liveStream.thumbnail = {
+      public_id : results[0].public_id ,
+      url : results[0].url ,
     }
+    if(videoProducerId) liveStream.producers.videoId = videoProducerId ;
+    if(audioProducerId) liveStream.producers.audioId = audioProducerId ;
     
 
-    await liveStream.save()
+    // await liveStream.save() ;
     return ResSuccess(res , 201 , liveStream)
 })
 
@@ -68,7 +65,7 @@ const updateLiveStream = TryCatch(async (req , res) => {
     if(!liveStream) return ResError(res , 404 , 'Live stream not found')
     if(liveStream.host != req.user._id) return ResError(res , 403 , 'You are not the host of this live stream')
 
-    const {title , description  , startedAt , endedAt} = req.body ;
+    const {title , description  , startedAt , endedAt , videoId , audioId} = req.body ;
 
     if (title !== undefined) liveStream.title = title;
     if (description !== undefined) liveStream.description = description;
