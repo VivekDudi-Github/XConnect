@@ -265,7 +265,13 @@ const api = createApi({
        method : 'PATCH' ,
        credentials : 'include' , 
       })
-    })
+    }) ,
+    getLiveStream : builder.query({
+      query : ({id}) => ({
+        url : `/live/get/${id}` ,
+        credentials : 'include' ,
+      })
+    }) ,
   })
 })
 
@@ -328,4 +334,5 @@ export const {
   //live
   useCreateLiveMutation ,
   useUpdateLiveMutation ,
+  useGetLiveStreamQuery ,
 } = api ;

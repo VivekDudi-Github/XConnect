@@ -86,7 +86,7 @@ export function useBroadcast(socket , isStream = false ) {
             })
               
           // 4) Produce tracks
-            const videoTrack = localStreamRef.current.getVideoTracks()[0];
+            const videoTrack = localStreamRef.current?.getVideoTracks()[0];
             if (videoTrack) {
               const vp = await producerTransport.produce({
                 track: videoTrack,
@@ -103,7 +103,7 @@ export function useBroadcast(socket , isStream = false ) {
               setVideoProducer(vp);
             }
 
-            const audioTrack = localStreamRef.current.getAudioTracks()[0];
+            const audioTrack = localStreamRef.current?.getAudioTracks()[0];
             if (audioTrack) {
               const ap = await producerTransport.produce({ track: audioTrack });
               producersRef.current.push(ap);

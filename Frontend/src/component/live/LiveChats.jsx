@@ -11,8 +11,8 @@ export default function LiveChat() {
   };
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto p-3 space-y-2">
+    <div className="flex flex-col justify-between max-h-full ">
+      <div className=" flex-1  max-h-fit overflow-y-auto p-3 space-y-2 ">
         {messages.map((msg, i) => (
           <div key={i} className="bg-gray-100 p-2 rounded-lg">
             <strong>{msg.user}: </strong>{msg.text}

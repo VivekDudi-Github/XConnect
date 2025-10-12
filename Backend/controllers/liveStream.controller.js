@@ -4,6 +4,7 @@ import {LiveStream} from '../models/liveStream.model.js'
 import { uploadFilesTOCloudinary } from '../utils/cloudinary.js';
 import { LiveChat } from '../models/liveChats.model.js';
 
+let map = new Map() ;
 
 const createLiveStream = TryCatch(async (req , res) => {
     const {videoProducerId , audioProducerId} = req.body ;
@@ -40,7 +41,7 @@ const createLiveStream = TryCatch(async (req , res) => {
     if(videoProducerId) liveStream.producers.videoId = videoProducerId ;
     if(audioProducerId) liveStream.producers.audioId = audioProducerId ;
     
-
+    map.set(liveStream._id.toString() , liveStream) ;
     // await liveStream.save() ;
     return ResSuccess(res , 201 , liveStream)
 })
@@ -61,7 +62,8 @@ const deleteLiveStream = TryCatch(async (req , res) => {
 const updateLiveStream = TryCatch(async (req , res) => {
     const {id} = req.params
 
-    const liveStream = await LiveStream.findOne({_id : id}) ;
+    // const liveStream = await LiveStream.findOne({_id : id}) ;
+    const liveStream = map.get(id) ;
     if(!liveStream) return ResError(res , 404 , 'Live stream not found')
     if(liveStream.host != req.user._id) return ResError(res , 403 , 'You are not the host of this live stream')
 
@@ -71,18 +73,21 @@ const updateLiveStream = TryCatch(async (req , res) => {
     if (description !== undefined) liveStream.description = description;
     if (startedAt !== undefined) liveStream.startedAt = startedAt;
     if (endedAt !== undefined) liveStream.endedAt = endedAt;
+    if (videoId !== undefined) liveStream.producers.videoId = videoId;
+    if (audioId !== undefined) liveStream.producers.audioId = audioId;
 
-    await liveStream.save();
-
+    // await liveStream.save();
+    console.log(map);
+    
     return ResSuccess(res , 200 , 'Live stream updated successfully')
 })
 
 const getLiveStream = TryCatch(async (req , res) => {
     const {id} = req.params ;
 
-    const liveStream = await LiveStream.findOne({_id : id}) ;
+    // const liveStream = await LiveStream.findOne({_id : id}) ;
+    const liveStream = map.get(id) ;
     if(!liveStream) return ResError(res , 404 , 'Live stream not found')
-    if(liveStream.host != req.user._id) return ResError(res , 403 , 'You are not the host of this live stream')
 
     return ResSuccess(res , 200 , liveStream) ;
 })
