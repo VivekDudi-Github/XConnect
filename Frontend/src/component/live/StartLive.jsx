@@ -63,7 +63,7 @@ export default function StartLive() {
 
   return (
     <>
-      {isLive ? (
+      {!isLive ? (
         <div className="p-6 flex md:flex-row flex-col gap-4  min-h-screen dark:text-white bg-gray-50 dark:bg-black">
       {/* form */}
           <div className="w-full  space-y-3">

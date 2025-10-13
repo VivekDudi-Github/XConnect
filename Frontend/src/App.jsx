@@ -87,7 +87,7 @@ useEffect(() => {
             </Route>
 
             <Route path='/live' element={<LivePage />} />
-            <Route path='/live/watch' element={<LivePage />} />
+            <Route path='/live/watch/:id' element={<LivePage />} />
             <Route path='/meet' element={<MeetPage/>} />
             <Route path='/comment/:id' element ={<CommentPage />} />
             

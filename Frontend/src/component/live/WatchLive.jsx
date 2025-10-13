@@ -1,34 +1,55 @@
-import { useRef } from "react";
+import { use, useEffect, useRef } from "react";
 import LiveCard from "./LiveCard";
 import LiveChat from "./LiveChats";
+import { useGetLiveStreamQuery } from "../../redux/api/api";
+import { useSocket } from "../specific/socket";
 
 export default function WatchLive({localStreamRef , stopBroadcast}) {
   // later you’ll fetch stream info from server
+  const {id} = useParams() ;
+  const socket = useSocket() ;
+  
    const liveStreams = [
     { id: 1, title: "Morning Coding Stream", host: "Vivek", viewers: 32, thumbnail: "/beach.jpg" },
     { id: 2, title: "React Deep Dive", host: "Aki", viewers: 10, thumbnail: "/beach.jpg" },
   ];
 
   const videoRef = useRef() ;
+  const {data , error , isError} = useGetLiveStreamQuery(id , {skip : !id}) ;
+  const  { streams, rtcCapabilities, transportRef, init, cleanup , consumersRef , chats} = useMediasoupConsumers(null , socket )
 
   const startPreview = async () => {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-    videoRef.current.srcObject = stream ;
+    let stream ;
+    if(localStreamRef?.current && !id){
+      let audio =  localStreamRef.current.audioStream ;
+      let video =  localStreamRef.current.videoStream ;
+      stream = new MediaStream([ ...video.getVideoTracks() , ...audio.getAudioTracks() ]) ;
+      videoRef.current.srcObject = stream ;
+    }
   };
+  
+  useEffect(() => {
+    startPreview();
+  }, []);
+
+  useEffect(() => {
+    if(data.data){
+      if(data.data.production.length > 0){
+
+      }
+    }
+  } , [data])
+
   return (
-    <div className="flex flex-col lg:flex-row h-screen overflow-hidden">
-      <div className=" flex flex-col lg:flex-row items-stretch justify-center  dark:bg-black h-full">
-        {/* This will be your mediasoup consumer video */}
+    <div className="flex flex-col lg:flex-row h-screen pb-16 sm:pb-0 w-full ">
+      <div className=" flex flex-col lg:flex-row w-full justify-center  dark:bg-black h-full">
+        {/* This will be the mediasoup consumer video */}
         <video autoPlay ref={videoRef} controls className="max-h-full w-full object-contain" />
-        <div className="flex flex-col h-fit"><LiveChat /></div>
+        <div className="h-full w-full flex"><LiveChat /></div>
       </div>
-      {/* <div className="w-full lg:w-80 border-l">
-        {liveStreams.map((stream) => (
-          <LiveCard key={stream.id} stream={stream} />
-        ))}
-      </div> */}
     {/* <button onClick={startPreview} className="shadowLight w-full px-4 py-2 rounded-xl mb-2  dark:bg-white text-black active:scale-95 ">pre</button> */}
-    </div>
+    </div> 
+    
   );
 }
 

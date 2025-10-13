@@ -7,7 +7,7 @@ import VideoPlayer from "../VideoPlayer";
 import { toast } from "react-toastify";
 
 
-export function useMediasoupConsumers(roomId, socket) {
+export function useMediasoupConsumers(roomId, socket , isBroadcast = false) {
   
   const [streams, setStreams] = useState([]);
   const rtcCapabilities = useRef(null);
@@ -46,63 +46,67 @@ export function useMediasoupConsumers(roomId, socket) {
           transportRef.current = transport;
 
           // 3. Fetch producers
-          socket.emit("getProducers", roomId, async (producers) => {
-            for (const p_ of producers) {
-              let obj = { user: p_.user, producers: [] };
+          if(!isBroadcast){
+              socket.emit("getProducers", roomId, async (producers) => {
+              for (const p_ of producers) {
+                let obj = { user: p_.user, producers: [] };
 
-              for (const p of p_.p) {
-                socket.emit(
-                  "consume",
-                  {
-                    rtpCapabilities: dev.rtpCapabilities,
-                    producerId: p.id,
-                    transportId: transport.id,
-                    roomId,
-                  },
-                  async ({ id, producerId, kind, rtpParameters, error }) => {
-                    if (error) return console.error("Consume error:", error);
+                for (const p of p_.p) {
+                  socket.emit(
+                    "consume",
+                    {
+                      rtpCapabilities: dev.rtpCapabilities,
+                      producerId: p.id,
+                      transportId: transport.id,
+                      roomId,
+                    },
+                    async ({ id, producerId, kind, rtpParameters, error }) => {
+                      if (error) return console.error("Consume error:", error);
 
-                    const consumer = await transport.consume({
-                      id,
-                      producerId,
-                      kind,
-                      rtpParameters,
-                    });
-                    
-                    consumersRef.current.set(consumer.id , consumer);
-                    
-                    obj.producers.push({
-                      track: consumer.track,
-                      producerId,
-                      kind,
-                      consumer: consumer.id,
-                    });
+                      const consumer = await transport.consume({
+                        id,
+                        producerId,
+                        kind,
+                        rtpParameters,
+                      });
+                      
+                      consumersRef.current.set(consumer.id , consumer);
+                      
+                      obj.producers.push({
+                        track: consumer.track,
+                        producerId,
+                        kind,
+                        consumer: consumer.id,
+                      });
 
-                    await consumer.resume();
-                    socket.emit("resumeConsumer", { consumerId: id, roomId });
+                      await consumer.resume();
+                      socket.emit("resumeConsumer", { consumerId: id, roomId });
 
-                    setStreams((prev) => {
-                      const userExists = prev.some(
-                        (s) => s.user.userId === p_.user.userId
-                      );
-                      if (userExists) {
-                        return prev.map((s) =>
-                          s.user.userId === p_.user.userId
-                            ? {
-                                ...s,
-                                producers: [...s.producers, obj.producers[0]],
-                              }
-                            : s
+                      setStreams((prev) => {
+                        const userExists = prev.some(
+                          (s) => s.user.userId === p_.user.userId
                         );
-                      } else {
-                        return [...prev, obj];
-                      }
-                    });
-                  }
-                );
+                        if (userExists) {
+                          return prev.map((s) =>
+                            s.user.userId === p_.user.userId
+                              ? {
+                                  ...s,
+                                  producers: [...s.producers, obj.producers[0]],
+                                }
+                              : s
+                          );
+                        } else {
+                          return [...prev, obj];
+                        }
+                      });
+                    }
+                  );
+                }
               }
-            }
-          });
+            });
+          }else {
+
+          }
         });
       });
       socket.emit('getAllMessages' , { roomId } , ({chat , error}) => {

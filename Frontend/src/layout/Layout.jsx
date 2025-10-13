@@ -27,7 +27,7 @@ function Layout({children}) {
     <>
       <div className="flex overflow-y-auto dark:bg-black bg-white">
       {/* Sidebar (hidden on small screens) */}
-      <div className="fixed sm:translate-x-0 w-0 -translate-x-12 bg-white dark:bg-black md:border-r-2 border-r-0 border-x-gray-400 shadow-sm left-0 top-0 duration-200 h-screen ">
+      <div className="fixed sm:translate-x-0 w-0 -translate-x-20 bg-white dark:bg-black md:border-r-2 border-r-0 border-x-gray-400 shadow-sm left-0 top-0 duration-200 h-screen ">
         <Sidebar collapseFunc={handleResize} />
       </div>
 

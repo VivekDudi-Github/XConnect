@@ -11,7 +11,7 @@ const createLiveStream = TryCatch(async (req , res) => {
     const {title , description } = req.body ;
     const {media} = req.files ;
 
-    req.CreateMediaForDelete = [media?.[0]] ;
+    if(media) req.CreateMediaForDelete = [media?.[0]] ;
 
   if(!title || !description ) return ResError(res , 400 , 'All fields are required') ;
     console.log(media , 'media');

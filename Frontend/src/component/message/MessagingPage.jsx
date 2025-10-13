@@ -78,11 +78,6 @@ export default function MessagingPage({username}) {
     })
   } , [oldChunkMessages] )
 
-  const updateUserMeta = () => {
-    setTimeout(() => {
-      console.log('updated');
-    } , 2000)
-  }
 
 
   useEffect(() => {
