@@ -112,8 +112,8 @@ export function useBroadcast(socket , isStream = false ) {
 
             setIsLive(true);
             localStreamRef.current = {
-              audioStream: new MediaStream(localStreamRef.current.getAudioTracks()),
-              videoStream: new MediaStream(localStreamRef.current.getVideoTracks()),
+              audioStream: new MediaStream(localStreamRef.current?.getAudioTracks()),
+              videoStream: new MediaStream(localStreamRef.current?.getVideoTracks()),
             };
           });
         });
@@ -141,8 +141,8 @@ export function useBroadcast(socket , isStream = false ) {
 
     // Stop tracks
     if (localStreamRef.current) {
-      localStreamRef.current?.videoStream?.getTracks()?.forEach((t) => t?.stop());
-      localStreamRef.current?.audioStream?.getTracks()?.forEach((t) => t?.stop());
+      localStreamRef?.current?.videoStream?.getTracks()?.forEach((t) => t?.stop());
+      localStreamRef?.current?.audioStream?.getTracks()?.forEach((t) => t?.stop());
       localStreamRef.current = null;
     }
 
@@ -169,42 +169,41 @@ export function useBroadcast(socket , isStream = false ) {
   };
 }
 
-export function useLiveBroadcast(socket){
-// this hook is for creating the live stream setup
-// this will handle the 
-// it will return the isLive , localStreamRef , startLive , stopLive , video-audio - producers
+// export function useLiveBroadcast(socket){
+// // this hook is for creating the live stream setup
+// // this will handle the 
 
-  const localStreamRef = useRef(null);
-  const producerTransportRef = useRef(null);
-  const producersRef = useRef([]); // all producers (audio + video)
-  const deviceRef = useRef(null);
+//   const localStreamRef = useRef(null);
+//   const producerTransportRef = useRef(null);
+//   const producersRef = useRef([]); // all producers (audio + video)
+//   const deviceRef = useRef(null);
 
-  const [isLive, setIsLive] = useState(false);
-  const [videoProducer, setVideoProducer] = useState(null);
-  const [audioProducer, setAudioProducer] = useState(null);
+//   const [isLive, setIsLive] = useState(false);
+//   const [videoProducer, setVideoProducer] = useState(null);
+//   const [audioProducer, setAudioProducer] = useState(null);
 
-  //start live
+//   //start live
 
-  const startLive = async() => {
-    if(!socket) {
-      console.error('Socket not connected');
-      return ;
-    }
-    try {
-      // 1) Capture media
-      localStreamRef.current = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+//   const startLive = async() => {
+//     if(!socket) {
+//       console.error('Socket not connected');
+//       return ;
+//     }
+//     try {
+//       // 1) Capture media
+//       localStreamRef.current = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       
-      // 2) Get router RTP caps & load device
-      socket.emit('getRtpCapabilities' , async (routerRtpCapabilities) => {
-        const device = new Device();
-        await device.load({ routerRtpCapabilities });
-        deviceRef.current = device;
-      });
-    } catch (error) {
-      console.error('startLive error:' , error);
-      toast.error(error || 'Something went wrong. Please try again.')
-    }
-  }
+//       // 2) Get router RTP caps & load device
+//       socket.emit('getRtpCapabilities' , async (routerRtpCapabilities) => {
+//         const device = new Device();
+//         await device.load({ routerRtpCapabilities });
+//         deviceRef.current = device;
+//       });
+//     } catch (error) {
+//       console.error('startLive error:' , error);
+//       toast.error(error || 'Something went wrong. Please try again.')
+//     }
+//   }
 
-}
+// }
 

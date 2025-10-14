@@ -122,7 +122,8 @@ async function StartServer(){
           socket.join(`community:${c.followingCommunity}`);
         });
       }
-
+      socket.on('me' , () => {console.log('fired me')}
+      )
       messageListener(socket, io);
       UserListener(socket, io);
       MediaSoupListener(socket , io , roomMap, participants , transportsBySocket , router); 

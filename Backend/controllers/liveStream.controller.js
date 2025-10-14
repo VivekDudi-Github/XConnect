@@ -26,13 +26,15 @@ const createLiveStream = TryCatch(async (req , res) => {
     //   results = await uploadFilesTOCloudinary(media)
     // }
 
-    const liveStream = new LiveStream({
+    const liveStream = {
+        _id : '68ee77506ffc2b3a7b4f17c5' ,
         title ,
         description ,
         host : req.user._id ,
         startedAt : Date.now() ,
         endedAt : Date.now() ,
-    })
+        producers : {} ,
+    }
 
     if(results.length > 0) liveStream.thumbnail = {
       public_id : results[0].public_id ,

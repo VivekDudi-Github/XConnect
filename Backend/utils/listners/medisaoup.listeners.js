@@ -1,6 +1,8 @@
 import { v4 } from "uuid";
 import {LiveStream} from '../../models/liveStream.model.js'
 
+let streamConsumers = new Map() ;
+
 export const MediaSoupListener = (socket , io , roomMap, participants , transportsBySocket , router) => {
   
     socket.on('joinMeeting', async ({roomId , password = ''} , callback) => {
@@ -91,6 +93,8 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
     })
 
     socket.on("getRtpCapabilities", (callback) => {
+      console.log('rtp connection tried');
+      
       callback(router.rtpCapabilities);
     });
   
@@ -263,8 +267,7 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
         paused : false 
       });
       console.log('consumer encodings :' ,consumer?.rtpParameters?.encodings);
-      await consumer.setPreferredLayers({ spatialLayer: 2  , temporalLayer : 0 });
-      consumer.requestKeyFrame().catch(() => {console.log('error requesting key frame');});
+      // consumer.requestKeyFrame().catch(() => {console.log('error requesting key frame');});
       
       // let consumers = consumersBySocket.get(socket.id) || [];
       // consumers.push(consumer);
@@ -280,10 +283,42 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
         rtpParameters: consumer.rtpParameters
       });
     });
+
+    socket.on('consumeStream' , async({rtpCapabilities , producerId , transportId } , callback) => {
+      if (!router.canConsume({ producerId, rtpCapabilities })) {
+        return callback({ error: "Cannot consume" });
+      }
+
+      const transports = transportsBySocket.get(socket.id) || [];
+      const transport = transports.find(t => t.id === transportId);
+      if (!transport) return callback({ error: "No consumer transport" });
+
+      const consumer = await transport.consume({
+        producerId,
+        rtpCapabilities,
+        paused : false 
+      });
+
+      const consumers = streamConsumers.get(socket.user._id) || [] ;
+      consumers.push(consumer);
+      streamConsumers.set(socket.user._id , consumers ) ;
+
+      callback({
+        id: consumer.id,
+        producerId,
+        kind: consumer.kind,
+        rtpParameters: consumer.rtpParameters
+      });
+
+    })
   
     socket.on("resumeConsumer", async ({ consumerId , roomId }) => {
-      const consumer = roomMap.get(roomId).consumers.get(socket.user._id)?.find(c => c.id === consumerId);
+      let consumer = roomMap.get(roomId)?.consumers?.get(socket.user._id)?.find(c => c.id === consumerId);
       
+      if(!consumer){
+        consumer = streamConsumers.get(socket.user._id)?.find(c => c.id === consumerId) ;
+      }
+      if(!consumer) return console.log('no consumer found');
       if (consumer) {await consumer.resume();  console.log(consumer?.kind);
       } else { console.log('no consumer found');
       }

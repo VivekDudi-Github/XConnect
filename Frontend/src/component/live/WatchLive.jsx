@@ -3,6 +3,8 @@ import LiveCard from "./LiveCard";
 import LiveChat from "./LiveChats";
 import { useGetLiveStreamQuery } from "../../redux/api/api";
 import { useSocket } from "../specific/socket";
+import { useMediasoupConsumers } from "../specific/broadcast/RecieveBroadcast";
+import { useParams } from "react-router-dom";
 
 export default function WatchLive({localStreamRef , stopBroadcast}) {
   // later you’ll fetch stream info from server
@@ -15,8 +17,8 @@ export default function WatchLive({localStreamRef , stopBroadcast}) {
   ];
 
   const videoRef = useRef() ;
-  const {data , error , isError} = useGetLiveStreamQuery(id , {skip : !id}) ;
-  const  { streams, rtcCapabilities, transportRef, init, cleanup , consumersRef , chats} = useMediasoupConsumers(null , socket )
+  const {data , error , isError} = useGetLiveStreamQuery({id} , {skip : !id}) ;
+  const  { streams, rtcCapabilities, transportRef, init, cleanup , consumersRef } = useMediasoupConsumers(null , socket , true )
 
   const startPreview = async () => {
     let stream ;
@@ -33,10 +35,25 @@ export default function WatchLive({localStreamRef , stopBroadcast}) {
   }, []);
 
   useEffect(() => {
-    if(data.data){
-      if(data.data.production.length > 0){
-
+    if(streams.length > 0){
+      const videoTrack = streams?.[0]?.track ;
+      const audioTrack = streams?.[1]?.track ;
+      if(videoTrack || audioTrack){
+        let stream = new MediaStream() ;
+        console.log(videoTrack);
+        if(videoTrack) stream.addTrack(videoTrack) ;
+        if(audioTrack) stream.addTrack(audioTrack) ;
+        videoRef.current.srcObject = stream  ;
       }
+    }
+  } , [streams])
+
+  useEffect(() => {
+    if(data?.data){
+      const videoId = data.data.producers.videoId ;
+      const audioId = data.data.producers.audioId ;
+      init(videoId , audioId);
+      console.log('watch page ', videoId , audioId);
     }
   } , [data])
 
@@ -44,7 +61,7 @@ export default function WatchLive({localStreamRef , stopBroadcast}) {
     <div className="flex flex-col lg:flex-row h-screen pb-16 sm:pb-0 w-full ">
       <div className=" flex flex-col lg:flex-row w-full justify-center  dark:bg-black h-full">
         {/* This will be the mediasoup consumer video */}
-        <video autoPlay ref={videoRef} controls className="max-h-full w-full object-contain" />
+        <video autoPlay ref={videoRef} muted controls className="max-h-full w-full object-contain" />
         <div className="h-full w-full flex"><LiveChat /></div>
       </div>
     {/* <button onClick={startPreview} className="shadowLight w-full px-4 py-2 rounded-xl mb-2  dark:bg-white text-black active:scale-95 ">pre</button> */}

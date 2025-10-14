@@ -17,19 +17,27 @@ export function useMediasoupConsumers(roomId, socket , isBroadcast = false) {
 
   const [chats , setChats] = useState([]) ;
 
-  const init = useCallback(async () => {
-    if(!roomId) return console.error('Room ID not provided');
-    if (!socket) return;
+  const init = useCallback(async (videoId , audioId) => {
+    if(!roomId && !isBroadcast) return console.error('Room ID not provided');
+    
+    if ( !socket) {
+      console.log('socket not found');
+      return;
+    }
     if (transportRef.current) return; // prevent double init
     console.log('init called');
     
     try {
       // 1. Get RTP capabilities
+      console.log('rtp tried' , socket);
+      await new Promise((resolve) => socket.once("connect", resolve));
+      socket.emit('me')
       socket.emit("getRtpCapabilities", async (routerRtpCapabilities) => {
         const dev = new mediasoupClient.Device();
         await dev.load({ routerRtpCapabilities });
         deviceRef.current = dev;
         rtcCapabilities.current = routerRtpCapabilities;
+        console.log('rtp connected');
         
         // 2. Create consumer transport
         socket.emit("createConsumerTransport", async (params) => {
@@ -44,7 +52,8 @@ export function useMediasoupConsumers(roomId, socket , isBroadcast = false) {
           });
 
           transportRef.current = transport;
-
+          console.log('consumer transport created');
+          
           // 3. Fetch producers
           if(!isBroadcast){
               socket.emit("getProducers", roomId, async (producers) => {
@@ -105,25 +114,80 @@ export function useMediasoupConsumers(roomId, socket , isBroadcast = false) {
               }
             });
           }else {
-
+            let obj = {} ;
+            console.log(videoId , audioId);
+            
+            if(videoId){
+              socket.emit('consumeStream' ,{
+                rtpCapabilities: dev.rtpCapabilities,
+                producerId: videoId,
+                transportId: transport.id,
+              } , async ({ id, producerId, kind, rtpParameters, error }) => {
+                if (error) return toast.error("Consume error:", error);
+                  const consumer = await transport.consume({
+                    id , producerId , kind , rtpParameters
+                  }) ;
+                  console.log(consumer);
+                  
+                  consumersRef.current.set(consumer.id , consumer);
+                  socket.emit("resumeConsumer", { consumerId: id });
+                  obj = {
+                    track : consumer.track ,
+                    id : consumer.id ,
+                    producerId ,
+                    kind ,
+                  }
+                  console.log(obj.kind);
+                  
+                  setStreams([obj])
+              })
+            }
+            if(audioId){
+              obj = {} ;
+              socket.emit('consumeStream' ,{
+                rtpCapabilities: dev.rtpCapabilities,
+                producerId: audioId,
+                transportId: transport.id,
+              } , async ({ id, producerId, kind, rtpParameters, error }) => {
+                if (error) return toast.error("Consume error:", error);
+                  const consumer = await transport.consume({
+                    id , producerId , kind , rtpParameters
+                  }) ;
+                  console.log(consumer);
+                  
+                  consumersRef.current.set(consumer.id , consumer);
+                  socket.emit("resumeConsumer", { consumerId: id , roomId });
+                  obj = {
+                    track : consumer.track ,
+                    id : consumer.id ,
+                    producerId ,
+                    kind ,
+                  }
+                  console.log(obj.kind );
+                  
+                  setStreams(prev => [...prev , obj])
+              })
+            }
           }
         });
       });
-      socket.emit('getAllMessages' , { roomId } , ({chat , error}) => {
+      if(!isBroadcast){
+        socket.emit('getAllMessages' , { roomId } , ({chat , error}) => {
         if(error) return toast.error(error);
         setChats(chat);
       }) ;
+      }
     } catch (err) {
       console.error("Init error:", err);
     }
   }, [roomId, socket]);
 
-  // ✅ Cleanup function
+  // ✅Cleanup function
   const cleanup = useCallback(() => {
     // Close all consumers
     consumersRef.current.forEach((c) => {
       try {
-        c.close();
+        c?.close();
       } catch (e) {}
     });
     consumersRef.current = new Map();
@@ -131,7 +195,7 @@ export function useMediasoupConsumers(roomId, socket , isBroadcast = false) {
     // Close transport
     if (transportRef.current) {
       try {
-        transportRef.current.close();
+        transportRef.current?.close();
       } catch (e) {}
       transportRef.current = null;
     }
@@ -144,7 +208,7 @@ export function useMediasoupConsumers(roomId, socket , isBroadcast = false) {
     setStreams([]);
   }, []);
 
-  // Run cleanup on unmount
+  // 🧹Run cleanup on unmount
   useEffect(() => {
     return () => cleanup();
   }, [cleanup]);
