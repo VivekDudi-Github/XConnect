@@ -14,7 +14,7 @@ const navItems = [
   { name: 'Notifications', icon: <Bell />, path: '/notifications' },
   { name: 'Meet' , icon: <VideoIcon /> , path: '/meet' }, 
   { name: 'Go Live' , icon: <PlaySquareIcon /> , path: '/live' },   
-  { name: 'Settings', icon: <Settings />, path: '/settings' },
+  { name: 'Settings', icon: <Settings />, path: '/live/watch/68ee77506ffc2b3a7b4f17c5' },
 ];
 
   

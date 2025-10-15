@@ -7,8 +7,7 @@ import VideoPlayer from "../VideoPlayer";
 import { toast } from "react-toastify";
 
 
-export function useMediasoupConsumers(roomId, socket , isBroadcast = false) {
-  
+export function useMediasoupConsumers(roomId ,socket , isBroadcast = false) {
   const [streams, setStreams] = useState([]);
   const rtcCapabilities = useRef(null);
   const transportRef = useRef(null);
@@ -17,12 +16,11 @@ export function useMediasoupConsumers(roomId, socket , isBroadcast = false) {
 
   const [chats , setChats] = useState([]) ;
 
-  const init = useCallback(async (videoId , audioId) => {
+  const init = useCallback(async (videoId , audioId ) => {
     if(!roomId && !isBroadcast) return console.error('Room ID not provided');
     
-    if ( !socket) {
+    if ( !socket || !socket.connected) {
       console.log('socket not found');
-      return;
     }
     if (transportRef.current) return; // prevent double init
     console.log('init called');
@@ -30,8 +28,7 @@ export function useMediasoupConsumers(roomId, socket , isBroadcast = false) {
     try {
       // 1. Get RTP capabilities
       console.log('rtp tried' , socket);
-      await new Promise((resolve) => socket.once("connect", resolve));
-      socket.emit('me')
+      
       socket.emit("getRtpCapabilities", async (routerRtpCapabilities) => {
         const dev = new mediasoupClient.Device();
         await dev.load({ routerRtpCapabilities });
@@ -123,7 +120,7 @@ export function useMediasoupConsumers(roomId, socket , isBroadcast = false) {
                 producerId: videoId,
                 transportId: transport.id,
               } , async ({ id, producerId, kind, rtpParameters, error }) => {
-                if (error) return toast.error("Consume error:", error);
+                if (error) return console.error("Consume error:", error);
                   const consumer = await transport.consume({
                     id , producerId , kind , rtpParameters
                   }) ;
@@ -149,7 +146,7 @@ export function useMediasoupConsumers(roomId, socket , isBroadcast = false) {
                 producerId: audioId,
                 transportId: transport.id,
               } , async ({ id, producerId, kind, rtpParameters, error }) => {
-                if (error) return toast.error("Consume error:", error);
+                if (error) return console.error("Consume error:", error);
                   const consumer = await transport.consume({
                     id , producerId , kind , rtpParameters
                   }) ;

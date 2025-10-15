@@ -100,7 +100,7 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
   
     socket.on("createWebRtcTransport", async (callback) => {
       const transport = await router.createWebRtcTransport({
-        listenIps: [{ ip: '0.0.0.0' , announcedIp: process.env.IP_ADDRESS }], // change to public IP later 
+        listenIps: [{ ip: '0.0.0.0' , announcedIp: process.env.IP_ADDRESS }],
         enableUdp: true,
         enableTcp: true,
         preferUdp: true
