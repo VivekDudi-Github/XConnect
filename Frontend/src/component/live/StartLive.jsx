@@ -118,7 +118,7 @@ export default function StartLive() {
           </div>
         </div>
       ) : (
-        <WatchLive localStreamRef={localStreamRef} stopBroadcast={stopBroadcast} />
+        <WatchLive localStreamRef={localStreamRef} stopBroadcast={stopBroadcast} isProducer={true} />
       )}
     </>
   );

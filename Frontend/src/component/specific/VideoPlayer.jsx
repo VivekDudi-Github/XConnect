@@ -144,7 +144,7 @@ useEffect(() => {
           playsInline
           muted
           autoPlay
-          controls
+          // controls
         />
       </div>
 

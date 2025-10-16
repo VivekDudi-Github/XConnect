@@ -247,6 +247,12 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
       }else {
         console.log('Consumer transport not found:', transportId);
       }
+      transport.on('dtlsstatechange', (state) => {
+        console.log(`DTLS state [${transport.id}]:`, state);
+      });
+      transport.on('icestatechange', (state) => {
+        console.log(`ICE state [${transport.id}]:`, state);
+      });
       callback();
     });
   

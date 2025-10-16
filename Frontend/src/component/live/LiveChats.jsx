@@ -40,7 +40,7 @@ export default function LiveChat() {
   };
 
   return (
-    <div className="relative w-full h-full overflow-hidden">
+    <div className="relative w-full h-full">
     {/* Messages area */}
     <div ref={containerRef} className="absolute top-0 left-0 right-0 bottom-[50px] overflow-y-auto p-3 space-y-2">
       {messages.map((msg, i) => (
@@ -72,6 +72,5 @@ export default function LiveChat() {
       </button>
     </div>
   </div>
-
   );
 }
