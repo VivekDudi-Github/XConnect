@@ -40,11 +40,11 @@ export default function LiveChat() {
   };
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full overflow-hidden">
     {/* Messages area */}
-    <div ref={containerRef} className="absolute top-0 left-0 right-0 bottom-[50px] overflow-y-auto p-3 space-y-2">
+    <div ref={containerRef} className="absolute top-0 left-0 right-0 bottom-[50px] overflow-y-auto p-3 space-y-2 ">
       {messages.map((msg, i) => (
-        <div key={i} className="bg-gray-100 p-2 rounded-lg fade-in duration-200">
+        <div key={i} className="bg-gray-100 w-full text-wrap break-words p-2 rounded-lg fade-in duration-200">
           <strong>{msg.user}: </strong>{msg.text}
         </div>
       ))}
