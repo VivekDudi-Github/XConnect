@@ -8,10 +8,11 @@ import { NavLink, useParams } from "react-router-dom";
 import VideoPlayer from "../specific/VideoPlayer";
 import { StopCircle , UserPlus2Icon , UserRoundCheckIcon , BookmarkCheckIcon , BookmarkIcon , Share2Icon, SidebarOpenIcon } from "lucide-react";
 
-export default function WatchLive({localStreamRef , stopBroadcast , isProducer}) {
+export default function WatchLive({localStreamRef , stopBroadcast , isProducer , streamData = null}) {
   const {id} = useParams() ;
   const socket = useSocket() ;
 
+  const [SData , setStreamData] = useState(streamData || {}) ;
   const [collapse , setCollapse] = useState(false) ;
   const [activeStream , setActiveStream] = useState({
     videoStream : localStreamRef?.current?.videoStream || null ,
@@ -23,7 +24,7 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer})
     { id: 2, title: "React Deep Dive", host: "Aki", viewers: 10, thumbnail: "/beach.jpg" },
   ];
   const videoRef = useRef();
-  const {data , error , isError} = useGetLiveStreamQuery({id} , {skip : !id}) ;
+  const {data , error , isError , isLoading} = useGetLiveStreamQuery({id : id || SData._id} ) ;
   const  { streams, rtcCapabilities, transportRef, init, cleanup , consumersRef } = useMediasoupConsumers(null , socket , true )
 
   
@@ -45,9 +46,10 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer})
 
   useEffect(() => {
     if(data?.data){
+      setStreamData(data.data) ;
       const videoId = data.data.producers.videoId ;
       const audioId = data.data.producers.audioId ;
-      init(videoId , audioId , socket);
+      if(!isProducer)init(videoId , audioId , socket);
       console.log('watch page ', videoId , audioId);
     }
   } , [data , socket])
@@ -109,8 +111,9 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer})
             </div>
           </div>
         )}
-        <div className={`flex duration-200 ${collapse ? 'w-0 h-0' : 'lg:w-1/2 w-full' } `}><LiveChat closeFunc={() => setCollapse(true)} /></div>
-        
+        <div className={`flex duration-200 ${collapse ? 'w-0 h-0' : 'lg:w-1/2 w-full h-full' } `}>
+          <LiveChat closeFunc={() => setCollapse(true)}  streamData={SData} />
+        </div>
       </div>
     </div> 
     

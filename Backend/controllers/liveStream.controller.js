@@ -3,7 +3,7 @@ import {User} from '../models/user.model.js'
 import {LiveStream} from '../models/liveStream.model.js'
 import { uploadFilesTOCloudinary } from '../utils/cloudinary.js';
 import { LiveChat } from '../models/liveChats.model.js';
-
+import { Socket } from '../app.js';
 let map = new Map() ;
 
 const createLiveStream = TryCatch(async (req , res) => {
@@ -14,7 +14,6 @@ const createLiveStream = TryCatch(async (req , res) => {
     if(media) req.CreateMediaForDelete = [media?.[0]] ;
 
   if(!title || !description ) return ResError(res , 400 , 'All fields are required') ;
-    console.log(media , 'media');
     
     const user = await User.findOne({_id : req.user._id}) ;
     if(!user) return ResError(res , 400 ,'User not found' ) ;
@@ -44,9 +43,10 @@ const createLiveStream = TryCatch(async (req , res) => {
     if(audioProducerId) liveStream.producers.audioId = audioProducerId ;
     
     map.set(liveStream._id.toString() , liveStream) ;
+    Socket.join(`liveStream:${liveStream._id}`) ;
     // await liveStream.save() ;
     return ResSuccess(res , 201 , liveStream)
-})
+} , 'createLiveStream')
 
 const deleteLiveStream = TryCatch(async (req , res) => {
     const {id} = req.params
@@ -59,7 +59,7 @@ const deleteLiveStream = TryCatch(async (req , res) => {
 
     await liveStream.delete() ;
     return ResSuccess(res , 200 , 'Live stream deleted successfully')
-})
+} , 'deleteLiveStream')
 
 const updateLiveStream = TryCatch(async (req , res) => {
     const {id} = req.params
@@ -79,10 +79,9 @@ const updateLiveStream = TryCatch(async (req , res) => {
     if (audioId !== undefined) liveStream.producers.audioId = audioId;
 
     // await liveStream.save();
-    console.log(map);
     
     return ResSuccess(res , 200 , 'Live stream updated successfully')
-})
+} , 'updateLiveStream')
 
 const getLiveStream = TryCatch(async (req , res) => {
     const {id} = req.params ;
@@ -90,9 +89,9 @@ const getLiveStream = TryCatch(async (req , res) => {
     // const liveStream = await LiveStream.findOne({_id : id}) ;
     const liveStream = map.get(id) ;
     if(!liveStream) return ResError(res , 404 , 'Live stream not found')
-
+    Socket.join(`liveStream:${id}`) ;
     return ResSuccess(res , 200 , liveStream) ;
-})
+} , 'getLiveStream')
 
 const getUserLiveStreams = TryCatch(async (req , res) => {
   const {id} = req.params ;
@@ -107,12 +106,13 @@ const getUserLiveStreams = TryCatch(async (req , res) => {
     .sort({createdAt : -1})
 
     return ResSuccess(res , 200, liveStreams  ) ;
-})
+} , 'getLiveStreams')
 
 const getLiveChats = TryCatch(async (req , res) => {
     const {id} = req.params ;
     const {page = 1 , limit = 10} = req.query ;
-
+    console.log(id , page , limit);
+    
     let skip = (page - 1) * limit ;
 
     const liveStream = await LiveStream.findOne({_id : id})
@@ -125,7 +125,7 @@ const getLiveChats = TryCatch(async (req , res) => {
     .populate('sender' , 'name username avatar')
  
     return ResSuccess(res , 200 , liveChats )
-})
+} , 'getLiveChats')
 
 export {
     createLiveStream ,

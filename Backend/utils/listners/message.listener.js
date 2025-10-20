@@ -1,8 +1,9 @@
+import { LiveChat } from "../../models/liveChats.model.js";
 import { Message } from "../../models/messages.model.js";
 import {Types} from 'mongoose' ;
+import { v4 as uuidv4 } from 'uuid';
 
 const ObjectId = Types.ObjectId ;
-
 const MessageListener = (socket , io) => {
   
   socket.on('SEND_MESSAGE' ,  async({message , memberIds = [] , room_id}) => {
@@ -35,8 +36,21 @@ const MessageListener = (socket , io) => {
     
 
     }) ;
-}
 
+  socket.on('SEND_LIVE_MESSAGE' , async({message , isSuperChat = false, roomId , amount = 0 }) => {  
+
+    const Obj = await new LiveChat({
+      sender :  socket.user._id ,
+      message ,
+      roomId ,
+      isSuperChat ,
+      amount ,
+    }).save() ;
+
+    io.to(`liveStream:${roomId}`).emit('RECEIVE_LIVE_MESSAGE' , {Obj})
+
+  })
+}
 export default MessageListener ;
 
 

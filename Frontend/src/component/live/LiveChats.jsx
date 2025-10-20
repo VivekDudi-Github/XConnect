@@ -1,27 +1,51 @@
 import { useEffect, useRef, useState } from "react";
-import {ArrowDownIcon, EllipsisVerticalIcon} from 'lucide-react' ;
+import {ArrowDownIcon, EllipsisVerticalIcon,} from 'lucide-react' ;
 import { useSocket } from "../specific/socket";
+import { toast } from "react-toastify";
+import Loader from "../shared/Loader";
+import {v4 as uuidv4} from 'uuid';
+import { useLazyGetLiveChatsQuery } from "../../redux/api/api";
+import { useSelector } from "react-redux";
 
-export default function LiveChat({closeFunc}) {
+export default function LiveChat({closeFunc , streamData }) {
   const socket = useSocket();
+  const auth = useSelector((state) => state.auth);
+
+
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const containerRef = useRef(null);
 
-  const [openOptions , setOpenOptions] = useState(new Set()) ;
+  const [openOptions , setOpenOptions] = useState('') ;
   const [BlockList , setBlockList] = useState(new Set('123')) ;
-  console.log(BlockList);
   
+  const [refetch , {data , error , isError , isLoading , isFetching}] = useLazyGetLiveChatsQuery() ;
 
 
   const sendMessage = () => {
+    console.log(input);
+    
     if (!input.trim()) return;
-    setMessages([...messages, { user: "1", text: input }]);
-    setInput("");
-    socket.emit("send-Live-message", {
-      message: input,
-      roomId: "1",
+    if(!socket) return toast.error('Socket not connected'); 
+    socket.emit("SEND_LIVE_MESSAGE", {
+      message: input.trim(),
+      roomId: streamData._id,
     });
+    setMessages(prev => [
+      ...prev,
+      {
+        _id : uuidv4() ,
+        sender : {
+          _id : auth.user._id ,
+          username : auth.user.username ,
+          avatar : auth.user.avatar ,
+        } ,
+        message : input.trim() ,
+        room : streamData._id ,
+        createdAt : new Date().toUTCString()
+      }
+    ])
+    setInput('')
   };
 
   useEffect(() => {
@@ -42,6 +66,14 @@ export default function LiveChat({closeFunc}) {
   }
 }, [messages]);
 
+  useEffect(() => {if(streamData) refetch({id :streamData._id  , limit : 2 , page : 1})} , []) 
+
+  useEffect(() => {
+    if(data?.data){
+      sendMessage(prev => [...prev , ...data.data]) ;
+    }
+  } , [data])
+
   const scrollToBottom = () => {
     const container = containerRef.current;
     if (!container) return;
@@ -51,32 +83,24 @@ export default function LiveChat({closeFunc}) {
     });
   };
   const toggleSetOptions = (i) => {
-    if (openOptions.has(i)) {
-      let set = new Set(openOptions);
-      set.delete(i);
-      setOpenOptions(set);
-    } else {
-      let set = new Set(openOptions);
-      set.add(i); 
-      setOpenOptions(set);
-    }
+    setOpenOptions(i);
   }
 
   return (
     <div className="relative w-full h-full overflow-hidden">
     {/* Messages area */}
     <div ref={containerRef} className="absolute top-0 left-0 right-0 bottom-[50px] overflow-y-auto p-3 space-y-2 z-10">
-      {messages.map((msg, i) => {
-        return(
-        <div key={i} className={`bg-gray-100 w-full flex items-center justify-between gap-1 text-wrap break-words p-2 rounded-lg fade-in duration-200 relative ${openOptions?.has(i) ? 'z-50' : 'z-0' } `}>
+      {!streamData ? (<Loader/>) : messages.map((msg, i) => {
+        return (
+        <div key={i} className={`bg-gray-100 w-full flex items-center justify-between gap-1 text-wrap break-words p-2 rounded-lg fade-in duration-200 relative ${openOptions == i ? 'z-50' : 'z-0' } `}>
           <div className=" w-fit">
             <img className="rounded-full size-8 mr-1" src={msg.user === "You" ? "https://i.pravatar.cc/300?img=1" : "https://i.pravatar.cc/300?img=2"} alt="Avatar" />
             
           </div>
-          <div className="w-full text-left"><strong>You_fsfdxgf</strong> {' : '}{BlockList.has(msg.user) ? (<i>Blocked</i>) : msg.text}</div>
+          <div className="w-full text-left"><strong>{msg?.sender?.username}</strong> {' : '}{BlockList.has(msg.user) ? (<i>Blocked</i>) : msg.message}</div>
           <div className="relative" onClick={() => toggleSetOptions(i)}>
-            <EllipsisVerticalIcon size className="text-gray-500 hover:text-gray-700 cursor-pointer size-5 z-0 " />
-            {openOptions?.has(i) && (
+            <EllipsisVerticalIcon className="text-gray-500 hover:text-gray-700 cursor-pointer size-5 z-0 " />
+            {openOptions === i && (
               <div className="absolute top-8 right-0 bg-white rounded-lg shadow-lg hover:cursor-pointer space-y-1 border border-gray-200 z-50 overflow-hidden">
                 <div className=" hover:bg-slate-200 duration-200 px-2">{BlockList.has(msg.user) ? 'Unblock' : 'Block'}</div>
                 <div className=" hover:bg-slate-200 duration-200 px-2">Report</div>
@@ -104,6 +128,7 @@ export default function LiveChat({closeFunc}) {
         className="flex-1 p-2 border rounded-lg"
       />
       <button
+        disabled={!streamData}
         onClick={sendMessage}
         className="ml-2 bg-blue-500 text-white px-4 rounded-lg"
       >

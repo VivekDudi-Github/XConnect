@@ -98,7 +98,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 })
 
-
+let Socket ;
 async function StartServer(){
   try {
     await connectDB() ;
@@ -108,6 +108,7 @@ async function StartServer(){
     });
 
     io.on("connection", async (socket) => {
+      Socket = socket ; 
       console.log(`New client connected: ${socket.id}`);
       if(!socket.user) return ;
       // join rooms 
@@ -146,4 +147,4 @@ async function StartServer(){
 }
 StartServer() ;
 
-export {io}
+export {io , Socket}

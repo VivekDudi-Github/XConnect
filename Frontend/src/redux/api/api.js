@@ -272,6 +272,12 @@ const api = createApi({
         credentials : 'include' ,
       })
     }) ,
+    getLiveChats : builder.query({
+      query : ({id , page , limit }) => ({
+        url : 'live/getChats/'+id+'?page='+page+'?limit='+limit ,
+        credentials : 'include' ,
+      })
+    })
   })
 })
 
@@ -335,4 +341,5 @@ export const {
   useCreateLiveMutation ,
   useUpdateLiveMutation ,
   useGetLiveStreamQuery ,
+  useLazyGetLiveChatsQuery ,
 } = api ;

@@ -14,7 +14,7 @@ export default function StartLive() {
   const [isLive, setIsLive] = useState(false);
   const [description, setDescription] = useState('');
   const [thumbnail, setThumbnail] = useState('');
-  const [streamId , setStreamId ] = useState('') ;
+  const [streamData , setStreamData ] = useState('') ; 
   const videoRef = useRef();
   const inputRef = useRef();
 
@@ -39,7 +39,7 @@ export default function StartLive() {
       await startBroadcast(true , null );
       const data = await createLive(formData).unwrap() ;
       console.log('live' ,data.data);
-      setStreamId(data.data._id);
+      setStreamData(data.data);
 
     } catch (error) {
       stopBroadcast() ;
@@ -50,16 +50,16 @@ export default function StartLive() {
 
   useEffect(() => {
     const update = async() => {
-      if(videoProducer && mediasoupReady && streamId){
-        await updateLiveMutation({id : streamId , videoId : videoProducer.id})
+      if(videoProducer && mediasoupReady && streamData){
+        await updateLiveMutation({id : streamData , videoId : videoProducer.id})
       }
-      if(audioProducer && mediasoupReady && streamId){
-        await updateLiveMutation({id :streamId , audioId : audioProducer.id})
+      if(audioProducer && mediasoupReady && streamData){
+        await updateLiveMutation({id :streamData , audioId : audioProducer.id})
       }
-      if(videoProducer && mediasoupReady && streamId && audioProducer) setIsLive(true) ;
+      if(videoProducer && mediasoupReady && streamData && audioProducer) setIsLive(true) ;
     }
     update() ;
-  } , [videoProducer , audioProducer , streamId ])
+  } , [videoProducer , audioProducer , streamData ])
 
   return (
     <>
@@ -118,7 +118,7 @@ export default function StartLive() {
           </div>
         </div>
       ) : (
-        <WatchLive localStreamRef={localStreamRef} stopBroadcast={stopBroadcast} isProducer={true} />
+        <WatchLive localStreamRef={localStreamRef} stopBroadcast={stopBroadcast} isProducer={true} streamData={streamData} />
       )}
     </>
   );
