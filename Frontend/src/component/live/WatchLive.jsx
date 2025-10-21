@@ -13,11 +13,13 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
   const socket = useSocket() ;
 
   const [SData , setStreamData] = useState(streamData || {}) ;
+
   const [collapse , setCollapse] = useState(false) ;
   const [activeStream , setActiveStream] = useState({
     videoStream : localStreamRef?.current?.videoStream || null ,
     audioStream : localStreamRef?.current?.audioStream || null ,
   }) ;
+  console.log(activeStream && (activeStream.audioStream || activeStream.videoStream) , activeStream);
   
    const liveStreams = [
     { id: 1, title: "Morning Coding Stream", host: "Vivek", viewers: 32, thumbnail: "/beach.jpg" },
@@ -27,6 +29,7 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
   const {data , error , isError , isLoading} = useGetLiveStreamQuery({id : id || SData._id} ) ;
   const  { streams, rtcCapabilities, transportRef, init, cleanup , consumersRef } = useMediasoupConsumers(null , socket , true )
 
+  console.log(streams);
   
   useEffect(() => {
     if(streams.length > 0){
@@ -47,8 +50,10 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
   useEffect(() => {
     if(data?.data){
       setStreamData(data.data) ;
-      const videoId = data.data.producers.videoId ;
-      const audioId = data.data.producers.audioId ;
+      console.log(data.data);
+      
+      const videoId = data.data?.producers?.videoId ;
+      const audioId = data.data?.producers?.audioId ;
       if(!isProducer)init(videoId , audioId , socket);
       console.log('watch page ', videoId , audioId);
     }
@@ -112,7 +117,7 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
           </div>
         )}
         <div className={`flex duration-200 ${collapse ? 'w-0 h-0' : 'lg:w-1/2 w-full h-full' } `}>
-          <LiveChat closeFunc={() => setCollapse(true)}  streamData={SData} />
+          {SData?._id && <LiveChat closeFunc={() => setCollapse(true)}  streamData={SData} />}
         </div>
       </div>
     </div> 

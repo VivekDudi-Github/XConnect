@@ -63,8 +63,10 @@ const deleteLiveStream = TryCatch(async (req , res) => {
 
 const updateLiveStream = TryCatch(async (req , res) => {
     const {id} = req.params
-
+    console.log(id);
     // const liveStream = await LiveStream.findOne({_id : id}) ;
+    console.log(map);
+    
     const liveStream = map.get(id) ;
     if(!liveStream) return ResError(res , 404 , 'Live stream not found')
     if(liveStream.host != req.user._id) return ResError(res , 403 , 'You are not the host of this live stream')
@@ -115,7 +117,8 @@ const getLiveChats = TryCatch(async (req , res) => {
     
     let skip = (page - 1) * limit ;
 
-    const liveStream = await LiveStream.findOne({_id : id})
+    // const liveStream = await LiveStream.findOne({_id : id})
+    const liveStream = map.get(id) ;
     if(!liveStream) return ResError(res  ,404 , 'Live stream not found')
 
     const liveChats = await LiveChat.find({roomId : id})

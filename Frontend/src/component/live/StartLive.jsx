@@ -51,10 +51,10 @@ export default function StartLive() {
   useEffect(() => {
     const update = async() => {
       if(videoProducer && mediasoupReady && streamData){
-        await updateLiveMutation({id : streamData , videoId : videoProducer.id})
+        await updateLiveMutation({id : streamData._id , videoId : videoProducer.id})
       }
       if(audioProducer && mediasoupReady && streamData){
-        await updateLiveMutation({id :streamData , audioId : audioProducer.id})
+        await updateLiveMutation({id :streamData._id , audioId : audioProducer.id})
       }
       if(videoProducer && mediasoupReady && streamData && audioProducer) setIsLive(true) ;
     }

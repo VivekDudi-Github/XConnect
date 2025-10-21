@@ -128,6 +128,9 @@ async function StartServer(){
       UserListener(socket, io);
       MediaSoupListener(socket , io , roomMap, participants , transportsBySocket , router); 
 
+      socket.on('ping-check', (cb) => {
+        cb && cb( 'pong');
+      });
 
       // === cleanup ===
       socket.on("disconnect", async () => {

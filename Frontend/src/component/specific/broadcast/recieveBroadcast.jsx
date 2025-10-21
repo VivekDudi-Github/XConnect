@@ -5,6 +5,7 @@ import { useSocket } from "../socket";
 import Videojs from "video.js"
 import VideoPlayer from "../VideoPlayer";
 import { toast } from "react-toastify";
+import { ensureSocketReady } from "../../shared/SharedFun";
 
 
 export function useMediasoupConsumers(roomId ,socket , isBroadcast = false) {
@@ -19,15 +20,18 @@ export function useMediasoupConsumers(roomId ,socket , isBroadcast = false) {
   const init = useCallback(async (videoId , audioId ) => {
     if(!roomId && !isBroadcast) return console.error('Room ID not provided');
     
-    if ( !socket || !socket.connected) {
-      console.log('socket not found');
-    }
     if (transportRef.current) return; // prevent double init
-    console.log('init called');
+    console.log('init called' , 'videoId' , !!videoId , 'audioId' , !!audioId);
     
+   
+
     try {
+      console.log(socket);
+      
+      await ensureSocketReady(socket);
+
       // 1. Get RTP capabilities
-      console.log('rtp tried' , socket);
+      console.log('rtp tried' );
       
       socket.emit("getRtpCapabilities", async (routerRtpCapabilities) => {
         const dev = new mediasoupClient.Device();

@@ -69,6 +69,10 @@ export default function LiveChat({closeFunc , streamData }) {
   useEffect(() => {if(streamData) refetch({id :streamData._id  , limit : 2 , page : 1})} , []) 
 
   useEffect(() => {
+    
+  } , [])
+
+  useEffect(() => {
     if(data?.data){
       sendMessage(prev => [...prev , ...data.data]) ;
     }
@@ -83,7 +87,7 @@ export default function LiveChat({closeFunc , streamData }) {
     });
   };
   const toggleSetOptions = (i) => {
-    setOpenOptions(i);
+    openOptions === i ? setOpenOptions('') :setOpenOptions(i); 
   }
 
   return (

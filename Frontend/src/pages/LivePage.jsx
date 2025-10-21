@@ -6,8 +6,6 @@ import { useParams } from 'react-router-dom';
 
 function LivePage() {
   const {id} = useParams() ;
-  console.log(id);
-  
   return (
     <Layout>
       <div className=' '>
