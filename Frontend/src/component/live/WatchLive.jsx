@@ -7,6 +7,8 @@ import { useMediasoupConsumers } from "../specific/broadcast/RecieveBroadcast";
 import { NavLink, useParams } from "react-router-dom";
 import VideoPlayer from "../specific/VideoPlayer";
 import { StopCircle , UserPlus2Icon , UserRoundCheckIcon , BookmarkCheckIcon , BookmarkIcon , Share2Icon, SidebarOpenIcon } from "lucide-react";
+import { ensureSocketReady } from "../shared/SharedFun";
+import LastRefFunc from '../specific/LastRefFunc'
 
 export default function WatchLive({localStreamRef , stopBroadcast , isProducer , streamData = null}) {
   const {id} = useParams() ;
@@ -19,7 +21,6 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
     videoStream : localStreamRef?.current?.videoStream || null ,
     audioStream : localStreamRef?.current?.audioStream || null ,
   }) ;
-  console.log(activeStream && (activeStream.audioStream || activeStream.videoStream) , activeStream);
   
    const liveStreams = [
     { id: 1, title: "Morning Coding Stream", host: "Vivek", viewers: 32, thumbnail: "/beach.jpg" },
@@ -27,7 +28,7 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
   ];
   const videoRef = useRef();
   const {data , error , isError , isLoading} = useGetLiveStreamQuery({id : id || SData._id} ) ;
-  const  { streams, rtcCapabilities, transportRef, init, cleanup , consumersRef } = useMediasoupConsumers(null , socket , true )
+  const  { streams, rtcCapabilities, transportRef, init, cleanup , consumersRef } = useMediasoupConsumers(null , socket , true ) ;
 
   console.log(streams);
   
@@ -48,16 +49,30 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
   } , [streams])
 
   useEffect(() => {
-    if(data?.data){
-      setStreamData(data.data) ;
-      console.log(data.data);
-      
-      const videoId = data.data?.producers?.videoId ;
-      const audioId = data.data?.producers?.audioId ;
-      if(!isProducer)init(videoId , audioId , socket);
-      console.log('watch page ', videoId , audioId);
+    const func = async() => {
+      if(data?.data){
+        setStreamData(data.data) ;
+        console.log(data.data);
+        await ensureSocketReady(socket);
+        socket.emit('join_Socket_Room' , {roomId : data.data._id , room : 'liveStream'}) ;
+        
+        const videoId = data.data?.producers?.videoId ;
+        const audioId = data.data?.producers?.audioId ;
+        if(!isProducer)init(videoId , audioId , socket);
+        console.log('watch page ', videoId , audioId);
+      }
+    }
+    func() ;
+    return () => {
+      if(socket) socket.off('Leave_Socket_Room' , {roomId : data?.data?._id , room : 'liveStream'}) ;
     }
   } , [data , socket])
+
+  useEffect(() => {    
+    return () => {
+      cleanup();
+    }
+  } , [])
 
   return (
     <div className="flex flex-col lg:flex-row h-screen pb-16 sm:pb-0 w-full ">
@@ -92,8 +107,8 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
 
                 {/* Right Side: Buttons */}
                 <div className="flex items-center gap-2">
-                  <ControlButton danger={true} > Stop Streaming</ControlButton>
-                  {!isProducer && <ControlButton ><UserPlus2Icon /></ControlButton> }
+                  {isProducer && <ControlButton danger={true} > Stop Streaming</ControlButton>}
+                  {!isProducer && <ControlButton >Follow</ControlButton> }
                   <ControlButton><BookmarkCheckIcon /></ControlButton>
                   <ControlButton ><Share2Icon /></ControlButton>
                   <ControlButton onClick={() => setCollapse(prev => !prev)}><SidebarOpenIcon /></ControlButton>
@@ -117,7 +132,7 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
           </div>
         )}
         <div className={`flex duration-200 ${collapse ? 'w-0 h-0' : 'lg:w-1/2 w-full h-full' } `}>
-          {SData?._id && <LiveChat closeFunc={() => setCollapse(true)}  streamData={SData} />}
+          {SData?._id && <LiveChat isProducer={isProducer}  streamData={SData} />}
         </div>
       </div>
     </div> 

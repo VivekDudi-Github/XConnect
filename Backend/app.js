@@ -128,6 +128,18 @@ async function StartServer(){
       UserListener(socket, io);
       MediaSoupListener(socket , io , roomMap, participants , transportsBySocket , router); 
 
+      socket.on('join_Socket_Room' , async({roomId , room}) => {
+        if(!room || !roomId) return ;
+        socket.join(`${room}:${roomId}`) ;
+        console.log('joined room' , room , roomId);
+        
+      })
+
+      socket.on('Leave_Socket_Room' , async({roomId , room}) => {
+        if(!room || !roomId) return ;
+        socket.leave(`${room}:${roomId}`) ;
+      })
+
       socket.on('ping-check', (cb) => {
         cb && cb( 'pong');
       });

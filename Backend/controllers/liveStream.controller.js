@@ -3,7 +3,6 @@ import {User} from '../models/user.model.js'
 import {LiveStream} from '../models/liveStream.model.js'
 import { uploadFilesTOCloudinary } from '../utils/cloudinary.js';
 import { LiveChat } from '../models/liveChats.model.js';
-import { Socket } from '../app.js';
 let map = new Map() ;
 
 const createLiveStream = TryCatch(async (req , res) => {
@@ -13,7 +12,7 @@ const createLiveStream = TryCatch(async (req , res) => {
 
     if(media) req.CreateMediaForDelete = [media?.[0]] ;
 
-  if(!title || !description ) return ResError(res , 400 , 'All fields are required') ;
+//   if(!title || !description ) return ResError(res , 400 , 'All fields are required') ;
     
     const user = await User.findOne({_id : req.user._id}) ;
     if(!user) return ResError(res , 400 ,'User not found' ) ;
@@ -43,7 +42,6 @@ const createLiveStream = TryCatch(async (req , res) => {
     if(audioProducerId) liveStream.producers.audioId = audioProducerId ;
     
     map.set(liveStream._id.toString() , liveStream) ;
-    Socket.join(`liveStream:${liveStream._id}`) ;
     // await liveStream.save() ;
     return ResSuccess(res , 201 , liveStream)
 } , 'createLiveStream')
@@ -91,7 +89,6 @@ const getLiveStream = TryCatch(async (req , res) => {
     // const liveStream = await LiveStream.findOne({_id : id}) ;
     const liveStream = map.get(id) ;
     if(!liveStream) return ResError(res , 404 , 'Live stream not found')
-    Socket.join(`liveStream:${id}`) ;
     return ResSuccess(res , 200 , liveStream) ;
 } , 'getLiveStream')
 

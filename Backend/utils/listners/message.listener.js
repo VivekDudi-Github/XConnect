@@ -37,7 +37,7 @@ const MessageListener = (socket , io) => {
 
     }) ;
 
-  socket.on('SEND_LIVE_MESSAGE' , async({message , isSuperChat = false, roomId , amount = 0 }) => {  
+  socket.on('SEND_LIVE_MESSAGE' , async({message , isSuperChat = false, roomId , amount = 0 } , cb) => {  
 
     const Obj = await new LiveChat({
       sender :  socket.user._id ,
@@ -46,10 +46,20 @@ const MessageListener = (socket , io) => {
       isSuperChat ,
       amount ,
     }).save() ;
-
-    io.to(`liveStream:${roomId}`).emit('RECEIVE_LIVE_MESSAGE' , {Obj})
+    console.log(socket?.rooms , 'rooms');
+    
+    io.to(`liveStream:${roomId}`).emit('RECEIVE_LIVE_MESSAGE' , {
+      ...Obj._doc , 
+      sender : {
+        _id : socket.user._id , 
+        username : socket.user.username , 
+        avatar : socket.user.avatar
+    }}) ;
+    cb && cb() ;
 
   })
+ 
+
 }
 export default MessageListener ;
 
