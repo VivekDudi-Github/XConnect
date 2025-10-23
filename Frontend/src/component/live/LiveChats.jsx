@@ -130,7 +130,8 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
               <img className="rounded-full size-8 mr-1 dark:border " src={msg?.sender?.avatar?.url || './avatar-default.svg'} alt="" />
             </div>
             <div className="w-full text-left">
-              <strong>{msg?.sender?.username}</strong> {' : '} {moment(msg.createdAt).fromNow()}
+              <strong>{msg?.sender?.username}</strong> {' : '} 
+              {/* {moment(msg.createdAt).fromNow()} */}
               {BlockList.has(msg.user) ? (<i>Blocked</i>) :   <RenderPostContent text={msg.message} />}
             </div>
             <div className="relative" onClick={() => toggleSetOptions(i)}>
@@ -154,7 +155,8 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
               <img className="rounded-full size-8 mr-1 dark:border " src={msg?.sender?.avatar?.url || './avatar-default.svg'} alt="" />
             </div>
             <div className="w-full text-left">
-              <strong>{msg?.sender?.username}</strong> {' : '} {moment(msg.createdAt).fromNow()}
+              <strong>{msg?.sender?.username}</strong> {' : '} 
+              {/* {moment(msg.createdAt).fromNow()} */}
               {BlockList.has(msg.user) ? (<i>Blocked</i>) :   <RenderPostContent text={msg.message} />}
             </div>
             <div className="relative" onClick={() => toggleSetOptions(i)}>
