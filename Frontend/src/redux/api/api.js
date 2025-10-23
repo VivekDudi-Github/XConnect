@@ -273,8 +273,8 @@ const api = createApi({
       })
     }) ,
     getLiveChats : builder.query({
-      query : ({id , page , limit }) => ({
-        url : 'live/getChats/'+id+'?page='+page+'?limit='+limit ,
+      query : ({id , limit , lastId }) => ({
+        url : 'live/getChats/'+id+'?&limit='+limit + '&lastId='+lastId , 
         credentials : 'include' ,
       })
     })

@@ -3,7 +3,10 @@ import {User} from '../models/user.model.js'
 import {LiveStream} from '../models/liveStream.model.js'
 import { uploadFilesTOCloudinary } from '../utils/cloudinary.js';
 import { LiveChat } from '../models/liveChats.model.js';
+import mongoose from 'mongoose';
+
 let map = new Map() ;
+let ObjectId = mongoose.Types.ObjectId ;
 
 const createLiveStream = TryCatch(async (req , res) => {
     const {videoProducerId , audioProducerId} = req.body ;
@@ -109,22 +112,28 @@ const getUserLiveStreams = TryCatch(async (req , res) => {
 
 const getLiveChats = TryCatch(async (req , res) => {
     const {id} = req.params ;
-    const {page = 1 , limit = 10} = req.query ;
-    console.log(id , page , limit);
+    const {limit = 10 , lastId } = req.query ;
+    console.log(id , limit , lastId);
     
-    let skip = (page - 1) * limit ;
+    let filter = {
+        roomId : id ,
+    }
+    
+    if(ObjectId.isValid(lastId)){
+        filter._id =  { $lt: new ObjectId(`${lastId}`) } ;
+    }
 
     // const liveStream = await LiveStream.findOne({_id : id})
     const liveStream = map.get(id) ;
-    if(!liveStream) return ResError(res  ,404 , 'Live stream not found')
+    if(!liveStream) return ResError(res  ,404 , 'Live stream not found') ;
 
-    const liveChats = await LiveChat.find({roomId : id})
-    .sort({createdAt : -1})
-    .skip(skip)
+
+    const liveChats = await LiveChat.find(filter)
+    .sort({_id : -1})
     .limit(limit)
     .populate('sender' , 'name username avatar')
  
-    return ResSuccess(res , 200 , liveChats )
+    return ResSuccess(res , 200 , {messages : liveChats.reverse()} )
 } , 'getLiveChats')
 
 export {
