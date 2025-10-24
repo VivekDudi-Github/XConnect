@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import {ArrowDownIcon, EllipsisVerticalIcon,} from 'lucide-react' ;
+import {ArrowDownIcon, ChevronDown, ChevronRightIcon, EllipsisVerticalIcon, IndianRupeeIcon,} from 'lucide-react' ;
 import { useSocket } from "../specific/socket";
 import { toast } from "react-toastify";
 import Loader from "../shared/Loader";
@@ -23,6 +23,7 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
   const [liveMessages, setLiveMessages] = useState([]);
   const [input, setInput] = useState("");
 
+  const [collapseTopBar , setCollapseTopBar ] = useState(false)
   const [openOptions , setOpenOptions] = useState('') ;
   const [BlockList , setBlockList] = useState(new Set('')) ;
   
@@ -57,7 +58,7 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
   }
 }, [liveMessages]);
 
-  useEffect(() => {if(streamData) refetch({id :streamData._id , lastId : earliestMessage_id  , limit : 5 })} , []) ;
+  useEffect(() => {if(streamData) refetch({id :streamData._id , lastId : earliestMessage_id  , limit : 15 })} , []) ;
 
   useEffect(() => {
     if(!socket) return;
@@ -123,13 +124,14 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
     <div ref={containerRef} className="absolute top-0 left-0 right-0 bottom-[50px] overflow-y-auto p-1 space-y-1 z-10">
       {!streamData ? (<Loader/>) : 
       messages.map((msg, i) => {
+        if(msg?.superChat || i === messages.length-1) return superChatUi({msg , i, BlockList , openOptions , toggleSetOptions , topMessageRef}) 
         return (
-          <div key={i} ref={i === 0 ? topMessageRef : null} className={`w-full border-b border-gray-500 flex items-start justify-between gap-0.5 text-wrap break-words p-1 text-sm fade-in duration-200 relative ${openOptions == i ? 'z-50' : 'z-0'} 
+          <div key={i} ref={i === 0 ? topMessageRef : null} className={`w-full border-b border-gray-500 flex items-center justify-between gap-0.5 text-wrap break-words p-1 text-sm fade-in duration-200 relative ${openOptions == i ? 'z-50' : 'z-0'} 
             ${(msg.sender._id === streamData?.host) ? 'dark:bg-white dark:text-black text-white bg-black rounded-lg' : 'dark:text-white rounded-sm'}`}>
             <div className="w-fit">
               <img className="rounded-full size-8 mr-1 dark:border " src={msg?.sender?.avatar?.url || './avatar-default.svg'} alt="" />
             </div>
-            <div className="w-full text-left">
+            <div className="w-full text-left ">
               <strong>{msg?.sender?.username}</strong> {' : '} 
               {/* {moment(msg.createdAt).fromNow()} */}
               {BlockList.has(msg.user) ? (<i>Blocked</i>) :   <RenderPostContent text={msg.message} />}
@@ -148,6 +150,7 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
       })}
       {liveMessages.length > 0 ?  
       liveMessages.map((msg, i) => {
+        if(msg?.superChat || i === liveMessages.length-1) return superChatUi({msg , i, BlockList , openOptions , toggleSetOptions , topMessageRef})
         return (
           <div key={i} ref={i === 0 ? topMessageRef : null} className={`w-full border-b border-gray-500 flex items-start justify-between gap-0.5 text-wrap break-words p-1 text-sm fade-in duration-200 relative ${openOptions == i ? 'z-50' : 'z-0'} 
             ${(msg.sender._id === streamData?.host) ? 'dark:bg-white dark:text-black text-white bg-black rounded-lg' : 'dark:text-white rounded-sm'}`}>
@@ -174,9 +177,47 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
     </div>
 
 
+    <div className={`p-1 dark:bg-black bg-white rounded-t-lg duration-200 absolute top-0 left-0 right-0 z-10 shadow-lg shadow-blue-500/40 ${collapseTopBar ? 'size-0' : ''} `}>
+      <span className={`gap-1 mb-2 text-black `}>
+        <button
+        onClick={() => setCollapseTopBar(prev => !prev)}
+        className="bg-white rounded-full shadow-lg active:scale-95 hover:bg-gray-300 duration-200 z-50"  >
+          <ChevronRightIcon />
+        </button>
+        <span hidden={collapseTopBar} className="p-1 px-1.5 bg-white rounded-xl text-xs font-semibold ">Pins- 0</span>
+        <span hidden={collapseTopBar} className="p-1 px-1.5 bg-white rounded-xl text-xs font-semibold ">SuperChats : ₹0.00</span>
+      </span>
+      <div className={` flex gap-1 text-white overflow-x-scroll pb-3 text-[14px] duration-200 ${collapseTopBar ? 'size-0' : 'max-w-full'}`}>
+        <button className="p-1 flex max-w-40  h-6 flex-nowrap gap-1 px-1.5 shadowLight bg-gradient-to-r border-r from-[#25617a] dark:to-black to-white rounded-xl text-xs font-semibold "  >
+          <img src="/avatar-default.svg" alt="" className="w-4 h-4 rounded-full" />
+          <span className="text-nowrap truncate">Name what you want to play?</span>
+        </button>
+        <button className="p-1 flex max-w-40  h-6 flex-nowrap gap-1 px-1.5 shadowLight bg-gradient-to-r border-r from-[#25617a] dark:to-black to-white rounded-xl text-xs font-semibold "  >
+          <img src="/avatar-default.svg" alt="" className="w-4 h-4 rounded-full" />
+          <span className="text-nowrap truncate">Name what you want to play?</span>
+        </button>
+      </div>
+      <div className={` flex gap-1 text-white overflow-x-scroll pb-3 text-[14px] duration-200 ${collapseTopBar ? 'size-0' : 'max-w-full'}`}>
+        <button className="p-1 flex max-w-40  h-6 flex-nowrap gap-1 px-1.5 bg-gradient-to-r border-r from-[#872963] dark:to-black shadowLight rounded-xl text-xs font-semibold "  >
+          <img src="/avatar-default.svg" alt="" className="w-4 h-4 rounded-full" />
+          <span className="text-nowrap truncate">$100</span>
+        </button>
+        <button className="p-1 flex max-w-40 h-6 flex-nowrap gap-1 px-1.5 bg-gradient-to-r border-r from-[#872963] dark:to-black shadowLight rounded-xl text-xs font-semibold "  >
+          <img src="/avatar-default.svg" alt="" className="w-4 h-4 rounded-full" />
+          <span className="truncate text-nowrap">$20</span>
+        </button>
+      </div>
+
+    </div>
+
+
+    {/* Scroll to bottom button & superchat button */}
     <div>
       <button className="absolute bottom-14 right-2 bg-white p-1 rounded-full shadow-lg active:scale-95 duration-200 z-50" onClick={scrollToBottom}>
         <ArrowDownIcon  />
+      </button>
+      <button className="absolute bottom-14  right-12  bg-cyan-300 p-1 rounded-full shadow-lg active:scale-95 duration-200 z-50" onClick={scrollToBottom}>
+        <IndianRupeeIcon /> 
       </button>
     </div>
 
@@ -197,14 +238,39 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
       </button>
     </div>
 
-    <div className="p-1 bg-white rounded-t-lg flex absolute top-0 left-0 right-0 z-10 ShadowLight ">
-      
-
-    </div>
 
 
   </div>
   );
 }
+
+function superChatUi ({msg , i , BlockList , openOptions , toggleSetOptions , topMessageRef}){
+  return (
+    <div key={i} ref={i === 0 ? topMessageRef : null} className={`w-full border-b bg-gradient-to-b from-[#872963] to-black rounded-t-lg border-gray-500 flex items-start justify-between gap-0.5 text-wrap break-words p-1 text-sm fade-in duration-200 relative ${openOptions == i ? 'z-50' : 'z-0'} `}> 
+      <div className="w-fit">
+        <img className="rounded-full size-8 mr-1 dark:border " src={msg?.sender?.avatar?.url || './avatar-default.svg'} alt="" />
+      </div>
+      <div className="w-full text-left  text-white">
+        <div><strong>{msg?.sender?.username}</strong> {' : '} 
+          <span className="p-1 py-0.5 text-black font-bold bg-white rounded-lg">₹500</span>
+        </div>
+        {/* {moment(msg.createdAt).fromNow()} */}
+        {BlockList.has(msg.user) ? (<i>Blocked</i>) :   <RenderPostContent text={msg.message} />}
+      </div>
+      <div className="relative" onClick={() => toggleSetOptions(i)}>
+        <EllipsisVerticalIcon className="text-gray-300 hover:text-gray-700 cursor-pointer size-4 z-0" />
+        {openOptions === i && (
+          <div className="absolute top-6 right-0 bg-white rounded-lg shadow-lg hover:cursor-pointer space-y-0.5 border border-gray-200 z-50 overflow-hidden text-sm text-black">
+            <div className="hover:bg-slate-200 duration-200 px-2">{BlockList.has(msg.user) ? 'Unblock' : 'Block'}</div>
+            <div className="hover:bg-slate-200 duration-200 px-2">Report</div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+
+}
+
+
 // next create superchat ui and add it to the chat
 // integerate the payment gateway for it. 

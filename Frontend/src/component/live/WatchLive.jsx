@@ -123,7 +123,7 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
                 <div className="text-sm text-gray-400 flex items-center gap-2 mt-1">
                   👁️ {activeStream?.viewersCount ?? 0} watching
                 </div>
-                <p className="mt-2 text-gray-300 text-sm whitespace-pre-wrap">
+                <p className="mt-2 dark:text-gray-300 text-sm whitespace-pre-wrap">
                   {activeStream?.description || 'No description available.Desciption lorem'} 
                   Reprehenderit placeat vero doloribus rem nesciunt. Fugiat veritatis vitae perferendis dolorum odit nisi natus architecto enim voluptate accusamus, numquam consequuntur rem. Pariatur recusandae fuga quidem animi exercitationem corporis ducimus suscipit.
                 </p>

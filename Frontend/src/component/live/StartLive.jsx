@@ -56,6 +56,8 @@ export default function StartLive() {
       if(audioProducer && mediasoupReady && streamData){
         await updateLiveMutation({id :streamData._id , audioId : audioProducer.id})
       }
+      console.log(!!videoProducer , !!mediasoupReady , !!audioProducer , !!streamData);
+      
       if(videoProducer && mediasoupReady && streamData && audioProducer) setIsLive(true) ;
     }
     update() ;
