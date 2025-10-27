@@ -19,6 +19,8 @@ import liveRouter from './routes/live.routes.js' ;
 import commentRouter from './routes/comment.routes.js' ;
 import messageRouter from './routes/message.routes.js' ;
 import communityRouter from './routes/community.routes.js' ;
+import stripeRouter from './routes/stripePayment.routes.js' ;
+import stripeWebhook from './routes/stripeWebhook.routes.js' ;
 
 import { checkSocketUser } from "./utils/chekAuth.js";
 
@@ -72,15 +74,14 @@ io.use(checkSocketUser);
   }) ;
 })();
  
-
+app.use('/api/v1/stripe/webhook' , stripeWebhook ) ;
 
 // Middleware to parse JSON bodies
-app.use(express.json());
 app.use(cors({
   origin: 'http://localhost:5173', 
   credentials: true, 
 }));
-
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser()) ;
 
@@ -91,14 +92,15 @@ app.use('/api/v1/message' , messageRouter ) ;
 app.use('/api/v1/room' , roomRouter ) ;
 app.use('/api/v1/community' , communityRouter)
 app.use('/api/v1/live' , liveRouter)
+app.use('/api/v1/stripe/payment' , stripeRouter)
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
+
 })
 
-let Socket ;
 async function StartServer(){
   try {
     await connectDB() ;
@@ -108,7 +110,6 @@ async function StartServer(){
     });
 
     io.on("connection", async (socket) => {
-      Socket = socket ; 
       console.log(`New client connected: ${socket.id}`);
       if(!socket.user) return ;
       // join rooms 
@@ -162,4 +163,4 @@ async function StartServer(){
 }
 StartServer() ;
 
-export {io , Socket}
+export {io}
