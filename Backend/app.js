@@ -34,7 +34,7 @@ import { Following } from "./models/following.model.js";
 dotenv.config() ;
 
 const app = express() ;
-const newServer = createServer(app)
+const newServer = createServer(app) ;
 
 
 let worker, router;

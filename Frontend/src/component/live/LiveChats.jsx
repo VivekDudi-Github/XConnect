@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState , useMemo} from "react";
 import {ArrowDownIcon, ChevronDown, ChevronDownIcon, ChevronRightIcon, EllipsisVerticalIcon, IndianRupeeIcon,} from 'lucide-react' ;
 import { useSocket } from "../specific/socket";
 import { toast } from "react-toastify";
@@ -8,11 +8,24 @@ import { useSelector } from "react-redux";
 import RenderPostContent from "../specific/RenderPostContent";
 import lastRefFunc from "../specific/LastRefFunc";
 import moment from 'moment';
+import { Elements, useElements, useStripe , CardElement } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
+import process from 'process'
+
 
 export default function LiveChat({closeFunc , streamData , isProducer }) {
   const socket = useSocket();
   const auth = useSelector((state) => state.auth.user);
 
+  const stripPromiseRef = useRef(null) ;
+
+  useMemo(() => {
+    console.log(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+    
+    if(!stripPromiseRef.current) stripPromiseRef.current = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+  } , [])
+
+  const [sendSuperchat , setSendSuperchat] = useState(false) ;
 
   let observer = useRef(null);
   const containerRef = useRef(null);
@@ -118,6 +131,10 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
       })
   } , [messages] )
 
+  const superChatToggle = () => {
+    setSendSuperchat(prev => !prev)
+  }
+
   return (
     <div className="relative w-full h-full overflow-hidden">
     {/* Messages area */}
@@ -219,7 +236,7 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
       <button className="absolute bottom-14 right-2 bg-white p-1 rounded-full shadow-lg active:scale-95 duration-200 z-50" onClick={scrollToBottom}>
         <ArrowDownIcon  />
       </button>
-      <button className="absolute bottom-14  right-12  bg-cyan-300 p-1 rounded-full shadow-lg active:scale-95 duration-200 z-50" onClick={scrollToBottom}>
+      <button className="absolute bottom-14  right-12  bg-cyan-300 p-1 rounded-full shadow-lg active:scale-95 duration-200 z-50" onClick={superChatToggle}>
         <IndianRupeeIcon /> 
       </button>
     </div>
@@ -230,7 +247,7 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
         value={input}
         onChange={(e) => setInput(e.target.value)}
         placeholder="Send a message..."
-        className="flex-1 p-2 border rounded-lg"
+        className="custom_Input shadowLight"
       />
       <button
         disabled={!streamData}
@@ -240,6 +257,13 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
         Send
       </button>  
     </div>
+
+
+    <div className={`absolute bottom-0 left-0 z-50 flex items-center justify-center duration-200 ${sendSuperchat ? 'translate-y-0' : 'translate-y-full'}`}>
+      <Elements stripe={stripPromiseRef.current} >
+        <CheckoutForm auth={auth}  onClose={superChatToggle} streamData={streamData} input={input} />
+      </Elements>
+      </div>
       
   </div>
   );
@@ -280,6 +304,62 @@ function SuperChatUi ({msg , i , BlockList , openOptions , toggleSetOptions , to
 
 }
 
+function CheckoutForm({auth , streamData , input , onClose}) {
+  const stripe = useStripe() ;
+  const elements = useElements();
+
+  
+  const [amount, setAmount] = useState("");
+  const [message, setMessage] = useState('');
+  const [status, setStatus] = useState("");
+
+   const handleSubmit = async (e) => {
+    e.preventDefault();
+   }
+   useEffect(() => {
+    setMessage(input)
+   }, [input])
+   
+  return (
+    <div className="max-w-md mx-auto p-2 rounded-lg shadow-lg bg-white dark:bg-black custom-box">
+      <h2 className="text-xl font-bold mb-4 flex items-center justify-between">Send a Superchat 💬 
+        <ChevronDown onClick={onClose} />
+      </h2>
+
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <input
+          type="number"
+          placeholder="Amount (INR)"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          className="custom_Input shadowLight"
+          required
+        />
+        <textarea
+          placeholder="Your message..."
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          className="custom_Input shadowLight"
+          required
+        ></textarea>
+
+        <div className="text-white">
+          <CardElement  className="h-6 bg-white text-white" />
+        </div>
+
+        <button
+          type="submit"
+          disabled={!stripe}
+          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+        >
+          Send & Pay
+        </button>
+      </form>
+
+      <p className="mt-3 text-gray-700">{status}</p>
+    </div>
+  )
+}
 
 // next create superchat ui and add it to the chat
 // integerate the payment gateway for it. 

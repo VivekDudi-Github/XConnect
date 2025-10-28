@@ -16,16 +16,15 @@ import CommentPage from './pages/CommentPage';
 const Auth = lazy(() => import('./pages/Auth'));
 const PostPage = lazy(() => import('./pages/PostPage'));
 const HomePage = lazy(() => import('./pages/HomePage'));
+const LivePage = lazy(() => import('./pages/LivePage'));
+const MeetPage = lazy(() => import('./pages/MeetPage'));
+
 const Profile = lazy(() => import('./pages/ProfilePage'));
 const MessagesPage = lazy(() => import('./pages/MessagesPage'));
 const ExplorePage = lazy(() => import('./pages/ExplorePage')) ;
 const NotificationPage = lazy(() => import('./pages/NotificationPage'));
 const CommunitiesPage = lazy(() => import('./pages/CommunitiesPage'));
-
-import CommunityHome from './component/community/communityHome';
-import MeetPage from './pages/MeetPage';
-import LivePage from './pages/LivePage';
-
+const CommunityHome = lazy(() => import('./component/community/communityHome'));
 const CommunityHomePage = lazy(() => import('./component/community/CommunityHomePage'))
 const CommunityPostPage = lazy(() => import('./component/community/CommunityPostPage'))
 

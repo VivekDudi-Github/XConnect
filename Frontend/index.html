@@ -3,7 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="XConnect_icon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0
+    default-src 'self' http://localhost:*;
+    script-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:* https://js.stripe.com https://m.stripe.network https://checkout.stripe.com;
+    connect-src 'self' http://localhost:* https://api.stripe.com https://m.stripe.network https://checkout.stripe.com;
+    frame-src https://js.stripe.com https://m.stripe.network https://checkout.stripe.com;
+    style-src 'self' 'unsafe-inline';
+    img-src https://*.stripe.com;
+    "/>
     <title>XConnect</title>
   </head>
   <body>

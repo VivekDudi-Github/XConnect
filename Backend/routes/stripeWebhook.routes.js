@@ -2,7 +2,6 @@ import express from 'express' ;
 import stripe from 'stripe' ;
 import dotenv from 'dotenv' ;
 import bodyParser from 'body-parser' ;
-import {Socket , io} from '../app.js' ;
 import { createSuperchatPaymentWebhook } from '../controllers/stripe.controller.js';
 
 dotenv.config() ;
@@ -20,7 +19,7 @@ stripeWebhook.post('/' ,
       event = stripe.webhooks.constructEvent(
         req.body,
         sig,
-        process.env.STRIPE_WEBHOOK_SECRET
+        process.env.WEBHOOK_KEY
       );
     } catch (err) {
       console.error("Webhook signature verification failed:", err.message);
