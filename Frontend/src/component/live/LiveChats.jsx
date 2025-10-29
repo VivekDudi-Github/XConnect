@@ -3,14 +3,32 @@ import {ArrowDownIcon, ChevronDown, ChevronDownIcon, ChevronRightIcon, EllipsisV
 import { useSocket } from "../specific/socket";
 import { toast } from "react-toastify";
 import Loader from "../shared/Loader";
-import { useLazyGetLiveChatsQuery } from "../../redux/api/api";
+import { useCreateSuperchatIntentMutation, useLazyGetLiveChatsQuery } from "../../redux/api/api";
 import { useSelector } from "react-redux";
 import RenderPostContent from "../specific/RenderPostContent";
 import lastRefFunc from "../specific/LastRefFunc";
 import moment from 'moment';
 import { Elements, useElements, useStripe , CardElement } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
-import process from 'process'
+
+const appearance = {
+  theme: 'stripe', // Start with a base theme
+  variables: {
+    colorPrimary: '#0570de',
+    colorBackground: '#ffffff',
+    fontFamily: 'Roboto, sans-serif',
+  },
+  rules: {
+    // Target specific components with custom CSS properties
+    '.Tab': {
+      border: '1px solid #E0E6EB',
+      boxShadow: '0px 1px 1px rgba(0, 0, 0, 0.03)',
+    },
+    '.Input': {
+      padding: '12px 16px',
+    }
+  }
+};
 
 
 export default function LiveChat({closeFunc , streamData , isProducer }) {
@@ -242,7 +260,7 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
     </div>
 
     {/* Input bar fixed at bottom */}
-    <div className="p-1  flex absolute bottom-0 left-0 right-0 ">
+    <div className="p-1  flex absolute bottom-0 left-0 right-0 mb-1 ">
       <input
         value={input}
         onChange={(e) => setInput(e.target.value)}
@@ -260,11 +278,10 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
 
 
     <div className={`absolute bottom-0 left-0 z-50 flex items-center justify-center duration-200 ${sendSuperchat ? 'translate-y-0' : 'translate-y-full'}`}>
-      <Elements stripe={stripPromiseRef.current} >
+      <Elements stripe={stripPromiseRef.current} options={appearance}>
         <CheckoutForm auth={auth}  onClose={superChatToggle} streamData={streamData} input={input} />
       </Elements>
-      </div>
-      
+    </div>
   </div>
   );
 }
@@ -313,12 +330,37 @@ function CheckoutForm({auth , streamData , input , onClose}) {
   const [message, setMessage] = useState('');
   const [status, setStatus] = useState("");
 
-   const handleSubmit = async (e) => {
-    e.preventDefault();
-   }
-   useEffect(() => {
-    setMessage(input)
-   }, [input])
+  const [mutation] = useCreateSuperchatIntentMutation()
+
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+  if(!stripe) return;
+  if(!amount) return toast.error('Please enter amount');
+  if(!message) return toast.error('Please enter message');
+  
+  try {
+    const data = await mutation({message, amount ,streamId : streamData._id}).unwrap();
+    const res = await stripe.confirmCardPayment(data.data) ;
+    console.log(res);
+    
+    if(res.error){
+      return toast.error(res.error.message)
+    }else {
+      toast.success(`SuperChat of ₹${amount} sent successfully`) 
+      onClose()
+    }
+
+  } catch (error) {
+    console.log(error);
+    return toast.error(error || 'Something went wrong');
+  }
+
+  }
+
+
+  useEffect(() => {
+  setMessage(input)
+  }, [input])
    
   return (
     <div className="max-w-md mx-auto p-2 rounded-lg shadow-lg bg-white dark:bg-black custom-box">
@@ -343,8 +385,21 @@ function CheckoutForm({auth , streamData , input , onClose}) {
           required
         ></textarea>
 
-        <div className="text-white">
-          <CardElement  className="h-6 bg-white text-white" />
+        <div className="">
+          <CardElement className="custom_Input" options={{
+          style: {
+            base: {
+              fontSize: '16px',
+              color: '#fff',
+              '::placeholder': {
+                color: '#fff',
+              },
+            },
+            invalid: {
+              color: '#9e2146',
+            },
+          },
+        }} />
         </div>
 
         <button

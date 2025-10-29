@@ -277,6 +277,15 @@ const api = createApi({
         url : 'live/getChats/'+id+'?&limit='+limit + '&lastId='+lastId , 
         credentials : 'include' ,
       })
+    }) ,
+
+    createSuperchatIntent : builder.mutation({
+      query : ({amount , message , streamId}) => ({
+        url : '/stripe/payment/superchat/create' ,
+        method : 'POST' ,
+        body : {amount , message , streamId} ,
+        credentials : 'include'
+      })
     })
   })
 })
@@ -342,4 +351,7 @@ export const {
   useUpdateLiveMutation ,
   useGetLiveStreamQuery ,
   useLazyGetLiveChatsQuery ,
+
+  // superchat
+  useCreateSuperchatIntentMutation ,
 } = api ;

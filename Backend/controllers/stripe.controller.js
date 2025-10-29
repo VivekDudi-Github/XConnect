@@ -4,23 +4,29 @@ import {TryCatch , ResError , ResSuccess} from '../utils/extra.js'
 import { io } from "../app.js";
 
 const createSuperchatPayment = TryCatch( async (req, res) => {
-    const { senderId, streamId, message, amount } = req.body;
+    const { streamId, message, amount } = req.body;
+    if(amount === 0) return ResError(res , 400 , 'Amount should be greater than 0')
+    if(!streamId) return ResError(res , 400 , 'StreamId is required')
+    if(!message?.trim()) return ResError(res , 400 , 'Message is required')
+
+      
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amount * 100, // paise
       currency: "inr",
       metadata: {
         type: "superchat",
         sender : {
-          _id : senderId ,
+          _id : req.user._id ,
           username : req.user.username ,
-          avatar : req.user.avatar ,
+          avatar : req.user.avatar.url ,
         },
         streamId,
         message ,
         amount ,
       }
     })
-
+    console.log(paymentIntent);
+    
     return ResSuccess(res , 200 , paymentIntent.client_secret)
 } , 'PaymentIntent')
 
