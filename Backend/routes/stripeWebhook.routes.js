@@ -6,20 +6,21 @@ import { createSuperchatPaymentWebhook } from '../controllers/stripe.controller.
 
 dotenv.config() ;
 
-const stripeWebhook = express.Router() ;
+const router = express.Router() ;
 
-stripeWebhook.post('/' , 
-  bodyParser.raw({type : 'application/json'})  , 
+router.post('/webhook' , 
+  bodyParser.raw({ type: 'application/json' }) ,
   async(req , res , next) => {
     const sig = req.headers["stripe-signature"]
-
+    console.log('success');
+    
     let event ;
 
     try {
       event = stripe.webhooks.constructEvent(
         req.body,
         sig,
-        process.env.WEBHOOK_KEY
+        process.env.WEBHOOK_KEY,
       );
     } catch (err) {
       console.error("Webhook signature verification failed:", err.message);
@@ -34,8 +35,8 @@ stripeWebhook.post('/' ,
         return createSuperchatPaymentWebhook(req , res , next)
       }
     }
-    return res.status(200)
+    return res.sendStatus(200)
   }
 );
 
-export default stripeWebhook ;
+export default router ;

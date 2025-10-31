@@ -30,11 +30,19 @@ import { MediaSoupCleanup, MediaSoupListener } from "./utils/listners/medisaoup.
 import { User } from "./models/user.model.js";
 import { UserListener } from "./utils/listners/user.listener.js";
 import { Following } from "./models/following.model.js";
+import bodyParser from "body-parser";
 
 dotenv.config() ;
 
 const app = express() ;
 const newServer = createServer(app) ;
+
+app.use((req , res , next) => {
+  console.log(req.url);
+  
+  next() ;
+})
+app.use('/api/v1/stripe' , stripeWebhook);
 
 
 let worker, router;
@@ -74,8 +82,6 @@ io.use(checkSocketUser);
   }) ;
 })();
  
-app.use('/api/v1/stripe/webhook' , stripeWebhook ) ;
-
 // Middleware to parse JSON bodies
 app.use(cors({
   origin: 'http://localhost:5173', 
@@ -152,7 +158,6 @@ async function StartServer(){
         MediaSoupCleanup(socket , io , roomMap , participants , transportsBySocket);
       });
     });
-
 
 
   } catch (error) {

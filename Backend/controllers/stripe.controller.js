@@ -11,27 +11,27 @@ const createSuperchatPayment = TryCatch( async (req, res) => {
 
       
     const paymentIntent = await stripe.paymentIntents.create({
+      payment_method_types : ['card'],
       amount: amount * 100, // paise
       currency: "inr",
       metadata: {
         type: "superchat",
-        sender : {
-          _id : req.user._id ,
-          username : req.user.username ,
-          avatar : req.user.avatar.url ,
-        },
-        streamId,
+        _id : req.user._id.toString() ,
+        username : req.user.username ,
+        avatar : req.user.avatar.url ,
+        streamId ,
         message ,
         amount ,
       }
     })
-    console.log(paymentIntent);
     
     return ResSuccess(res , 200 , paymentIntent.client_secret)
 } , 'PaymentIntent')
 
 
 const createSuperchatPaymentWebhook = TryCatch(async(req , res) => {
+  console.log('webHook Reached');
+  
   const {sender , streamId , message , amount} = req.metadata ;
   if(amount === 0) return res.status(200) ;
   const superChat = await LiveChat.create({

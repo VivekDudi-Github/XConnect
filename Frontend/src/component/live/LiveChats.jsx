@@ -340,8 +340,12 @@ function CheckoutForm({auth , streamData , input , onClose}) {
   
   try {
     const data = await mutation({message, amount ,streamId : streamData._id}).unwrap();
-    const res = await stripe.confirmCardPayment(data.data) ;
-    console.log(res);
+    const res = await stripe.confirmCardPayment(data.data , {
+      payment_method : {
+        card : elements.getElement(CardElement),
+      }
+    }) ;
+    console.log(res , data.data);
     
     if(res.error){
       return toast.error(res.error.message)
