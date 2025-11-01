@@ -26,8 +26,9 @@ router.post('/webhook' ,
       console.error("Webhook signature verification failed:", err.message);
       return res.sendStatus(400);
     }
-
+    
     if(event.type === 'payment_intent.succeeded'){
+      console.log(event.data.object.metadata , event.type);
       let data = event.data.object;
       let metadata = data.metadata;
       req.metadata = metadata ;

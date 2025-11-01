@@ -32,21 +32,21 @@ const createSuperchatPayment = TryCatch( async (req, res) => {
 const createSuperchatPaymentWebhook = TryCatch(async(req , res) => {
   console.log('webHook Reached');
   
-  const {sender , streamId , message , amount} = req.metadata ;
+  const {_id , username , avatar , streamId , message , amount} = req.metadata ;
   if(amount === 0) return res.status(200) ;
   const superChat = await LiveChat.create({
-    sender : sender._id , 
+    sender : _id , 
     message ,
     roomId : streamId ,
     isSuperChat : true ,
     amount : amount ,
   })
-  io.to('liveStream:'+streamId).emit('RECEIVE_SUPERCHAT_MESSAGE' , {
+  io.to('liveStream:'+streamId).emit('RECEIVE_LIVE_MESSAGE' , {
     ...superChat._doc ,
     sender : {
-      _id : sender._id , 
-      username : sender.username , 
-      avatar : sender.avatar
+      _id : _id , 
+      username : username , 
+      avatar : {url : avatar} ,
     }
   })
   return res.status(200) ;
