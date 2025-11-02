@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState , useMemo} from "react";
+import { useCallback, useEffect, useRef, useState , useMemo, lazy} from "react";
 import {ArrowDownIcon, ChevronDown, ChevronDownIcon, ChevronRightIcon, EllipsisVerticalIcon, IndianRupeeIcon, Loader2Icon,} from 'lucide-react' ;
 import { useSocket } from "../specific/socket";
 import { toast } from "react-toastify";
@@ -10,6 +10,7 @@ import lastRefFunc from "../specific/LastRefFunc";
 import moment from 'moment';
 import { Elements, useElements, useStripe , CardElement } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
+const CheckoutForm = lazy(() => import('./CheckOutForm'));
 
 const appearance = {
   theme: 'stripe', // Start with a base theme
@@ -57,7 +58,9 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
   const [collapseTopBar , setCollapseTopBar ] = useState(false)
   const [openOptions , setOpenOptions] = useState('') ;
   const [BlockList , setBlockList] = useState(new Set('')) ;
+
   const [superchats , setSuperchats] = useState([]) ;
+  const [TotalChatAmount , setTotalChatAmount] = useState(0) ;
 
   const [displaySuperChat , setDisplaySuperChat] = useState() ;
 
@@ -127,6 +130,14 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
     }
   } , [data])
 
+  useEffect(() => {
+    if(superchats.length > 0){
+      let total = 0 ;
+      superchats.forEach( m => total += m.amount)
+      setTotalChatAmount(total) ;
+    }
+  } , [superchats])
+
   const scrollToBottom = () => {
     const container = containerRef.current;
     if (!container) return;
@@ -167,38 +178,9 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
     <div ref={containerRef} className="absolute top-0 left-0 right-0 bottom-[50px] overflow-y-auto p-1 space-y-1 z-10">
       {!streamData ? (<Loader/>) : 
       messages.map((msg, i) => {
-        if(msg?.isSuperChat) return <SuperChatUi msg={msg}  BlockList={BlockList}  openOptions={openOptions}  toggleSetOptions={toggleSetOptions}  topMessageRef={topMessageRef} /> 
-        
+        if(msg?.isSuperChat) return <SuperChatUi msg={msg} i={i} BlockList={BlockList}  openOptions={openOptions}  toggleSetOptions={toggleSetOptions}  topMessageRef={topMessageRef} /> 
         return (
-          <div key={i} ref={i === 0 ? topMessageRef : null} className={`w-full border-b border-gray-500 flex items-start justify-between gap-0.5 text-wrap break-words p-1 text-sm fade-in duration-200 relative ${openOptions == i ? 'z-50' : 'z-0'} 
-            ${(msg.sender._id === streamData?.host) ? 'dark:bg-white dark:text-black text-white bg-black rounded-lg' : 'dark:text-white rounded-sm'}`}>
-            <div className="w-fit flex items-center h-full">
-              <img className="rounded-full size-8 mr-1 dark:border " src={msg?.sender?.avatar?.url || './avatar-default.svg'} alt="" />
-            </div>
-            <div className="w-full text-left ">
-              <strong>{msg?.sender?.username}</strong> {' : '} 
-              {/* <strong>{moment(msg.createdAt).fromNow()}</strong> */}
-              
-              {BlockList.has(msg.user) ? (<i>Blocked</i>) :   <RenderPostContent text={msg.message} />}
-            </div>
-            <div className="relative h-full" onClick={() => toggleSetOptions(i)}>
-              <EllipsisVerticalIcon className="text-gray-500 hover:text-gray-700 cursor-pointer size-4 z-0" />
-              {openOptions === i && (
-                <div className="absolute top-6 right-0 bg-white rounded-lg shadow-lg hover:cursor-pointer space-y-0.5 border border-gray-200 z-50 overflow-hidden text-sm text-black">
-                  <div className="hover:bg-slate-200 duration-200 px-2">{BlockList.has(msg.user) ? 'Unblock' : 'Block'}</div>
-                  <div className="hover:bg-slate-200 duration-200 px-2">Report</div>
-                  {isProducer && <div className="hover:bg-slate-200 duration-200 px-2">Pin</div>}
-                </div>
-              )}
-            </div>
-          </div>
-        )
-      })}
-      {liveMessages.length > 0 ?  
-      liveMessages.map((msg, i) => {
-        if(msg?.isSuperChat ) return <SuperChatUi msg={msg}  BlockList={BlockList}  openOptions={openOptions}  toggleSetOptions={toggleSetOptions}  topMessageRef={topMessageRef} />
-        return (
-          <div key={i} ref={i === 0 ? topMessageRef : null} className={`w-full border-b border-gray-500 flex items-start justify-between gap-0.5 text-wrap break-words p-1 text-sm fade-in duration-200 relative ${openOptions == i ? 'z-50' : 'z-0'} 
+          <div key={msg._id} ref={i === 0 ? topMessageRef : null} className={`w-full border-b border-gray-500 flex items-start justify-between gap-0.5 text-wrap break-words p-1 text-sm fade-in duration-200 relative ${openOptions == msg._id ? 'z-50' : 'z-0'} 
             ${(msg.sender._id === streamData?.host) ? 'dark:bg-white dark:text-black text-white bg-black rounded-lg' : 'dark:text-white rounded-sm'}`}>
             <div className="w-fit">
               <img className="rounded-full size-8 mr-1 dark:border " src={msg?.sender?.avatar?.url || './avatar-default.svg'} alt="" />
@@ -208,9 +190,9 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
               {moment(msg.createdAt).fromNow()}
               {BlockList.has(msg.user) ? (<i>Blocked</i>) :   <RenderPostContent text={msg.message} />}
             </div>
-            <div className="relative" onClick={() => toggleSetOptions(i)}>
+            <div className="relative" onClick={() => toggleSetOptions(msg._id)}>
               <EllipsisVerticalIcon className="text-gray-500 hover:text-gray-700 cursor-pointer size-4 z-0" />
-              {openOptions === i && (
+              {openOptions === msg._id && (
                 <div className="absolute top-6 right-0 bg-white rounded-lg shadow-lg hover:cursor-pointer space-y-0.5 border border-gray-200 z-50 overflow-hidden text-sm text-black">
                   <div className="hover:bg-slate-200 duration-200 px-2">{BlockList.has(msg.user) ? 'Unblock' : 'Block'}</div>
                   <div className="hover:bg-slate-200 duration-200 px-2">Report</div>
@@ -219,6 +201,30 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
             </div>
           </div>
         )
+      })}
+      {liveMessages.length > 0 ?  
+      liveMessages.map((msg, i) => {
+        if(msg?.isSuperChat ) return <SuperChatUi msg={msg} i={i}  BlockList={BlockList}  openOptions={openOptions}  toggleSetOptions={toggleSetOptions}  topMessageRef={topMessageRef} />
+        return <div key={msg._id} ref={i === 0 ? topMessageRef : null} className={`w-full border-b border-gray-500 flex items-start justify-between gap-0.5 text-wrap break-words p-1 text-sm fade-in duration-200 relative ${openOptions == msg._id ? 'z-50' : 'z-0'} 
+            ${(msg.sender._id === streamData?.host) ? 'dark:bg-white dark:text-black text-white bg-black rounded-lg' : 'dark:text-white rounded-sm'}`}>
+            <div className="w-fit">
+              <img className="rounded-full size-8 mr-1 dark:border " src={msg?.sender?.avatar?.url || './avatar-default.svg'} alt="" />
+            </div>
+            <div className="w-full text-left">
+              <strong>{msg?.sender?.username}</strong> {' : '}
+              {moment(msg.createdAt).fromNow()}
+              {BlockList.has(msg.user) ? (<i>Blocked</i>) :   <RenderPostContent text={msg.message} />}
+            </div>
+            <div className="relative" onClick={() => toggleSetOptions(msg._id)}>
+              <EllipsisVerticalIcon className="text-gray-500 hover:text-gray-700 cursor-pointer size-4 z-0" />
+              {openOptions === msg._id && (
+                <div className="absolute top-6 right-0 bg-white rounded-lg shadow-lg hover:cursor-pointer space-y-0.5 border border-gray-200 z-50 overflow-hidden text-sm text-black">
+                  <div className="hover:bg-slate-200 duration-200 px-2">{BlockList.has(msg.user) ? 'Unblock' : 'Block'}</div>
+                  <div className="hover:bg-slate-200 duration-200 px-2">Report</div>
+                </div>
+              )}
+            </div>
+          </div>
       }) : null }
     </div>
 
@@ -231,10 +237,10 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
           <ChevronRightIcon />
         </button>
         <span hidden={collapseTopBar} className="p-1 px-1.5 bg-white rounded-xl text-xs font-semibold ">Pins- 0</span>
-        <span hidden={collapseTopBar} className="p-1 px-1.5 bg-white rounded-xl text-xs font-semibold ">SuperChats : ₹0.00</span>
+        <span hidden={collapseTopBar} className="p-1 px-1.5 bg-white rounded-xl text-xs font-semibold ">SuperChats : ₹{TotalChatAmount}</span>
       </span>
       <div className={` flex gap-1 text-white overflow-x-scroll pb-3 text-[14px] duration-200 ${collapseTopBar ? 'size-0' : 'max-w-full'}`}>
-        <button className="p-1 flex max-w-40  h-6 flex-nowrap gap-1 px-1.5 shadowLight bg-gradient-to-r border-r from-[#25617a] dark:to-black to-white rounded-xl text-xs font-semibold "  >
+        <button className="p-1 flex max-w-40  h-6 flex-nowrap gap-1 px-1.5 shadowLight bg-gradient-to-r border-r border-slate-500 from-[#25617a] dark:to-black to-white rounded-xl text-xs font-semibold "  >
           <img src="/avatar-default.svg" alt="" className="w-4 h-4 rounded-full" />
           <span className="text-nowrap truncate">Name what you want to play?</span>
         </button>
@@ -245,10 +251,10 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
       </div>
       <div className={` flex gap-1 text-white overflow-x-scroll pb-3 text-[14px] w-full duration-200 ${collapseTopBar ? 'size-0' : 'max-w-full'}`}>
         {superchats.length > 0 && superchats.map((m, i) => 
-          <button className="p-1 flex min-w-fit h-6 flex-nowrap gap-1 px-1.5 bg-gradient-to-r border-r from-[#872963] dark:to-black shadowLight rounded-xl text-xs font-semibold" 
+          <button className="p-1 flex min-w-fit h-6 flex-nowrap gap-1 px-1.5 bg-gradient-to-r border-r border-gray-500 from-[#872963] dark:to-black shadowLight rounded-xl text-xs font-semibold" 
             onClick={() => {setDisplaySuperChat(m._id)}} >
-            <img src={m.sender?.avatar?.url || './avatar-default.svg'} alt="" className="w-4 h-4 rounded-full" />
-            <span className=" text-">₹{m.amount}</span>
+            <img src={m.sender?.avatar?.url || './avatar-default.svg'} alt="" className="si rounded-full" />
+            <span className="s">₹{m.amount}</span>
           </button>
         )}
       </div>
@@ -297,10 +303,10 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
   );
 }
 
-function SuperChatUi ({msg , i , BlockList , openOptions , toggleSetOptions , topMessageRef }){
+function SuperChatUi ({msg , i , BlockList , openOptions , toggleSetOptions , topMessageRef  }){
   const [collapse , setCollapse] = useState(false);
   return (
-    <div key={i} ref={i === 0 ? topMessageRef : null} className={`w-full border-b bg-gradient-to-b from-[#872963] to-black rounded-t-lg border-gray-500 flex items-start justify-between gap-0.5 text-wrap break-words p-1 text-sm fade-in duration-200 relative ${openOptions == i ? 'z-50' : 'z-0'} `}> 
+    <div key={msg._id} ref={i === 0 ? topMessageRef : null} className={`w-full border-b bg-gradient-to-b from-[#872963] to-black rounded-t-lg border-gray-500 flex items-start justify-between gap-0.5 text-wrap break-words p-1 text-sm fade-in duration-200 relative ${openOptions == msg._id ? 'z-50' : 'z-0'} `}> 
       <div className="w-fit">
         <img className="rounded-full size-8 mr-1 dark:border " src={msg?.sender?.avatar?.url || './avatar-default.svg'} alt="" />
       </div>
@@ -318,9 +324,9 @@ function SuperChatUi ({msg , i , BlockList , openOptions , toggleSetOptions , to
         <span hidden={collapse} className="text-sm dark:text-white"
         ><RenderPostContent text={msg.message} /></span>} 
       </div>
-      <div className="relative" onClick={() => toggleSetOptions(i)}>
+      <div className="relative" onClick={() => toggleSetOptions(msg._id)}>
         <EllipsisVerticalIcon className="text-gray-300 hover:text-gray-700 cursor-pointer size-4 z-0" />
-        {openOptions === i && (
+        {openOptions === msg._id && (
           <div className="absolute top-6 right-0 bg-white rounded-lg shadow-lg hover:cursor-pointer space-y-0.5 border border-gray-200 z-50 overflow-hidden text-sm text-black">
             <div className="hover:bg-slate-200 duration-200 px-2">{BlockList.has(msg.user) ? 'Unblock' : 'Block'}</div>
             <div className="hover:bg-slate-200 duration-200 px-2">Report</div>
@@ -332,107 +338,6 @@ function SuperChatUi ({msg , i , BlockList , openOptions , toggleSetOptions , to
 
 }
 
-function CheckoutForm({auth , streamData , input , onClose}) {
-  const stripe = useStripe() ;
-  const elements = useElements();
-  const[loading , setLoading] = useState(false) ;
-  
-  const [amount, setAmount] = useState(0);
-  const [message, setMessage] = useState('');
 
-  const [mutation] = useCreateSuperchatIntentMutation()
 
-  const handleSubmit = async (e) => {
-  e.preventDefault();
-  if(!stripe) return;
-  if(!amount) return toast.error('Please enter amount');
-  if(!message) return toast.error('Please enter message');
-  if(amount <= 0) return toast.error('Please enter amount greater than 0');
-  if(amount > 5000) return toast.error('Amount should be less than 5000');
 
-  try {
-    setLoading(true) ;
-    const data = await mutation({message, amount ,streamId : streamData._id}).unwrap();
-    const res = await stripe.confirmCardPayment(data.data , {
-      payment_method : {
-        card : elements.getElement(CardElement),
-      }
-    }) ;
-    console.log(res , data.data);
-    
-    if(res.error){
-      return toast.error(res.error.message)
-    }else {
-      toast.success(`SuperChat of ₹${amount} sent successfully`) 
-      onClose()
-    }
-    
-  } catch (error) {
-    console.log(error);
-    return toast.error(error || 'Something went wrong');
-  } finally{
-    setLoading(false) ;
-  }
-
-  }
-
-  useEffect(() => {
-  setMessage(input)
-  }, [input])
-   
-  return (
-    <div className="max-w-md mx-auto p-2 rounded-lg shadow-lg bg-white dark:bg-black custom-box">
-      <h2 className="text-xl font-bold mb-4 flex items-center justify-between">Send a Superchat 💬 
-        <ChevronDown onClick={onClose} />
-      </h2>
-
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <input
-          type="number"
-          max={5000}
-          placeholder="Amount (INR)"
-          value={amount}
-          onChange={(e) => {
-            if(!isNaN(e.target.value)) setAmount(Number(e.target.value) || 0) ;
-          }}
-          className="custom_Input shadowLight" 
-          required
-        />
-        <textarea
-          placeholder="Your message..."
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          className="custom_Input shadowLight"
-          required
-        ></textarea>
-
-        <div className="">
-          <CardElement className="custom_Input" options={{
-          style: {
-            base: {
-              fontSize: '16px',
-              color: '#fff',
-              '::placeholder': {
-                color: '#fff',
-              },
-            },
-            invalid: {
-              color: '#9e2146',
-            },
-          },
-        }} />
-        </div>
-
-        <button
-          type="submit"
-          disabled={!stripe|| loading}
-          className="w-full bg-blue-600 text-center flex items-center justify-center text-white py-2 rounded hover:bg-blue-700"
-        >
-          {!loading ? 'Send & Pay' : <Loader2Icon className="animate-spin duration-200" />}
-        </button>
-      </form>
-
-      <p className="mt-3 text-gray-700">{status}</p>
-    </div>
-  )
-}

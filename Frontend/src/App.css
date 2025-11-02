@@ -108,3 +108,13 @@
     box-shadow: 0 0 0 2px #939393; /* dark:focus:ring-gray-300 */
   }
 }
+
+
+/*webkit scrollbar styling*/
+::-webkit-scrollbar {
+    width: 0px;
+    background: transparent; /* make scrollbar transparent */
+}
+.root {
+  scrollbar-width: none; /* for Firefox */
+}

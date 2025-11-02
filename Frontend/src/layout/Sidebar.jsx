@@ -47,7 +47,7 @@ export default function Sidebar({collapseFunc}) {
   }
   return (
     <nav className={`p-4 dark:bg-black  dark:text-gray-200 shadow-lg h-full shadow-black flex flex-col justify-between duration-200 ${collapse ? "w-[72px]" : "w-56"}`}>  
-      <span className='space-y-3 flex flex-col overflow-scroll'>
+      <span className='space-y-3 flex flex-col overflow-y-auto'>
         {navItems.map(item => (
           <NavLink
             key={item.name}
