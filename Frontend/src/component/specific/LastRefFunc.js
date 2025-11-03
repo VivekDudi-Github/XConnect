@@ -4,6 +4,7 @@ const lastRefFunc = (config) => {
     id,
     node,
     isLoading,
+    isFetching ,
     page,
     activeTab,
     isComment,
@@ -15,10 +16,8 @@ const lastRefFunc = (config) => {
 
   if(observer.current) observer.current.disconnect() ;
 
-  observer.current = new IntersectionObserver(entries => {
-    console.log(page , totalPages);
-    
-    if(entries[0].isIntersecting && !isLoading && ( (totalPages || totalPages === 0) ? page <= totalPages : true) && page > 1){ 
+  observer.current = new IntersectionObserver(entries => {    
+    if(entries[0].isIntersecting && !isLoading && !isFetching && ( (totalPages || totalPages === 0) ? page <= totalPages : true) && page > 1){ 
       console.log('fetcheing post');
       
       fetchFunc({page : page , id , tab: activeTab , sortBy : sortBy , isComment , username }) ;

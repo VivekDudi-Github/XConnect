@@ -31,17 +31,14 @@ import { User } from "./models/user.model.js";
 import { UserListener } from "./utils/listners/user.listener.js";
 import { Following } from "./models/following.model.js";
 import bodyParser from "body-parser";
+import Stream from "stream";
+import { StreamListener } from "./utils/listners/liveStream.listeners.js";
 
 dotenv.config() ;
 
 const app = express() ;
 const newServer = createServer(app) ;
 
-app.use((req , res , next) => {
-  console.log(req.url);
-  
-  next() ;
-})
 app.use('/api/v1/stripe' , stripeWebhook);
 
 
@@ -134,18 +131,25 @@ async function StartServer(){
       messageListener(socket, io);
       UserListener(socket, io);
       MediaSoupListener(socket , io , roomMap, participants , transportsBySocket , router); 
+      StreamListener(socket , io ) ;
 
-      socket.on('join_Socket_Room' , async({roomId , room}) => {
+      socket.on('JOIN_SOCKET_ROOM' , async({roomId , room}) => {
         if(!room || !roomId) return ;
         socket.join(`${room}:${roomId}`) ;
         console.log('joined room' , room , roomId);
-        
       })
 
-      socket.on('Leave_Socket_Room' , async({roomId , room}) => {
+      socket.on('LEAVE_SOCKET_ROOM' , async({roomId , room}) => {
         if(!room || !roomId) return ;
         socket.leave(`${room}:${roomId}`) ;
       })
+      socket.on('CHECK_ROOM_ACTIVE' , async({room , roomId} , cb) => {
+        if(!room || !roomId) return ;
+        let isRoom = io.sockets.adapter.rooms.get(`${room}:${roomId}`) ;
+        let active = isRoom?.size || 0 ;
+        
+        cb && cb({active , isRoom : !!isRoom }) ;
+      }) ;
 
       socket.on('ping-check', (cb) => {
         cb && cb( 'pong');

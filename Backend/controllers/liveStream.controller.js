@@ -4,6 +4,7 @@ import {LiveStream} from '../models/liveStream.model.js'
 import { uploadFilesTOCloudinary } from '../utils/cloudinary.js';
 import { LiveChat } from '../models/liveChats.model.js';
 import mongoose from 'mongoose';
+import { Following } from '../models/following.model.js';
 
 let map = new Map() ;
 let ObjectId = mongoose.Types.ObjectId ;
@@ -32,6 +33,7 @@ const createLiveStream = TryCatch(async (req , res) => {
         title ,
         description ,
         host : req.user._id ,
+        hostName : req.user.username ,
         startedAt : Date.now() ,
         endedAt : Date.now() ,
         producers : {} ,
@@ -89,10 +91,15 @@ const updateLiveStream = TryCatch(async (req , res) => {
 const getLiveStream = TryCatch(async (req , res) => {
     const {id} = req.params ;
 
-    // const liveStream = await LiveStream.findOne({_id : id}) ;
-    const liveStream = map.get(id) ;
-    if(!liveStream) return ResError(res , 404 , 'Live stream not found')
-    return ResSuccess(res , 200 , liveStream) ;
+    // const liveStream = await LiveStream.findOne({_id : id}).populate('host' , 'username avatar name') ;
+    const liveStream = map.get(id) ; 
+    const followers = await Following.countDocuments({followedTo : liveStream?.host}) ; 
+    const isFollowing = await Following.findOne({followedBy : req.user._id , followedTo : liveStream?.host}) ;
+
+    console.log(followers);
+    
+    if(!liveStream) return ResError(res , 404 , 'Live stream not found') ;
+    return ResSuccess(res , 200 , {...liveStream , isFollowing , followers}) ;
 } , 'getLiveStream')
 
 const getUserLiveStreams = TryCatch(async (req , res) => {

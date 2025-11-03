@@ -25,7 +25,9 @@ export default function StartLive() {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
     videoRef.current.srcObject = stream ;
   };
-
+  // fetch live stream data of any accidental disconnects and resume stream if any
+  // allow host to rejoin stream within 5min of accidental disconnect
+   
   const {startBroadcast , stopBroadcast , videoProducer , audioProducer , isLive : mediasoupReady , localStreamRef } = useBroadcast(socket , true ) ;
 
   const goLive = async() => {

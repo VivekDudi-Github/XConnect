@@ -26,10 +26,8 @@ export default function CheckoutForm({auth , streamData , input , onClose}) {
   const handleSubmit = async (e) => {
   e.preventDefault();
   if(!stripe) return;
-  if(!amount) return toast.error('Please enter amount');
+  if(![50,100,500,1000,5000].includes(amount)) return toast.error('Amount is invalid');
   if(!message) return toast.error('Please enter message');
-  if(amount <= 0) return toast.error('Please enter amount greater than 0');
-  if(amount > 5000) return toast.error('Amount should be less than 5000');
 
   try {
     setLoading(true) ;
@@ -70,7 +68,7 @@ export default function CheckoutForm({auth , streamData , input , onClose}) {
       <form onSubmit={handleSubmit} className="space-y-3">
         <div className="flex flex-wrap gap-2">
           {amounts.map(a => 
-            <button type="button" className={`p-1 flex max-w-40  h-8 flex-nowrap gap-1 px-1.5 shadowLight bg-gradient-to-br ${amount === a.price ? 'from-[#337484]' : 'from-[#473383]'} dark:to-[#050502] to-white rounded-xl text-sm font-semibold duration-200 ` }
+            <button key={a.price} type="button" className={`p-1 flex max-w-40  h-8 flex-nowrap gap-1 px-1.5 shadowLight bg-gradient-to-br ${amount === a.price ? 'from-[#337484]' : 'from-[#473383]'} dark:to-[#050502] to-white rounded-xl text-sm font-semibold duration-200 ` }
               style={{border :  amount === a.price ? '2px solid white' : '2px solid #000' , boxShadow : amount === a.price ? '0 0 10px white' : ''}} 
               onClick={() => setAmount(a.price)}
             >

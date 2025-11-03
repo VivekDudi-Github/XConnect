@@ -28,10 +28,6 @@ const liveStreamSchema = new mongoose.Schema({
     type: Date,
     required: true,
   },
-  endedAt: {
-    type: Date,
-    required: true,
-  },
   isLive : {
     type : Boolean ,
     default : false ,
