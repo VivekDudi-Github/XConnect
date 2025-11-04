@@ -6,10 +6,15 @@ import { useBroadcast } from "../specific/broadcast/Broadcaster";
 import { useCreateLiveMutation, useUpdateLiveMutation } from "../../redux/api/api";
 import { toast } from "react-toastify";
 import WatchLive from "./WatchLive";
+import { ensureSocketReady } from "../shared/SharedFun";
+import DialogBox from "../shared/DialogBox";
 
 export default function StartLive() {
   const socket = useSocket();
-  
+
+  const [isRoomAvailable , setIsRoomAvailable] = useState(false);
+  const isRoomAvailableTimeRef = useRef(false) ;
+
   const [title, setTitle] = useState( new Date().toLocaleString() );
   const [isLive, setIsLive] = useState(false);
   const [description, setDescription] = useState('');
@@ -31,7 +36,15 @@ export default function StartLive() {
   const {startBroadcast , stopBroadcast , videoProducer , audioProducer , isLive : mediasoupReady , localStreamRef } = useBroadcast(socket , true ) ;
 
   const goLive = async() => {
-
+    if(!socket) await ensureSocketReady(socket);
+    let isAvailable = false ;
+    socket.emit('CHECK_AND_UPDATE_LIVE_HOST' , {roomId : 'temp'} , (res) => {
+      if(res.isAvailable){
+        setIsRoomAvailable(true) ; isAvailable = true ;
+        isRoomAvailableTimeRef.current = res.isAvailableTime ;
+      }}
+    )
+    if(isAvailable) return ;
     const formData = new FormData() ;
     formData.append('title' , title) ;
     formData.append('description' , description) ;
@@ -65,13 +78,34 @@ export default function StartLive() {
     update() ;
   } , [videoProducer , audioProducer , streamData ])
 
+  const removeLiveHost = () => {
+    socket.emit('REMOVE_LIVE_HOST') ;
+    setIsRoomAvailable(false) ;
+  }
+  const rejoinLiveStream = () => {
+    socket.emit('REJOIN_LIVE_STREAM' , {roomId : 'temp'} , async(res) => {
+      if(res) setIsRoomAvailable(true) ;
+    })
+  }
+
+  useEffect(() => {
+    if(isRoomAvailable && isRoomAvailableTimeRef.current){
+      let interval = setInterval(() => {
+        if(isRoomAvailableTimeRef.current <= 0){
+          clearInterval(interval) ;
+          removeLiveHost() ;
+        }else {isRoomAvailableTimeRef.current -= 1000 ; }
+      } , 1000)
+    }
+  }, [isRoomAvailable] )
+
   return (
     <>
       {!isLive ? (
         <div className="p-6 flex md:flex-row flex-col gap-4  min-h-screen dark:text-white bg-gray-50 dark:bg-black">
       {/* form */}
           <div className="w-full  space-y-3">
-            <h1 className="text-2xl font-bold mb-4 flex ">Go Live</h1>
+            <h1 className="text-2xl font-bold mb-4 flex ">Go Live <span className="text-sm text-gray-600 italic">tap go live to rejoin disconnected stream.</span></h1>
             <div>
               <label className="block text-sm font-medium mb-1">Title</label>
               <input
@@ -120,6 +154,9 @@ export default function StartLive() {
             </button>
             <video ref={videoRef} autoPlay className="w-full rounded-2xl" />
           </div>
+          {isRoomAvailable && (
+            <DialogBox message={'You have an ongoing live stream. Do you want to stop the previous stream ?'} onClose={() => removeLiveHost()} mainFuction={rejoinLiveStream} />
+          )}
         </div>
       ) : (
         <WatchLive localStreamRef={localStreamRef} stopBroadcast={stopBroadcast} isProducer={true} streamData={streamData} />

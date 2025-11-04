@@ -15,7 +15,7 @@ const checkUser = (req, res , next) => {
         if(token){
             return jwt.verify(token , process.env.ACCESS_TOKEN_SECRET , (err , decoded) => {
                 if(err){
-                    console.log(err , 'line 15');
+                    console.log(err);
                     checkRefreshToken() ;
                 }else {
                     req.user = decoded;

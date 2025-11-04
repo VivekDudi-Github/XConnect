@@ -21,6 +21,7 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
 
   const intervalRef = useRef(null) ;
 
+  const [isJoined , setIsJoined] = useState(true) ;
   const [SData , setStreamData] = useState(streamData || {}) ;
 
   const [collapse , setCollapse] = useState(false) ;
@@ -34,7 +35,6 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
   const {data , error , isError , isLoading} = useGetLiveStreamQuery({id : id || SData._id} ) ;
   const  { streams, rtcCapabilities, transportRef, init, cleanup , consumersRef } = useMediasoupConsumers(null , socket , true ) ;
 
-  console.log(streams);
   
   useEffect(() => {
     if(streams.length > 0){
@@ -46,8 +46,6 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
           audioStream : audioTrack ? new MediaStream([audioTrack]) : null ,
         }
         setActiveStream(obj) ;
-        // videoRef.current.srcObject = new MediaStream([videoTrack , audioTrack].filter(Boolean)) ;
-        // videoRef.current.play() ;
       }
     }
   } , [streams])
@@ -63,7 +61,8 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
         }) ;
         if(isProducer){
           socket.emit('CHECK_ROOM_JOINED', {room : 'liveStream' , roomId : data?.data?._id} , (res) => {
-            if(!res) toast.error('You are currently disconnected from the stream , please Rejoin');
+            if(!res) toast.info('You are currently got disconnected from the stream , rejoining...');
+            if(!res) setIsJoined(false) ;
           }) ;
         }
       } , 1000 * 2 )
@@ -88,17 +87,40 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
     }
   } , [data , socket])
 
+  useEffect(() => {
+    const getNewStreamData = async(data) => {
+      setStreamData(data) ;
+    }
+    socket.on('RECEIVE_LIVE_STREAM_DATA' , getNewStreamData) ;
+
+    return () => {
+      socket.off('RECEIVE_LIVE_STREAM_DATA' , getNewStreamData) ;
+    }
+  } , [socket])
+
+  useEffect(() => {
+    if(!isJoined){
+      socket.emit('REJOIN_LIVE_STREAM' , {roomId : data?.data?._id} , async(res) => {
+        if(res) setIsJoined(true) ;
+    })
+  }} , [isJoined , socket]) ;
+
   useEffect(() => {    
     return () => {
       cleanup();
     }
   } , [])
 
+  useEffect(() => {
+    if(isError){
+      console.log('error fetching live stream data' , error);
+      toast.error(error?.data?.message || 'Error fetching live stream data') ;
+    }
+  } , [isError , error])
+
   const leaveStream = async() => {
-    if(socket) socket.emit('LEAVE_SOCKET_ROOM' , {roomId : data?.data?._id , room : 'liveStream'}) ;
+    if(socket) socket.emit('LEAVE_SOCKET_ROOM' , {roomId : data?.data?._id , room : 'liveStream'}) ; 
   } 
-  // add stream end with 5min delay if user disconnects accidentally 
-  // add rejoin button in UI to rejoin stream if ended accidentally
   // emit new streamData to the viewers when host restarts stream
 
   return (
