@@ -5,19 +5,20 @@ const liveHosts = new Map();
 export const StreamListener = (socket , io) => {
   // CHECK ROOM JOINED OR NOT
   socket.on('CHECK_ROOM_JOINED' , (room , roomId , cb) => {
-    let joined = io.sockets.adapter.rooms.get(`${room}:${roomId}`).has(socket.id) ;
+    let joined = io.sockets.adapter.rooms.get(`${room}:${roomId}`)?.has(socket.id) ;
     cb && cb(joined)
   })
 
   socket.on('ADD_LIVE_HOST' , ({roomId }) => {
+    console.log('emit live host');
+    
     liveHosts.set(socket.user._id , {roomId , lastUpdate : Date.now() , isDisconnected : false}) ;
   })
 
   socket.on('REJOIN_LIVE_STREAM' , ({roomId} , cb) => {
     let hostRoom = liveHosts.get(socket.user._id) ;  
     if(hostRoom){
-      hostRoom.lastUpdate = Date.now() ;
-      hostRoom.isDisconnected = false ;
+      liveHosts.set(socket.user._id , {...hostRoom ,lastUpdate : Date.now() , isDisconnected : false })
       socket.join(`liveStream:${roomId}`) ;
     }
     cb && cb(!!hostRoom) ;  
@@ -28,7 +29,7 @@ export const StreamListener = (socket , io) => {
     let isAvailableTime = false ;
     if(hostRoom){
       isAvailableTime = BufferTime - (Date.now() - hostRoom.lastUpdate ) ;
-      hostRoom.lastUpdate = Date.now() ; 
+      liveHosts.set(socket.user._id , {  ...hostRoom ,lastUpdate : Date.now(),}) ;
     }
     cb && cb({isAvailableTime : isAvailableTime , roomId : hostRoom?.roomId}) ;
   })
@@ -44,15 +45,14 @@ export const LiveStreamCleanup = (socket , io) => {
   // handle live stream cleanup on host disconnect
   let hostRoom = liveHosts.get(socket.user._id) ;
   if(hostRoom && (Date.now() - hostRoom.lastUpdate < BufferTime)){
-    hostRoom.lastUpdate = Date.now() ;
-    hostRoom.isDisconnected = true ;
+    liveHosts.set(socket.user._id , { ...hostRoom ,lastUpdate : Date.now() , isDisconnected : true }) ;
 
     setTimeout(() => {
-      const hostRoom = liveHosts.get(userId);
+      const hostRoom = liveHosts.get(socket.user._id);
       if (!hostRoom) return;
 
       const inactiveTooLong = Date.now() - hostRoom.lastUpdate > BufferTime;
-      if (hostRoom.isDisconnected && inactiveTooLong)  liveHosts.delete(userId);
+      if (hostRoom.isDisconnected && inactiveTooLong)  liveHosts.delete(socket.user._id);
     } , BufferTime) ;
 
   }else {

@@ -41,6 +41,8 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
       const videoTrack = streams?.[0]?.track ;
       const audioTrack = streams?.[1]?.track ;
       if(videoTrack || audioTrack){
+        console.log('stream updated');
+        
         let obj = {
           videoStream : videoTrack ? new MediaStream([videoTrack]) : null ,
           audioStream : audioTrack ? new MediaStream([audioTrack]) : null ,
@@ -77,6 +79,7 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
         
         const videoId = data.data?.producers?.videoId ;
         const audioId = data.data?.producers?.audioId ;
+        console.log('init ref:' )
         if(!isProducer)init(videoId , audioId , socket);
       }
     }
@@ -88,15 +91,26 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
   } , [data , socket])
 
   useEffect(() => {
+    if(!socket) return ;
     const getNewStreamData = async(data) => {
       setStreamData(data) ;
+      console.log('new live stream data' , data);
+      
+      if(!isProducer){
+        const videoId = data?.producers?.videoId ;
+        const audioId = data?.producers?.audioId ;
+        await ensureSocketReady(socket);
+        console.log('init ref:');
+
+        init(videoId , audioId , socket) ;
+      }
     }
     socket.on('RECEIVE_LIVE_STREAM_DATA' , getNewStreamData) ;
 
     return () => {
       socket.off('RECEIVE_LIVE_STREAM_DATA' , getNewStreamData) ;
     }
-  } , [socket])
+  } , [socket , init])
 
   useEffect(() => {
     if(!isJoined){
@@ -121,7 +135,7 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
   const leaveStream = async() => {
     if(socket) socket.emit('LEAVE_SOCKET_ROOM' , {roomId : data?.data?._id , room : 'liveStream'}) ; 
   } 
-  // emit new streamData to the viewers when host restarts stream
+
 
   return (
     <div className="flex flex-col lg:flex-row h-screen pb-16 sm:pb-0 w-full ">
@@ -183,7 +197,7 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
           {SData?._id && <LiveChat isProducer={isProducer}  streamData={SData} />}
         </div>
       </div>
-      <DialogBox message="Are you sure you want to stop streaming?" onClose={() => dispatch(setisDeleteDialog(false))} mainFuction={leaveStream} />
+      {/* <DialogBox message="Are you sure you want to stop streaming?" onClose={() => dispatch(setisDeleteDialog(false))} mainFuction={leaveStream} /> */}
     </div> 
     
   );

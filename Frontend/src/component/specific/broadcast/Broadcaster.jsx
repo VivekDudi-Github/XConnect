@@ -29,10 +29,15 @@ export function useBroadcast(socket , isStream = false ) {
 
       try {
         // 1) Capture media
-        localStreamRef.current = cameraOn
-          ? await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-          : await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
-
+        if(cameraOn){
+          localStreamRef.current = await navigator.mediaDevices.getUserMedia({ video: true, audio: true }) ;
+        }else {
+          let displayMedia = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true }) ;
+          let micStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true }) ;
+          localStreamRef.current = new MediaStream([...displayMedia.getVideoTracks() , ...displayMedia.getAudioTracks() , ...micStream.getAudioTracks() ]) ;
+        }
+        console.log(cameraOn , localStreamRef.current);
+        
         // 2) Get router RTP caps & load device
         socket.emit("getRtpCapabilities", async (routerRtpCapabilities) => {
           const device = new Device();

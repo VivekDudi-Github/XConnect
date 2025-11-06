@@ -20,7 +20,9 @@ export function useMediasoupConsumers(roomId ,socket , isBroadcast = false) {
   const init = useCallback(async (videoId , audioId ) => {
     if(!roomId && !isBroadcast) return console.error('Room ID not provided');
     
-    if (transportRef.current) return; // prevent double init
+    if (transportRef.current) {
+      transportRef.current?.close();
+    }
     console.log('init called' , 'videoId' , !!videoId , 'audioId' , !!audioId);
     
    

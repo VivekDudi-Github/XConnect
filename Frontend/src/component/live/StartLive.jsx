@@ -8,12 +8,19 @@ import { toast } from "react-toastify";
 import WatchLive from "./WatchLive";
 import { ensureSocketReady } from "../shared/SharedFun";
 import DialogBox from "../shared/DialogBox";
+import { CameraIcon, Loader2Icon, ScreenShare } from "lucide-react";
+import moment from "moment";
+import 'moment-duration-format';
 
 export default function StartLive() {
   const socket = useSocket();
 
   const [isRoomAvailable , setIsRoomAvailable] = useState(false);
-  const isRoomAvailableTimeRef = useRef(false) ;
+  const [isRoomAvailableTime , setisRoomAvailableTime] = useState(false) ; 
+
+  const [IsCheckingDissconnectedRoom , setCheckingDissconnectedRoom] = useState(true) ;
+
+  const [isCameraOn , setIsCameraOn] = useState(true) ;
 
   const [title, setTitle] = useState( new Date().toLocaleString() );
   const [isLive, setIsLive] = useState(false);
@@ -27,7 +34,14 @@ export default function StartLive() {
   const [updateLiveMutation] = useUpdateLiveMutation() ;
 
   const startPreview = async () => {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    let stream ; 
+    if(isCameraOn){
+      stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true }) ;
+    }else {
+      let displayMedia = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true }) ;
+      let micStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true }) ;
+      stream = new MediaStream([...displayMedia.getVideoTracks() , ...displayMedia.getAudioTracks() , ...micStream.getAudioTracks() ]) ;
+    }
     videoRef.current.srcObject = stream ;
   };
   // fetch live stream data of any accidental disconnects and resume stream if any
@@ -36,26 +50,21 @@ export default function StartLive() {
   const {startBroadcast , stopBroadcast , videoProducer , audioProducer , isLive : mediasoupReady , localStreamRef } = useBroadcast(socket , true ) ;
 
   const goLive = async() => {
-    if(!socket) await ensureSocketReady(socket);
-    let isAvailable = false ;
-    socket.emit('CHECK_AND_UPDATE_LIVE_HOST' , {roomId : 'temp'} , (res) => {
-      if(res.isAvailable){
-        setIsRoomAvailable(true) ; isAvailable = true ;
-        isRoomAvailableTimeRef.current = res.isAvailableTime ;
-      }}
-    )
-    if(isAvailable) return ;
+    if(isRoomAvailable){
+      rejoinLiveStream() ;
+      await startBroadcast(isCameraOn , null );
+      return ;
+    }
     const formData = new FormData() ;
     formData.append('title' , title) ;
     formData.append('description' , description) ;
     if(thumbnail) formData.append('media' , thumbnail) ;
 
     try {
-      await startBroadcast(true , null );
+      await startBroadcast(isCameraOn , null );
       const data = await createLive(formData).unwrap() ;
       console.log('live' ,data.data);
       setStreamData(data.data);
-
     } catch (error) {
       stopBroadcast() ;
       console.log(error?.data?.message);
@@ -87,14 +96,38 @@ export default function StartLive() {
       if(res) setIsRoomAvailable(true) ;
     })
   }
+  const AddHost = async() => {
+    if(isLive && !isRoomAvailable) socket.emit('ADD_LIVE_HOST' , {roomId : streamData._id}) ;
+  }
+  useEffect(() => {
+    AddHost() ;
+  } , [isLive])
 
   useEffect(() => {
-    if(isRoomAvailable && isRoomAvailableTimeRef.current){
+    let func = async() => {
+      await ensureSocketReady(socket);
+      socket.emit('CHECK_AND_UPDATE_LIVE_HOST' , {roomId : 'temp'} , (res) => {
+        console.log('available' , res);
+        if(res.isAvailableTime){
+          setIsRoomAvailable(true) ; 
+          setisRoomAvailableTime(res.isAvailableTime) ;
+          setStreamData({ _id : res.roomId }) ;
+        }else {
+          setIsRoomAvailable(false) ;
+        }}
+      )
+      setCheckingDissconnectedRoom(false) ;
+    }
+    func() ;
+  } , [socket])
+
+  useEffect(() => {
+    if(isRoomAvailable && isRoomAvailableTime){
       let interval = setInterval(() => {
-        if(isRoomAvailableTimeRef.current <= 0){
+        if(isRoomAvailableTime <= 0){
           clearInterval(interval) ;
           removeLiveHost() ;
-        }else {isRoomAvailableTimeRef.current -= 1000 ; }
+        }else {setisRoomAvailableTime(prev => prev - 1000) ; }
       } , 1000)
     }
   }, [isRoomAvailable] )
@@ -105,7 +138,12 @@ export default function StartLive() {
         <div className="p-6 flex md:flex-row flex-col gap-4  min-h-screen dark:text-white bg-gray-50 dark:bg-black">
       {/* form */}
           <div className="w-full  space-y-3">
-            <h1 className="text-2xl font-bold mb-4 flex ">Go Live <span className="text-sm text-gray-600 italic">tap go live to rejoin disconnected stream.</span></h1>
+            <h1 className="text-2xl font-bold  flex mb-3 ">
+              Go Live 
+            </h1>
+            <span className="text-sm text-gray-400 italic">
+              {IsCheckingDissconnectedRoom ? 'Checking for any disconnected live stream...' : isRoomAvailable ? `You have an ongoing live stream. You can rejoin within ${Math.floor(isRoomAvailableTime / 60000)} minutes.` : 'Fill in the details below to start your live stream.'}
+            </span>
             <div>
               <label className="block text-sm font-medium mb-1">Title</label>
               <input
@@ -114,6 +152,21 @@ export default function StartLive() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
               />
+            </div>
+            {/* Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 mt-4">
+              <button
+                onClick={() =>setIsCameraOn(true)}
+                className={`flex-1 px-5 py-3 rounded-xl font-semibold ${isCameraOn ? 'text-black bg-white hover:bg-slate-200' : 'text-white bg-slate-700 hover:bg-slate-600'}  transition-all shadow-lg`}
+              >
+                <CameraIcon /> Use Camera
+              </button>
+              <button
+                onClick={() => setIsCameraOn(false)}
+                className={`flex-1 px-5 py-3 rounded-xl font-semibold ${!isCameraOn ? 'text-black bg-white hover:bg-slate-200' : 'text-white bg-slate-700 hover:bg-slate-600'}  transition-all shadow-lg`}
+              >
+                <ScreenShare /> Screen Share
+              </button>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Description</label>
@@ -138,9 +191,21 @@ export default function StartLive() {
               {thumbnail && <img src={URL.createObjectURL(thumbnail)} onClick={() => inputRef.current.click()} className="w-full h-full max-h-80 object-contain rounded-2xl" />}
             </div>
             {!isLive ? (
-              <button onClick={goLive} className="px-6 py-3 bg-red-600 text-white rounded-xl w-full showdow-lg shadow-red-400/20 hover:bg-red-700 transition">
-                🔴 Go Live
-              </button>
+              <div className="w-full flex justify-center transition gap-2">
+                <button 
+                onClick={() => setIsRoomAvailable(setIsRoomAvailable(false))} className={` py-3 items-center flex justify-center  bg-white shadowLight text-black rounded-xl  showdow-lg shadow-red-400/20 hover:bg-red-700 duration-200 ${!isRoomAvailable ? 'w-0 overflow-hidden' : 'w-full'} `}>  
+                  Cancel
+                </button>
+                <button 
+                disabled={IsCheckingDissconnectedRoom}
+                onClick={goLive} className="px-6 py-3 items-center flex justify-center w-full bg-red-600 text-white rounded-xl  showdow-lg shadow-red-400/20 hover:bg-red-700 duration-200 shadowLight">
+                  {IsCheckingDissconnectedRoom ? (
+                    <Loader2Icon className="animate-spin" />
+                  ) : <>
+                    {isRoomAvailable ? 'Rejoin '+ moment.utc(isRoomAvailableTime).format('mm:ss') : '🔴 Go Live'} 
+                  </>}
+                </button>
+              </div>
             ) : (
               <button className="px-6 py-3 bg-gray-600 text-white rounded-xl w-full">
                 Live...
@@ -154,8 +219,8 @@ export default function StartLive() {
             </button>
             <video ref={videoRef} autoPlay className="w-full rounded-2xl" />
           </div>
-          {isRoomAvailable && (
-            <DialogBox message={'You have an ongoing live stream. Do you want to stop the previous stream ?'} onClose={() => removeLiveHost()} mainFuction={rejoinLiveStream} />
+          {isRoomAvailable && (<></>
+            // <DialogBox message={'You have an ongoing live stream. Do you want to stop the previous stream ?'} onClose={() => removeLiveHost()} mainFuction={rejoinLiveStream} />
           )}
         </div>
       ) : (

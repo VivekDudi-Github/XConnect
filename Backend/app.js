@@ -32,7 +32,7 @@ import { UserListener } from "./utils/listners/user.listener.js";
 import { Following } from "./models/following.model.js";
 import bodyParser from "body-parser";
 import Stream from "stream";
-import { StreamListener } from "./utils/listners/liveStream.listeners.js";
+import { LiveStreamCleanup, StreamListener } from "./utils/listners/liveStream.listeners.js";
 
 dotenv.config() ;
 
@@ -158,6 +158,7 @@ async function StartServer(){
       // === cleanup ===
       socket.on("disconnect", async () => {
         await User.findByIdAndUpdate(socket.user._id, { $set: { lastOnline: Date.now() } });
+        LiveStreamCleanup(socket , io ) ;
         console.log(`Client disconnected: ${socket.id}`);
         MediaSoupCleanup(socket , io , roomMap , participants , transportsBySocket);
       });

@@ -5,6 +5,7 @@ import { uploadFilesTOCloudinary } from '../utils/cloudinary.js';
 import { LiveChat } from '../models/liveChats.model.js';
 import mongoose from 'mongoose';
 import { Following } from '../models/following.model.js';
+import {io} from '../app.js'
 
 let map = new Map() ;
 let ObjectId = mongoose.Types.ObjectId ;
@@ -83,6 +84,7 @@ const updateLiveStream = TryCatch(async (req , res) => {
     if (videoId !== undefined) liveStream.producers.videoId = videoId;
     if (audioId !== undefined) liveStream.producers.audioId = audioId;
 
+    io.to(`liveStream:${liveStream._id}`).emit('RECEIVE_LIVE_STREAM_DATA' , liveStream) ;
     // await liveStream.save();
     
     return ResSuccess(res , 200 , 'Live stream updated successfully')
