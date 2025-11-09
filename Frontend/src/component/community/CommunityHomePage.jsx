@@ -11,8 +11,9 @@ import lastRefFunc from '../specific/LastRefFunc';
 import DialogBox from '../shared/DialogBox';
 import { Search } from 'lucide-react';
 import SearchBar from '../specific/search/SearchBar';
+import InviteMods from './InviteMods';
 
-const tabs = ['General' , 'Help' ,'FeedBack' , 'Showcase'];  
+const tabs = ['General' , 'Help' ,'FeedBack' , 'Highlights'];  
 
 //tabs in community home page , pins and highlights ,
 export default function CommunityHomePage() {
@@ -22,6 +23,7 @@ export default function CommunityHomePage() {
   const {id} = useParams();
   const observer = useRef(null) ;
 
+  const [addModsBox , setAddModsBox] = useState(false) ;
   const [activeTab , setActiveTab] = useState('General');
 
   const [deleteCommunityDialog , setDeleteCommunityDialog] = useState(false) ;
@@ -111,20 +113,21 @@ useEffect(() => {
     }
   } , [data]) ;
 
+console.log(addModsBox);
 
   return (
     <div className="min-h-screen bg-white dark:bg-black dark:text-white text-black sm:pb-0 pb-16 "> 
       {/* Banner */}
       <div className="relative bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 h-48 flex items-center px-6 mb-6">
-      <img src={community?.banner?.url} alt="Community Icon" className="object-cover absolute top-0 left-0 bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 h-full w-full z-0"/>
+      <img src={community?.banner?.url ?? community?.avatar?.url } alt="Community Icon" className="object-cover absolute top-0 left-0 bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 h-full w-full z-0"/>
         <img
-          src="/XConnect.jpeg"
+          src={community?.avatar?.url}
           alt="Community Icon"
           className="w-20 h-20 rounded-full border-4 border-white shadow-md z-10"
         />
         <div className="ml-4 z-10">
-          <h1 className="text-3xl font-bold ">{community?.name}</h1>
-          <p className="text-sm opacity-80">Building the future of social</p>
+          <h1 className="text-3xl font-bold sm:block hidden ">{community?.name}</h1>
+          <p className="text-sm opacity-80 sm:block hidden">{community?.tagline ?? 'Building the future of social'}</p>
         </div>
         <div className='ml-auto flex gap-2 z-10'>
           
@@ -146,7 +149,7 @@ useEffect(() => {
         </div>
       </div>
 
-      <div className='px-2'><SearchBar /></div>
+      <div className='px-2'><SearchBar  /></div>
       {/* Tabs */}
       <div className=" mx-2 flex borde overflow-y-clip overflow-x-auto pb-1 ">
         {tabs.map(tab => (
@@ -166,52 +169,59 @@ useEffect(() => {
           </button>
         ))}
       </div>
-      {/* Right: Sidebar */}
-        <div className= " dark:text-white p-4 rounded-xl space-y-4 h-fit custom-box ">
-          <div>
-            <h3 className="text-lg font-bold mb-2">About Community</h3>
-            <p className="text-sm dark:text-gray-300">
-              {community?.description}
-            </p>
-          </div>
-          <div>
-            <h3 className="text-lg font-bold mb-2">Community Stats</h3>
-            <ul className="text-sm text-gray-400">
-              <li>👥 {community?.totalFollowers} { community?.totalFollowers > 1 ? 'Members' : 'Member'}</li>
-              <li>🟢 142 Online</li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="text-lg font-bold mb-2">Rules</h3>
-            <ul className="text-sm text-red-400 list-disc ml-5 space-y-1">
-              {community?.rules.map((rule , index) => (
-                <li key={index}>{rule}</li>
-              ))}
-            </ul>
-          </div>
-          {isFollowing && community?.creator !== user?._id && (
-            <button 
-            onClick={toggleFollowCommunity}
-            className="border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white active:bg-red-700 font-medium px-5 py-1 rounded-lg shadow-md active:scale-95 duration-200"> 
-              Unfollow
-            </button>
-          )}
-          {community?.creator == user?._id && (
-            <>
-              <button 
-              onClick={() => dispatch(setIsCreateCommunityDialog(true))}
-              className="border-2 border-cyan-600 text-cyan-600 hover:bg-cyan-600 hover:text-white active:bg-red-700 font-medium px-5 py-1 rounded-lg shadow-md active:scale-95 duration-200"> 
-                Edit Community
-              </button>
-              <button
-                onClick={() => setDeleteCommunityDialog(true)}
-                className="border-2 ml-1 border-red-600 text-red-600 hover:bg-red-600 hover:text-white active:bg-red-700 font-medium px-5 py-1 rounded-lg shadow-md active:scale-95 duration-200"
-              >
-                Delete Community
-              </button>
-            </>
-          )}
+      {/* about community */}
+      <div className= " dark:text-white p-4 rounded-xl space-y-4 h-fit custom-box ">
+        <div>
+          <h3 className="text-lg font-bold mb-2">About Community</h3>
+          <p className="text-sm dark:text-gray-300">
+            {community?.description}
+          </p>
         </div>
+        <div>
+          <h3 className="text-lg font-bold mb-2">Community Stats</h3>
+          <ul className="text-sm text-gray-400">
+            <li>👥 {community?.totalFollowers} { community?.totalFollowers > 1 ? 'Members' : 'Member'}</li>
+            <li>🟢 142 Online</li>
+            <li>👤 5 Moderators</li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="text-lg font-bold mb-2">Rules</h3>
+          <ul className="text-sm text-red-400 list-disc ml-5 space-y-1">
+            {community?.rules.map((rule , index) => (
+              <li key={index}>{rule}</li>
+            ))}
+          </ul>
+        </div>
+        {isFollowing && community?.creator !== user?._id && (
+          <button 
+          onClick={toggleFollowCommunity}
+          className="border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white active:bg-red-700 font-medium px-5 py-1 rounded-lg shadow-md active:scale-95 duration-200"> 
+            Unfollow
+          </button>
+        )}
+        {community?.creator == user?._id && (
+          <>
+            <button 
+            onClick={() => dispatch(setIsCreateCommunityDialog(true))}
+            className="border-2 border-cyan-600 text-cyan-600 hover:bg-cyan-600 hover:text-white active:bg-red-700 font-medium px-5 py-1 rounded-lg shadow-md active:scale-95 duration-200"> 
+              Edit Community
+            </button>
+            <button
+              onClick={() => setDeleteCommunityDialog(true)}
+              className="border-2 ml-1 border-red-600 text-red-600 hover:bg-red-600 hover:text-white active:bg-red-700 font-medium px-5 py-1 rounded-lg shadow-md active:scale-95 duration-200"
+            >
+              Delete Community
+            </button>
+            <button
+              onClick={() => setAddModsBox(true)}
+              className="border-2 ml-1 border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white active:bg-purple-700 font-medium px-5 py-1 rounded-lg shadow-md active:scale-95 duration-200"
+            >
+              Invite as Moderators
+            </button>
+          </>
+        )}
+      </div>
 
       {/* Main Content */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 p-6">
@@ -251,7 +261,7 @@ useEffect(() => {
           mainFuction={deleteCommunityFunc} 
         />
        )}
-
+       {addModsBox && <InviteMods isDeleteDialog={addModsBox} onClose={() => setAddModsBox(false)} />}
     </div>
   );
 }

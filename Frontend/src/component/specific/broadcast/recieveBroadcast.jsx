@@ -21,7 +21,7 @@ export function useMediasoupConsumers(roomId ,socket , isBroadcast = false) {
     if(!roomId && !isBroadcast) return console.error('Room ID not provided');
     
     if (transportRef.current) {
-      transportRef.current?.close();
+      transportRef.current?.close(); 
     }
     console.log('init called' , 'videoId' , !!videoId , 'audioId' , !!audioId);
     

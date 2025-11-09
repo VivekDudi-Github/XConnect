@@ -25,6 +25,11 @@ const communitySchema = new mongoose.Schema({
       required : true ,
     } ,
   } ,
+  tagline : {
+    type : String ,
+    maxlength : 40 ,
+    trim : true ,
+  } ,
   description : {
     type : String ,
     required : true ,

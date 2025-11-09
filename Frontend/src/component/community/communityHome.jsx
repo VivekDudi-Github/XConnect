@@ -8,6 +8,7 @@ import { setIsCreateCommunityDialog } from '../../redux/reducer/miscSlice';
 import { useLazyGetCommunityFeedQuery } from '../../redux/api/api';
 import lastRefFunc from '../specific/LastRefFunc';
 import { EllipsisVerticalIcon } from 'lucide-react';
+import SearchBar from '../specific/search/SearchBar';
 
 
 
@@ -117,6 +118,7 @@ function CommunityHome() {
     <div className="w-full p-4 mx-auto sm:px-0 dark:bg-black min-h-screen py-6 rounded-xl dark:text-white">
       <div className=' flex justify-between items-center mb-1'>
         <h1 className="text-2xl font-semibold">Communities</h1>
+        <div className='px-2 translate-y-3 lock'><SearchBar/></div>
         <button 
         onClick={() => setOpen((prev) => !prev)}
         className=' rounded-full p-2 hover:bg-gray-200 dark:hover:bg-gray-800 active:scale-95 duration-100 sm:hidden block'>

@@ -1,7 +1,8 @@
 import { useState } from "react";
 
-export default function SearchBar({ onSearch }) {
+export default function SearchBar({ onSearch , addResults }) {
   const [query, setQuery] = useState("");
+  const [results , setResults] = useState() ;
 
   const handleSearch = (e) => {
     e.preventDefault();
