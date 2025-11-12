@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 
 export default function NotificationItem({ notification }) {
-  const { sender, type, post, createdAt, isRead , comment_Id } = notification;
+  const { sender, type, post, createdAt, isRead , comment_Id , community } = notification;
 
   const getIcon = () => {
     switch (type) {
@@ -20,6 +20,8 @@ export default function NotificationItem({ notification }) {
         return <Repeat2 className="fill-green-500  text-green-500" size={18} />;
       case "follow":
         return <UserPlus className="fill-yellow-500  text-yellow-500"    size={18} />;
+      case 'modInvite' :
+        return <UserPlus className="fill-purple-500  text-purple-500"    size={18} />;
       default:
         return null;
     }
@@ -37,6 +39,8 @@ export default function NotificationItem({ notification }) {
         return "reposted your post";
       case "follow":
         return "started following you";
+      case 'modInvite' :
+        return "invited you to be a moderator of "+ community?.name;
       default:
         return "sent a notification";
     }
@@ -44,6 +48,7 @@ export default function NotificationItem({ notification }) {
 
   const getLink = () => {
     if( comment_Id) return `/post/${post}/?comment_Id=${comment_Id}` ;
+    if(community) return `/community/${community._id}` ;
     return `/post/${post}` ;
   }
 

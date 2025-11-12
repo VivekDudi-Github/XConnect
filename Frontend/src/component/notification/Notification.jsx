@@ -5,10 +5,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { addMultipleNotifications,  markAllAsRead } from "../../redux/reducer/notificationSlice";
 import { useChangeNotificationStatusMutation } from "../../redux/api/api";
 
+
 export default function Notification() {
  const dispatch = useDispatch() ;
 
-  const { notifications , unreadCount } = useSelector(state => state.notification);
+  const { notifications , unreadCount } = useSelector(state => state.notification) ;
   const [loading, setLoading] = useState(false);
 
   const [changeNotificationStatus] = useChangeNotificationStatusMutation() ;
@@ -34,12 +35,12 @@ export default function Notification() {
   } , []);
 
   return (
-    <div className="max-w-xl mx-auto p-4 dark:bg-black">
+    <div className="max-w-xl mx-auto p-4 dark:bg-black min-h-screen flex flex-col">
       <h2 className="text-2xl font-bold mb-4">Notifications</h2>
       {loading ? (
         <NotificationSkeleton count={5} />
       ) : notifications.length === 0 ?  (
-        <p className="text-gray-500 w-full text-center">No notifications yet.</p>
+        <div className="flex-1 flex items-center justify-center text-gray-500 -translate-y-24 ">No notifications yet.</div>
       ) : (
         <ul className="space-y-4 ">
           {notifications.map((notif) => (

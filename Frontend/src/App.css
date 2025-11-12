@@ -110,11 +110,48 @@
 }
 
 
-/*webkit scrollbar styling*/
+/* webkit scrollbar styling */
 ::-webkit-scrollbar {
     width: 0px;
     background: transparent; /* make scrollbar transparent */
 }
 .root {
   scrollbar-width: none; /* for Firefox */
+}
+
+
+/*custombutton   */
+
+.custom-button {
+  color: #4b5563; /* text-gray-600 */
+  background-color: #f3f4f6; /* bg-gray-100 */
+  border-radius: 0.5rem; /* rounded-lg */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.6); /* shadow-sm shadow-black/60 */
+  transition: 
+    background-color 0.3s ease,
+    color 0.3s ease,
+    transform 0.1s ease; /* transition-colors duration-300 + active:scale-95 */
+}
+
+/* Hover state */
+.custom-button:hover {
+  background-color: #d1d5db; /* hover:bg-gray-300 */
+}
+
+/* Active (click) state */
+.custom-button:active {
+  transform: scale(0.95); /* active:scale-95 */
+}
+
+/* Dark mode styles */
+@media (prefers-color-scheme: dark) {
+  .custom-button {
+    background-color: #000000; /* dark:bg-black */
+    color: #ffffff; /* dark:text-white */
+  }
+
+  .custom-button:hover {
+    background-color: #ffffff; /* dark:hover:bg-white */
+    color: #000000; /* dark:hover:text-black */
+  }
 }

@@ -1,7 +1,7 @@
 import express from 'express';
 import {checkUser} from '../utils/chekAuth.js'
 
-import { communityFeed, CreateCommunity, GetCommunity, GetCommunityPosts , getFollowingCommunities, followCommunity, updateCommunity  } from '../controllers/community.controller.js';
+import { communityFeed, CreateCommunity, GetCommunity, GetCommunityPosts , getFollowingCommunities, followCommunity, updateCommunity, inviteMods  } from '../controllers/community.controller.js';
 import { uploadFiles } from '../middlewares/multer.js';
 
 
@@ -16,6 +16,8 @@ router.get('/posts/:id' , checkUser , GetCommunityPosts);
 
 router.post('/update/:id' , checkUser , uploadFiles , updateCommunity);
 router.get('/:id' , checkUser , GetCommunity);
+
+router.post('/invite-mods' , checkUser , inviteMods) ;
 
 
 

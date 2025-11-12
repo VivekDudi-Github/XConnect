@@ -5,6 +5,9 @@ import { Post } from "../models/post.model.js";
 import { deleteFilesFromCloudinary, uploadFilesTOCloudinary } from "../utils/cloudinary.js";
 import { ResSuccess, TryCatch , ResError } from "../utils/extra.js";
 import { Preferance } from "../models/prefrence.model.js";
+import {io} from '../app.js'
+import { emitEvent } from "../utils/socket.js";
+import { Notification } from "../models/notifiaction.model.js";
 
 const ObjectId = mongoose.Types.ObjectId ;
 
@@ -368,6 +371,45 @@ const updateCommunity = TryCatch( async(req , res) => {
 
 } , 'updateCommunity')
 
+const inviteMods = TryCatch( async(req, res) => {
+  const {mods , communityId  } = req.body ;
+  console.log(mods , communityId);
+  
+  if(mods?.length === 0) return ResError(res , 400 , 'No moderators to invite.') ;
+
+  const community = await Community.findById(communityId) ;
+  if(!community) return ResError(res , 400 , 'Invalid community ID.') ;
+  if(!community.creator.equals(req.user._id) ) return ResError(res , 403 , 'Only community creator can invite moderators.') ;
+
+  const users = await Notification.insertMany(
+    mods.map(modId => {
+      if(community.admins.includes(modId)) return null ;  
+      return ({
+        receiver : modId ,
+        sender : req.user._id ,
+        type : 'modInvite' ,
+        post : community._id ,
+        community : {
+          id : community._id ,
+          name : community.name ,
+        } ,
+        createdAt : new Date() ,
+      })})
+  ) ;
+  ResSuccess(res , 200 , 'Moderators invited successfully.') ;
+  mods.forEach(modId => {
+    if(community.admins.includes(modId)) return ;
+    emitEvent(modId.toString() , 'newNotification' , {
+      type : 'modInvite' ,
+      community : {
+        id : community._id ,
+        name : community.name ,
+      } ,
+      isRead : false ,
+    })
+  })
+
+} , 'inviteMods')
 
 export {
   CreateCommunity ,
@@ -380,4 +422,5 @@ export {
   communityFeed ,
   followCommunity ,
   updateCommunity ,
+  inviteMods ,
 }

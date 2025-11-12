@@ -16,7 +16,7 @@ const notificationSchema = new Schema(
     },
     type: {
       type: String,
-      enum: ['like', 'comment', 'follow', 'reply' , 'repost' ,'mention'],
+      enum: ['like', 'comment', 'follow', 'reply' , 'repost' ,'mention' , 'modIvite'],
       required: true,
     },
     post: {
@@ -27,6 +27,17 @@ const notificationSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: 'Comment',
     },
+    community : {
+      id :{
+        type : Schema.Types.ObjectId ,
+        ref : 'Community' ,
+        required : true ,
+      } ,
+      name : {
+        type : String ,
+        required : true ,
+      } , 
+    } ,
     isRead: {
       type: Boolean,
       default: false,

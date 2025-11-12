@@ -248,6 +248,14 @@ const api = createApi({
         credentials : 'include'
       })
     }) ,
+    inviteMods : builder.mutation({
+      query : ({mods , communityId}) => ({
+        url : '/community/invite-mods' ,
+        method : 'POST' ,
+        body : {mods , communityId} ,
+        credentials : 'include'
+      })
+    }) ,
 
     //live
     createLive : builder.mutation({
@@ -286,6 +294,15 @@ const api = createApi({
         body : {amount , message , streamId} ,
         credentials : 'include'
       })
+    }) ,
+
+    //search
+    searchUsers : builder.query({
+      query : ({q , page }) => ({
+        url : '/search/searchUsers/'+'?q='+q+'&page='+page ,
+        method : 'GET' ,
+        credentials : 'include'
+      })
     })
   })
 })
@@ -319,7 +336,6 @@ export const {
   useToggleLikeCommentMutation ,
   useToggleDisLikeCommentMutation ,
   useDeleteCommentMutation ,
-
   useLazyGetACommentQuery ,
 
   //follow
@@ -345,6 +361,7 @@ export const {
   useToggleFollowCommunityMutation ,
   useLazyGetCommunityPostsQuery ,
   useDeleteCommunityMutation ,
+  useInviteModsMutation ,
 
   //live
   useCreateLiveMutation ,
@@ -354,4 +371,7 @@ export const {
 
   // superchat
   useCreateSuperchatIntentMutation ,
+
+  //search
+  useLazySearchUsersQuery ,
 } = api ;

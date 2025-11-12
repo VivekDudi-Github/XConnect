@@ -14,11 +14,6 @@ const userSchema = new mongoose.Schema({
         required : true,
         type : String ,
     } ,
-    streamKey : {
-        type : String ,
-        unique : true ,
-        index : true,
-    } ,
     email : {
         type : String ,
         required : true,
@@ -71,6 +66,8 @@ const userSchema = new mongoose.Schema({
         default : null ,
     }
 } , { timestamps : true})
+
+userSchema.index({ username: 'text', fullname: 'text' });
 
 userSchema.methods.generateAccessToken = function(){
     return jwt.sign({

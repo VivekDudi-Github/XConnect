@@ -16,6 +16,7 @@ import userRouter from "./routes/user.routes.js" ;
 import postRouter from './routes/post.routes.js' ;
 import roomRouter from './routes/room.routes.js' ;
 import liveRouter from './routes/live.routes.js' ;
+import searchRouter from './routes/search.routes.js' ;
 import commentRouter from './routes/comment.routes.js' ;
 import messageRouter from './routes/message.routes.js' ;
 import communityRouter from './routes/community.routes.js' ;
@@ -96,6 +97,7 @@ app.use('/api/v1/room' , roomRouter ) ;
 app.use('/api/v1/community' , communityRouter)
 app.use('/api/v1/live' , liveRouter)
 app.use('/api/v1/stripe/payment' , stripeRouter)
+app.use('/api/v1/search' , searchRouter) ;
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
