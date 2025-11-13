@@ -1,7 +1,7 @@
 import express from 'express';
 import {checkUser} from '../utils/chekAuth.js'
 
-import { communityFeed, CreateCommunity, GetCommunity, GetCommunityPosts , getFollowingCommunities, followCommunity, updateCommunity, inviteMods  } from '../controllers/community.controller.js';
+import { communityFeed, CreateCommunity, GetCommunity, GetCommunityPosts , getFollowingCommunities, followCommunity, updateCommunity, inviteMods, getCommunityIsInvited, toggleJoinMod  } from '../controllers/community.controller.js';
 import { uploadFiles } from '../middlewares/multer.js';
 
 
@@ -18,7 +18,8 @@ router.post('/update/:id' , checkUser , uploadFiles , updateCommunity);
 router.get('/:id' , checkUser , GetCommunity);
 
 router.post('/invite-mods' , checkUser , inviteMods) ;
-
+router.get('/is-invited/:id' , checkUser , getCommunityIsInvited) ; 
+router.post('/toggleMode/:id' , checkUser , toggleJoinMod)
 
 
 export default router;

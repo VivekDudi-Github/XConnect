@@ -10,7 +10,6 @@ export default function SearchBar({ onSearch , addResults }) {
       onSearch(query.trim());
     }
   };
-  console.log(query);
   
   return (
     <form

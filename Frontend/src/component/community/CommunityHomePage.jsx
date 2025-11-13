@@ -4,8 +4,8 @@ import CreateCommunityPage from './CreateCommunity';
 import CommunityPostCard from './CommunityPostCard';
 import { useDispatch, useSelector } from 'react-redux';
 import { setIsCreateCommunityDialog, setIsCreateCommunityPostDialog } from '../../redux/reducer/miscSlice';
-import { useParams } from 'react-router-dom';
-import { useDeleteCommunityMutation, useGetACommunityQuery, useLazyGetCommunityPostsQuery, useToggleFollowCommunityMutation } from '../../redux/api/api';
+import { useLocation, useNavigate,  useParams } from 'react-router-dom';
+import { useDeleteCommunityMutation, useGetACommunityQuery,  useLazyGetCommunityIsInvitedQuery, useLazyGetCommunityPostsQuery, useToggleFollowCommunityMutation, useToggleJoinModMutation } from '../../redux/api/api';
 import { toast } from 'react-toastify';
 import lastRefFunc from '../specific/LastRefFunc';
 import DialogBox from '../shared/DialogBox';
@@ -17,6 +17,12 @@ const tabs = ['General' , 'Help' ,'FeedBack' , 'Highlights'];
 
 //tabs in community home page , pins and highlights ,
 export default function CommunityHomePage() {
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const invite = params.get("invite");
+
+
+  const navigate = useNavigate() ;
   const dispatch = useDispatch();
   const {user} = useSelector(state => state.auth) ;
 
@@ -36,10 +42,13 @@ export default function CommunityHomePage() {
   const [totalPages , setTotalPages] = useState(1);
 
   const {data , isLoading , isError , error } = useGetACommunityQuery({id} , {skip : !id}) ;
+  const [fetchIsInvite , {data : inviteData}] = useLazyGetCommunityIsInvitedQuery({id}) ;
+  const [joinModMutation] = useToggleJoinModMutation() ;
 
   const [community , setCommunity] = useState(null) ;
   const [isFollowing , setIsFollowing] = useState(false) ;
   const [posts , setPosts] = useState([]);
+
 
 
   const [ fetchMorePost ,{data : communityPosts , isLoading : isLoadingPosts , isError : isErrorPosts , error : errorPosts}] = useLazyGetCommunityPostsQuery() ;
@@ -107,13 +116,30 @@ useEffect(() => {
   }
 
   useEffect(() => {
+    if(invite === 'true' && id){
+      console.log('fetched mod invite');
+      
+      fetchIsInvite({id}) ;
+    }
+  } , [invite]) ;
+
+  useEffect(() => {
     if(data?.data){
       setCommunity(data.data);
       setIsFollowing(data.data.isFollowing);
     }
   } , [data]) ;
 
-console.log(addModsBox);
+  const toggleJoinMod = async() => {
+    try {
+      await joinModMutation({id : community?._id}).unwrap() ;
+      console.log('join mod mutated');
+      navigate(0)
+    } catch (error) {
+      console.log(error);
+      toast.error(error.data.message || 'Something went wrong. Please try again.') ;
+    }
+  }
 
   return (
     <div className="min-h-screen bg-white dark:bg-black dark:text-white text-black sm:pb-0 pb-16 "> 
@@ -149,7 +175,7 @@ console.log(addModsBox);
         </div>
       </div>
 
-      <div className='px-2'><SearchBar  /></div>
+      <div className='px-2'><SearchBar/></div>
       {/* Tabs */}
       <div className=" mx-2 flex borde overflow-y-clip overflow-x-auto pb-1 ">
         {tabs.map(tab => (
@@ -177,6 +203,7 @@ console.log(addModsBox);
             {community?.description}
           </p>
         </div>
+        {/* bio */}
         <div>
           <h3 className="text-lg font-bold mb-2">Community Stats</h3>
           <ul className="text-sm text-gray-400">
@@ -185,6 +212,7 @@ console.log(addModsBox);
             <li>👤 5 Moderators</li>
           </ul>
         </div>
+        {/* rules */}
         <div>
           <h3 className="text-lg font-bold mb-2">Rules</h3>
           <ul className="text-sm text-red-400 list-disc ml-5 space-y-1">
@@ -217,10 +245,15 @@ console.log(addModsBox);
               onClick={() => setAddModsBox(true)}
               className="border-2 ml-1 border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white active:bg-purple-700 font-medium px-5 py-1 rounded-lg shadow-md active:scale-95 duration-200"
             >
-              Invite as Moderators
+              Invite new moderator
             </button>
           </>
         )}
+        {inviteData?.data.isInvited === true && 
+        <button onClick={toggleJoinMod}
+          className="border-2 ml-1 border-cyan-600 text-cyan-600 hover:bg-cyan-600 hover:text-white active:bg-red-700 font-medium px-5 py-1 rounded-lg shadow-md active:scale-95 duration-200">
+            Join as Moderator
+        </button>}
       </div>
 
       {/* Main Content */}

@@ -256,6 +256,19 @@ const api = createApi({
         credentials : 'include'
       })
     }) ,
+    getCommunityIsInvited : builder.query({
+      query : ({id}) => ({
+        url : '/community/is-invited/'+id ,
+        credentials : 'include'
+      })
+    }) ,
+    toggleJoinMod : builder.mutation({
+      query : ({id}) => ({
+        url : '/community/toggleMode/'+id ,
+        method : 'POST' ,
+        credentials : 'include'
+      })
+    }) ,
 
     //live
     createLive : builder.mutation({
@@ -337,6 +350,7 @@ export const {
   useToggleDisLikeCommentMutation ,
   useDeleteCommentMutation ,
   useLazyGetACommentQuery ,
+  useLazyGetCommunityIsInvitedQuery ,
 
   //follow
   useToggleFollowMutation ,
@@ -362,6 +376,7 @@ export const {
   useLazyGetCommunityPostsQuery ,
   useDeleteCommunityMutation ,
   useInviteModsMutation ,
+  useToggleJoinModMutation ,
 
   //live
   useCreateLiveMutation ,

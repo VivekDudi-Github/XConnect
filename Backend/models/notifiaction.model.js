@@ -16,9 +16,12 @@ const notificationSchema = new Schema(
     },
     type: {
       type: String,
-      enum: ['like', 'comment', 'follow', 'reply' , 'repost' ,'mention' , 'modIvite'],
-      required: true,
+      enum: ['like', 'comment', 'follow', 'reply' , 'repost' ,'mention' , 'modInvite' , 'modLeft'],
     },
+    desc : {
+      type : String ,
+      maxLength : 80 
+    } ,
     post: {
       type: Schema.Types.ObjectId,
       ref: 'Post',
@@ -28,14 +31,12 @@ const notificationSchema = new Schema(
       ref: 'Comment',
     },
     community : {
-      id :{
+      _id :{
         type : Schema.Types.ObjectId ,
         ref : 'Community' ,
-        required : true ,
       } ,
       name : {
         type : String ,
-        required : true ,
       } , 
     } ,
     isRead: {

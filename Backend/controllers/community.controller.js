@@ -372,44 +372,104 @@ const updateCommunity = TryCatch( async(req , res) => {
 } , 'updateCommunity')
 
 const inviteMods = TryCatch( async(req, res) => {
-  const {mods , communityId  } = req.body ;
-  console.log(mods , communityId);
-  
+  const {mods = [] , communityId  } = req.body ;
+
   if(mods?.length === 0) return ResError(res , 400 , 'No moderators to invite.') ;
 
   const community = await Community.findById(communityId) ;
   if(!community) return ResError(res , 400 , 'Invalid community ID.') ;
   if(!community.creator.equals(req.user._id) ) return ResError(res , 403 , 'Only community creator can invite moderators.') ;
 
-  const users = await Notification.insertMany(
+  const notifs = await Notification.insertMany(
     mods.map(modId => {
       if(community.admins.includes(modId)) return null ;  
       return ({
         receiver : modId ,
         sender : req.user._id ,
         type : 'modInvite' ,
-        post : community._id ,
         community : {
-          id : community._id ,
+          _id : community._id ,
           name : community.name ,
         } ,
         createdAt : new Date() ,
       })})
   ) ;
+  
   ResSuccess(res , 200 , 'Moderators invited successfully.') ;
-  mods.forEach(modId => {
-    if(community.admins.includes(modId)) return ;
-    emitEvent(modId.toString() , 'newNotification' , {
-      type : 'modInvite' ,
-      community : {
-        id : community._id ,
-        name : community.name ,
-      } ,
-      isRead : false ,
-    })
+  notifs.forEach( notif => {
+    emitEvent(
+    'notification:receive' ,
+    'user' , 
+    [notif.receiver.toString()] ,
+     {...notif._doc , sender : {
+      _id : req.user._id ,
+      username : req.user.username ,
+      avatar : req.user.avatar ,
+     }}
+    )
+  })
+  
+} , 'inviteMods')
+
+const getCommunityIsInvited = TryCatch( async(req , res) => { 
+  const {id} = req.params ;
+  
+  const userId = req.user._id ;
+  
+  if(!id) return ResError(res , 400 , 'Community ID is required') ;
+
+  const community = await Community.findById(id).select('creator') ;
+
+  if(!community) return ResError(res , 400 , 'Invalid community ID') ;
+
+  const notification = await Notification.findOne({
+    receiver : userId ,
+    sender : community.creator ,
+    type : 'modInvite' ,
+    'community._id' : community._id ,
   })
 
-} , 'inviteMods')
+  if(!notification) return ResError(res , 404 , 'there was no invite found') ;
+  
+  return ResSuccess(res , 200 , {isInvited : true}) ;
+
+} , 'getCommunityIsInvited')
+
+const toggleJoinMod = TryCatch( async(req , res) => {
+  const {id} = req.params ;
+  
+  const isExisitMod = await Community.findById(id).select('admins creator') ;
+  if(!isExisitMod) return ResError(res , 404 , 'Invalid community ID') ;
+
+  if(isExisitMod.admins.includes(req.user._id)){
+    isExisitMod.admins.pull(req.user._id) ;
+    await isExisitMod.save() ;
+    let notif = await Notification.create({
+      sender : req.user._id ,
+      receiver : isExisitMod.creator ,
+      type : 'modLeft' ,
+      'community._id' : isExisitMod._id ,
+    })
+    emitEvent('notification:recieve' , 'user' , [isExisitMod.creator] , notif)
+    return ResSuccess(res , 200 , {operation : false}) ;
+  }else {
+    const notif = await Notification.findOne({
+      sender : isExisitMod.creator ,
+      receiver : req.user._id ,
+      type : 'modInvite' ,
+      'community._id' : isExisitMod._id ,
+    }) ;
+
+    if(!notif) return ResError(res , 400 , 'You are not invited as moderator') ;
+    isExisitMod.admins.push(req.user._id) ;
+    await isExisitMod.save() ;
+    await notif.deleteOne() ;
+    return ResSuccess(res , 200 , {operation : true}) ;
+  }
+} , 'toggleJoinMod')
+//accept or reject
+//fetch isInvited mod
+
 
 export {
   CreateCommunity ,
@@ -422,5 +482,8 @@ export {
   communityFeed ,
   followCommunity ,
   updateCommunity ,
+  
   inviteMods ,
+  getCommunityIsInvited ,
+  toggleJoinMod ,
 }

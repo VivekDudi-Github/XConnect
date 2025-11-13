@@ -50,9 +50,11 @@ function InviteMods({isDialog = true , onClose}) {
     }
   }
 
-  const inviteFunc = () => {
+  const inviteFunc = async() => {
     try {
-      inviteMods({communityId : id , mods : Array.from(users.keys())}) ;
+      let res = await inviteMods({communityId : id , mods : Array.from(users.keys())}).unwrap() ;
+      if(res?.data) toast.success('Moderators invited successfully') ;
+      return close() ;
     } catch (error) {
       console.log(error);
       toast.error('Error inviting moderators') ;
@@ -130,7 +132,7 @@ function InviteMods({isDialog = true , onClose}) {
             </div>
           ))}
           { users.size > 0 && 
-          <button className='custom-button border-2 border-white shadowLight p-2' onClick={inviteMods} >
+          <button className='custom-button border-2 border-white shadowLight p-2' onClick={inviteFunc} >
             Invite
           </button>}
         </div>
@@ -147,7 +149,7 @@ function InviteMods({isDialog = true , onClose}) {
               </span>
               <button 
               onClick={() => {toggleUser(user)}}
-              className={`ml-auto px-3 py-1 bg-white text-black rounded-full text-sm  hover:text-white active:scale-95 transition-all duration-200 ${users.has(user._id) ? 'bg-green-500' : 'hover:bg-purple-700'} `}> 
+              className={`ml-auto px-3 py-1  text-black rounded-full text-sm  hover:text-white active:scale-95 transition-all duration-200 ${users.has(user._id) ? 'bg-green-500' : 'bg-purple-700'} `}>  
                 {users.has(user._id) ? <CheckIcon color='white' /> : 'Invite'}
               </button>
             </div>

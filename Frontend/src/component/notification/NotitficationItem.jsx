@@ -1,6 +1,7 @@
 import moment from "moment";
 import { Link } from "react-router-dom";
 import {
+  ExternalLinkIcon,
   Heart,
   MessageCircle,
   Repeat2,
@@ -45,11 +46,13 @@ export default function NotificationItem({ notification }) {
         return "sent a notification";
     }
   };
+console.log(notification);
 
   const getLink = () => {
     if( comment_Id) return `/post/${post}/?comment_Id=${comment_Id}` ;
-    if(community) return `/community/${community._id}` ;
-    return `/post/${post}` ;
+    if(community?._id) return `/communities/c/${community._id}/?invite=true` ;
+    if(post) return `/post/${post}` ;
+    return ;
   }
 
   return (
@@ -57,24 +60,24 @@ export default function NotificationItem({ notification }) {
         ${isRead ? "opacity-70 backdrop-blur-lg backdrop-filter" : "bg-white dark:bg-neutral-900"}`}
     >
       <img
-        src={sender?.avatar?.url}
-        alt={'A'}
+        src={sender?.avatar?.url ?? 'avatar-default.svg'}
+        alt={''}
         className="w-10 h-10 rounded-full object-cover border"
       />
 
-      <div className="flex-1">
-        <div className="flex items-center gap-2 text-sm">
+      <div className="flex-1 ">
+        <div className="flex items-center flex-wrap gap-2 text-sm">
           <Link to={`/profile/${sender.username}`} className="font-semibold hover:underline">
             {sender.username}
           </Link>
           {getIcon()}
           <span className="text-gray-500">{getMessage()}</span>
-          {post && (
+          {getLink() && (
             <Link
               to={getLink()}
               className="ml-auto text-blue-500 text-xs hover:underline"
             >
-              View Post
+              <ExternalLinkIcon size={17} />
             </Link>
           )}
         </div>
