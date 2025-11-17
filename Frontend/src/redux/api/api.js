@@ -248,6 +248,13 @@ const api = createApi({
         credentials : 'include'
       })
     }) ,
+    getFollowingCommunity : builder.query({
+      query : () => ({
+        url : '/community/following' ,
+        credentials : 'include'
+      })
+    }) ,
+    //community mods
     inviteMods : builder.mutation({
       query : ({mods , communityId}) => ({
         url : '/community/invite-mods' ,
@@ -375,6 +382,8 @@ export const {
   useToggleFollowCommunityMutation ,
   useLazyGetCommunityPostsQuery ,
   useDeleteCommunityMutation ,
+  useGetFollowingCommunityQuery ,
+  //community-mods
   useInviteModsMutation ,
   useToggleJoinModMutation ,
 

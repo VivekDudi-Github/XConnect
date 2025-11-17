@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import CreateCommunityPage from './CreateCommunity';
 import { useDispatch, useSelector } from 'react-redux';
 import { setIsCreateCommunityDialog } from '../../redux/reducer/miscSlice';
-import { useLazyGetCommunityFeedQuery } from '../../redux/api/api';
+import { useGetFollowingCommunityQuery, useLazyGetCommunityFeedQuery } from '../../redux/api/api';
 import lastRefFunc from '../specific/LastRefFunc';
 import { EllipsisVerticalIcon } from 'lucide-react';
 import SearchBar from '../specific/search/SearchBar';
@@ -32,6 +32,7 @@ function CommunityHome() {
   const [page, setPage] = useState(1);
 
   const [refetchCommunities, {data , isFetching , isLoading , error ,isError}] = useLazyGetCommunityFeedQuery();
+  const {data : followings , isLoading : isFollowingLoading , isError : isFollowingError} = useGetFollowingCommunityQuery();
 
 
   const lastPostRef = useCallback(node => {
@@ -112,7 +113,8 @@ function CommunityHome() {
   //     time: '2 hours ago',
   //   } ,
   // ]);
-
+  console.log(followings);
+  
   return (
     
     <div className="w-full p-4 mx-auto sm:px-0 dark:bg-black min-h-screen py-6 rounded-xl dark:text-white">
@@ -136,17 +138,23 @@ function CommunityHome() {
             Following Communities
           </h4>
           <ul className="space-y-1">
-            {communities.map((community , index) => (
-            <Link to={'/communities/c/' + community.id} key={index} >
-              <li
-                key={index}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
-              >
-                <span className="text-lg">{community.avatar}</span>
-                <span className="text-sm font-medium">{community.name}</span>
-              </li>
-            </Link>
-            ))}
+            {isFollowingLoading ? (
+              Array(4).map((i) => {
+                return <li key={i} className="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 animate-pulse duration-200"></li>
+              })
+            ) : 
+            communities.map((community , index) => (
+              <Link to={'/communities/c/' + community.id} key={index} >
+                <li
+                  key={index}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  <span className="text-lg">{community.avatar}</span>
+                  <span className="text-sm font-medium">{community.name}</span>
+                </li>
+              </Link>
+              ))
+            }
           </ul>
         </div>
 
@@ -167,17 +175,26 @@ function CommunityHome() {
         {/* Sidebar */}
         <aside className="sm:col-span-2 sm:block hidden min-w-24 w-full ">
           <h2 className="text-lg font-medium mb-3">Following</h2>
-          <ul className="space-y-3 ">
-            {communities.map((comm) => (
-              <Link to={'/communities/c/' + comm.id} key={comm.id} >
-                <li
-                  className="flex items-center space-x-3 cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-800 px-3 py-2 rounded-lg mb-1  "
-                >
-                  <span className="text-xl">{comm.avatar}</span>
-                  <span>{comm.name}</span>
+          <ul className="space-y-3 mr-2 ">
+            {isFollowingLoading ? (
+              Array.from({length : 4}).map((i) => 
+                <li className="flex items-center space-x-3  dark:bg-slate-400/20 bg-slate-600/20 hover:bg-gray-300 dark:hover:bg-gray-800 p-2 rounded-lg mb-1 gap-4 animate-pulse duration-200">
+                  <span className=" size-6 bg-slate-600 rounded-full " />
+                  <span className=' bg-slate-600 h-4 w-1/2 rounded-lg' />
                 </li>
-              </Link>
-            ))}
+              )
+            ) : followings?.data?.length > 0 ? 
+              followings?.data?.map((comm) => (
+                <Link to={'/communities/c/' + comm._id} key={comm._id} >
+                  <li
+                    className="flex items-center space-x-3 cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-800 px-3 py-2 rounded-lg mb-1  "
+                  >
+                    <img className='size-4 rounded-full' src={comm?.avatar?.url} />
+                    <span>{comm.name}</span>
+                  </li>
+                </Link>
+              )) : <span>No Community followings</span>
+            }
           </ul>
           <h2 className="text-lg font-medium mb-3">You may also like</h2>
           <ul className="space-y-3">

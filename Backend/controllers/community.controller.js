@@ -448,7 +448,10 @@ const toggleJoinMod = TryCatch( async(req , res) => {
       sender : req.user._id ,
       receiver : isExisitMod.creator ,
       type : 'modLeft' ,
-      'community._id' : isExisitMod._id ,
+      community : {
+        _id : isExisitMod._id ,
+        name : isExisitMod.name ,
+      }
     })
     emitEvent('notification:recieve' , 'user' , [isExisitMod.creator] , notif)
     return ResSuccess(res , 200 , {operation : false}) ;

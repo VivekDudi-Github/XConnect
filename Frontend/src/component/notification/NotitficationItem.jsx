@@ -42,6 +42,8 @@ export default function NotificationItem({ notification }) {
         return "started following you";
       case 'modInvite' :
         return "invited you to be a moderator of "+ community?.name;
+      case 'modLeft' :
+        return "left the moderator role of "+ community?.name;
       default:
         return "sent a notification";
     }
@@ -50,7 +52,8 @@ console.log(notification);
 
   const getLink = () => {
     if( comment_Id) return `/post/${post}/?comment_Id=${comment_Id}` ;
-    if(community?._id) return `/communities/c/${community._id}/?invite=true` ;
+    if(community?._id && type === 'modInvite' ) return `/communities/c/${community._id}/?invite=true` ;
+    if(community?._id ) return `/communities/c/${community._id}/` ;
     if(post) return `/post/${post}` ;
     return ;
   }

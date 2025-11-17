@@ -406,7 +406,10 @@ const togglefollow  = TryCatch(async(req , res) => {
 } , 'Toggle follow')
 
 const getMyNotifications = TryCatch(async(req , res) => {
-    const notifications = await Notification.find({receiver : req.user._id}).populate('sender' , 'avatar fullname username') ;
+    const notifications = await Notification.find({
+        receiver : req.user._id
+    })
+    .populate('sender' , 'avatar fullname username')
     
     return ResSuccess(res , 200 , notifications) ;
 } , 'get notification' )
