@@ -99,6 +99,13 @@ const api = createApi({
         credentials : 'include' ,
       })
     }) ,
+    increasePostViews : builder.mutation({
+      query : ({id}) => ({
+        url : `/post/increaseViews/${id}` ,
+        method : 'POST' ,
+        credentials : 'include' ,
+      })
+    }) ,
 
 //comments
     postComment : builder.mutation({
@@ -346,7 +353,8 @@ export const {
 
   useLazyGetUserPostsQuery,
   useToggleOnPostMutation ,
- 
+  useIncreasePostViewsMutation ,
+
 //feed
   useLazyGetFeedPostsQuery ,  
 

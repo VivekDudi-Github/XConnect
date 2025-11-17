@@ -212,7 +212,7 @@ function CommunityPostPage({community}) {
               </button>
               <div className='  text-gray-400 font-semibold duration-200 my-1 flex items-center justify-end text-sm'>
                 <BarChart2Icon size={16} className=' text-cyan-600' /> 
-                500 views
+                {post?.views ?? 0} views
               </div>
             </div>
               
@@ -274,7 +274,7 @@ function CommunityPostPage({community}) {
             {/* Comment List */}
             {isLoadingComments ? 
             Array.from({length : 4}).map((_ , i) => (
-              <CommentCardSkeleton key={i}/>
+              <div className="mb-1"><CommentCardSkeleton key={i}/></div>
             ))
             : (
               <div className="space-y-4">
@@ -468,7 +468,7 @@ function Comment({ comment,  id , nestedNo , closePreThreadFunc }) {
     }
   } , [isError])
 
-  const closeAllThreadFunc = ()=>{
+  const closeAllThreadFunc = ()=> {
     if(typeof closePreThreadFunc === 'function') closePreThreadFunc()
     setContinueThread(false)
   }
@@ -617,7 +617,7 @@ function Comment({ comment,  id , nestedNo , closePreThreadFunc }) {
         </div>
       )}
 
-      {ContinueThread &&<div className="fixed p-4 mx-auto inset-x-10 rounded-lg border inset-y-10  z-50 overflow-auto bg-black h-[100% - 50px] max-w-6xl" >
+      {ContinueThread && <div className="fixed p-4 mx-auto inset-x-10 rounded-lg border inset-y-10  z-50 overflow-auto bg-white dark:bg-black h-[100% - 50px] max-w-6xl shadowLight " >
         <div className="flex items-center justify-between text-sm text-gray-500  mb-1">
           <button title="Moves to previous thread" className=" flex gap-1 text-gray-400"
             onClick={() => {setContinueThread(false)}}
@@ -641,7 +641,7 @@ function Comment({ comment,  id , nestedNo , closePreThreadFunc }) {
 function CommentsThread({commentsArr = [] , id , closePreThreadFunc = () => {} }) {
 
   return (
-    <div className="w-full mx-auto text-white rounded-xl border custom-box  ">
+    <div className="w-full mx-auto text-white rounded-xl border custom-box pb-0.5 ">
 
       {commentsArr.map((comment) => (
         <Comment key={comment._id} id={id} nestedNo={1} closePreThreadFunc={closePreThreadFunc} comment={comment} />

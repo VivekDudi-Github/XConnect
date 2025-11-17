@@ -470,8 +470,6 @@ const toggleJoinMod = TryCatch( async(req , res) => {
     return ResSuccess(res , 200 , {operation : true}) ;
   }
 } , 'toggleJoinMod')
-//accept or reject
-//fetch isInvited mod
 
 
 export {

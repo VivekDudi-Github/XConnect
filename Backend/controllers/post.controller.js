@@ -1459,6 +1459,15 @@ const fetchExplorePost = TryCatch(async(req , res) => {
 
 } , 'fetchExplorePosts')
 
+const increasePostViews = TryCatch (async(req , res) => {
+  const {id} = req.params ;
+
+  const post = await Post.findByIdAndUpdate(id , {$inc : {views : 1}}) ;
+
+  if(!post) return ResError(res , 404 , 'Post not found')
+  return ResSuccess(res ,200 , null)
+
+} , 'increasePostViews' )
 
 export {
   createPost ,
@@ -1471,4 +1480,5 @@ export {
   fetchFeedPost ,
   fetchExplorePost ,
 
+  increasePostViews ,
 }

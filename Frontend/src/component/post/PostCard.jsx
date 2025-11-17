@@ -1,8 +1,8 @@
-import { BookmarkCheckIcon, BookmarkIcon, EllipsisVerticalIcon, GlobeIcon, Heart, MessageCircle, PinIcon, PinOffIcon, Trash2Icon } from 'lucide-react';
+import { BarChart2Icon, BookmarkCheckIcon, BookmarkIcon, EllipsisVerticalIcon, GlobeIcon, Heart, MessageCircle, PinIcon, PinOffIcon, Trash2Icon } from 'lucide-react';
 import InPostImages from './InPostImages';
 import { NavLink } from 'react-router-dom';
 import moment from 'moment'
-import { useDeletePostMutation, useToggleOnPostMutation } from '../../redux/api/api'; 
+import { useDeletePostMutation, useIncreasePostViewsMutation, useToggleOnPostMutation } from '../../redux/api/api'; 
 import { useEffect, useRef, useState } from 'react';
 import { useSelector , useDispatch } from 'react-redux';
 import { toast } from 'react-toastify';
@@ -10,6 +10,7 @@ import { toast } from 'react-toastify';
 import RenderPostContent from '../specific/RenderPostContent';
 import DialogBox from '../shared/DialogBox';
 import { setisDeleteDialog } from '../../redux/reducer/miscSlice';
+import { useOnScreen } from '../specific/useOnScreen';
 
 
 
@@ -33,7 +34,8 @@ export default function PostCard({ post }) {
 
   const [toggleMutation] = useToggleOnPostMutation() ;
   const [deleteMutation] = useDeletePostMutation() ;
-
+  const [increaseView] = useIncreasePostViewsMutation() ;
+  const [ref, isVisible] = useOnScreen({threshold : 0.5 }) ;
 
   const toggleLiketFunc = async(option) => {
     try {
@@ -86,8 +88,19 @@ useEffect(() => {
   }
 } , [post.content , renderPreRef?.current?.scrollHeight])
 
+useEffect(() => {
+  if(isVisible){
+    const key = `views-${post._id}` ;
+
+    if(!sessionStorage.getItem(key)){
+      increaseView({id : post._id}) ;
+      sessionStorage.setItem(key , true) ;
+    }
+  }
+} , [isVisible])
+
   return (
-    <article className="bg-white w-full mx-auto relative rounded-xl dark:shadow-sm p-2 mb-4 dark:bg-black  dark:from-slate-900 dark:to-black dark:text-white shadow-slate-400 shadow-lg border-t dark:border-y dark:border-white dark:border-b-gray-600 border-slate-800/50 duration-200 break-inside-avoid  ">
+    <article ref={ref} className="bg-white w-full mx-auto relative rounded-xl dark:shadow-sm p-2 mb-4 dark:bg-black  dark:from-slate-900 dark:to-black dark:text-white shadow-slate-400 shadow-lg border-t dark:border-y dark:border-white dark:border-b-gray-600 border-slate-800/50 duration-200 break-inside-avoid  ">
       {/* Header */}
       <div className="flex items-center justify-between gap-3 mb-2 pr-7">
         <div className='flex justify-between gap-2'>
@@ -166,7 +179,7 @@ useEffect(() => {
       )}
 
       {/* Actions */}
-      <div className="flex justify-between text-sm text-gray-600 mt-2">
+      <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400 mt-2">
         <div className='flex gap-2 items-center'>
           <button 
           className="flex items-center gap-1" 
@@ -179,11 +192,17 @@ useEffect(() => {
           </button>
 
           <NavLink to={`/post/${post._id}`} className="flex items-center gap-1">
-            <MessageCircle className=' text-blue-600 dark:text-white  dark:hover:fill-white hover:fill-blue-600 duration-500 hover:scale-110 active:scale-95' size={18} /> {post?.commentCount}
+            <MessageCircle className=' text-blue-600 dark:text-white  dark:hover:fill-white hover:fill-blue-600 duration-500 hover:scale-110 active:scale-95' size={18} /> 
+            {post?.commentCount}
           </NavLink>
+          <span className="flex items-center gap">
+            <BarChart2Icon size={17} className=' text-cyan-500 '/> 
+            {post?.views ?? ''}
+          </span>
+          
         </div>
         <span className="text-xs text-gray-500">
-            • {moment(post.updatedAt).fromNow()}
+            • {moment(post.createdAt).fromNow()}
         </span>
       </div>
     </article>

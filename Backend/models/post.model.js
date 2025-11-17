@@ -87,6 +87,10 @@ const postSchema = new mongoose.Schema({
   category : {
     type : String ,
     default : null ,
+  } ,
+  views : {
+    type : Number ,
+    default : 0 ,
   }
 } , {timestamps : true})
 
