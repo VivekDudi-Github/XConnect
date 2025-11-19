@@ -94,8 +94,8 @@ const api = createApi({
     }) ,
     
     getFeedPosts : builder.query({
-      query : () => ({
-        url : '/post/me/feed' ,
+      query : ({tab , page}) => ({
+        url : '/post/me/feed/?tab='+tab+'&page='+page ,
         credentials : 'include' ,
       })
     }) ,

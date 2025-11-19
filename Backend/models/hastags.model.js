@@ -8,11 +8,6 @@ const hashtagSchema = new mongoose.Schema({
     lowercase : true,
     index : true,
   } ,
-  posts : [{
-    type : mongoose.Schema.Types.ObjectId ,
-    ref : 'Post' ,
-    required : true ,
-  } ],
   count : {
     type : Number ,
     default : 0,

@@ -19,4 +19,5 @@ const preferanceSchema = new mongoose.Schema({
   } ,
 } , {timestamps : true})
 
+preferanceSchema.index({updatedAt : 1} , {expireAfterSeconds : 7*24*60*60})
 export const Preferance = mongoose.model('Preferance' , preferanceSchema)

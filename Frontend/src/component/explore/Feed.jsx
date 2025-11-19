@@ -11,6 +11,7 @@ import lastRefFunc from '../specific/LastRefFunc';
 import { useLazyGetFeedPostsQuery , useDeletePostMutation } from '../../redux/api/api';
 import DialogBox from '../shared/DialogBox';
 import CommunityPostCard from '../community/CommunityPostCard';
+import { toast } from 'react-toastify';
 
 
 
@@ -23,10 +24,10 @@ function Feed() {
   
   const [page , setPage] = useState(1) ;
   const [activeTab, setActiveTab] = useState("All");
-  
+  const [pause , setPause] = useState(false) ;
   const [posts , setPosts] = useState([]) ;
 
-  const [fetchMorePost , {data , isError  , isLoading , error } ] = useLazyGetFeedPostsQuery() ;
+  const [fetchMorePost , {data , isError  , isLoading , error , isFetching } ] = useLazyGetFeedPostsQuery() ;
   const [deleteMutation] = useDeletePostMutation() ;
 
   const lastPostRef = useCallback(node => {
@@ -34,6 +35,7 @@ function Feed() {
       observer , 
       node , 
       isLoading , 
+      isFetching ,
       page ,
       activeTab ,
       totalPages : null ,
@@ -43,15 +45,32 @@ function Feed() {
   )
 
 
-  useEffect(() =>{ fetchMorePost() } , [])
+  useEffect(() =>{ fetchMorePost({page : 1  , tab : activeTab}) } , [])
 
   useEffect(() => {
     if(data && data.data){
+      if(data.data.length === 0) setPause(true) ;
+      console.log(data.data);
+      
       setPosts(prev => [...prev , ...data.data]) ;
       setPage(prev => prev + 1)
     }
   } , [data])
 
+  useEffect(() => {
+    setPosts([]) ;
+    setPause(false) ;
+    setPage(1) ;
+    fetchMorePost({page : 1  , tab : activeTab}) ;
+  } , [activeTab])
+
+
+  useEffect(() => {
+    if(isError){
+      toast.error(error.data.message || 'Something went wrong while fetching posts. Please try again.')
+      console.log('error in fetching feed posts' , error);
+    }
+  } , [isError , error])
 
   return (
     <div className="max-w-3xl mx-auto mt-4 px-2 sm:px-0 dark:bg-black  rounded-xl ">
@@ -74,7 +93,7 @@ function Feed() {
       </div>
 
       {posts && posts.map((post , i) => (
-        <div ref={ i === posts.length - 1 ? lastPostRef : null }  key={i} >
+        <div ref={ (i === posts.length - 1 && !pause )? lastPostRef : null }  key={i} >
           {post?.type !== 'community' ? <PostCard post={post} key={post._id}/> : <CommunityPostCard post={post} heading={true} key={post._id}/>}
         </div>
       ))}

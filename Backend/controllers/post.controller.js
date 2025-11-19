@@ -12,6 +12,7 @@ import { emitEvent } from '../utils/socket.js';
 import { Notification } from '../models/notifiaction.model.js';
 import { WatchHistory } from '../models/watchHistory.model.js';
 import { Community } from '../models/community.model.js';
+import { Hashtag } from '../models/hastags.model.js';
 
 
 const ObjectId = mongoose.Types.ObjectId ;
@@ -35,7 +36,7 @@ const createPost = TryCatch( async(req , res) => {
 
   if(isCommunityPost){
     if(category && typeof category !== 'string') return ResError(res , 400 , 'Category is required.') ;
-    if([ 'general' , 'help' , 'feedback' , 'showcase'].includes(category) === false) return ResError(res , 400 , 'Invalid category.') ;
+    if([ 'general' , 'question' , 'feedback' , 'showcase'].includes(category) === false) return ResError(res , 400 , 'Invalid category.') ; 
     if(!title || typeof title !== 'string') return ResError(res , 400 , 'Title is required.') ;
     if(!category || typeof category !== 'string') return ResError(res , 400 , 'Category is required.') ;
     if(!ObjectId.isValid(community)) return ResError(res , 400 , 'Invalid community id.') ;
@@ -47,7 +48,6 @@ const createPost = TryCatch( async(req , res) => {
   if(media && media.length > 0) {
     cloudinaryResults = await uploadFilesTOCloudinary(media)
   }
-  
   
   const post = await Post.create({
     author : req.user._id ,
@@ -103,6 +103,20 @@ const createPost = TryCatch( async(req , res) => {
       })
     })
 
+  }
+
+  if(hashtags.length){
+    const ops = hashtags.map(h => {
+      return {
+        updateOne: {
+          filter: { name: h },
+          update: { $inc: { count: 1 } },
+          upsert : true
+        }
+      }
+    })
+
+    await Hashtag.bulkWrite(ops)
   }
 
   return ;
@@ -1270,20 +1284,37 @@ const LikePost = async(req , res , postId , ) => {
 }
 
 const fetchFeedPost = TryCatch( async(req , res) => {
-  //post from least last 3 days, post from followers , post from preferances
+  //post from least last 7 days, post from followers , post from preferances
   const userId = req.user._id ;
-  let { tab} = req.query ;
-  const tags = await Preferance.find({user : userId }).select(' hashtags -_id') ;
+  let { tab , page} = req.query ;
+  const tags = await Preferance.find({user : userId }).select(' hashtags -_id').sort({score : 1}).limit(50)
+  console.log(page  , tab);
   
+  let skip = (page - 1) * 10 ;
+
   const hashtags = tags.map(t => t.hashtags )
   let filter = [];
-  if(tab === 'communities'){
-    filter = [
-      {$exists : ['$community' , true]} ,
-    ]
+  switch (tab) {
+    case 'Communities':
+      filter = [
+        {$eq : ['$type' , 'community']} ,
+      ]
+      break;
+    case 'Media':
+      filter = [
+        {$gte : [{$size : '$media'}  , 1]}
+      ]
+      break ;
+    case 'Following':
+      filter = [
+        { $in: ['$author', '$userFollowIds'] },
+      ]
+    default:
+      break;
   }
-  const threeDaysAgo = new Date();
-  threeDaysAgo.setDate(threeDaysAgo.getDate() - 4);
+
+  const timeAgo = new Date();
+  timeAgo.setDate(timeAgo.getDate() - 7);
 
 
   const posts = await Post.aggregate([
@@ -1325,15 +1356,16 @@ const fetchFeedPost = TryCatch( async(req , res) => {
             {$eq : ['$isDeleted' , false]} ,
             ...filter ,
             {$or : [
-              { $gte: ['$createdAt', threeDaysAgo] },
+              { $gte: ['$createdAt', timeAgo ] },
               { $in: ['$author', '$userFollowIds'] },
               { $in: ['$community', '$communityFollowIds'] },
-              { $in: ['$hashtags', hashtags] }
+              { $in: ['$hashtags', hashtags] },
             ]}
           ]
         }
       }
     } ,
+    {$skip : skip} ,
     {$sample : { size : 10}} ,
 
     //author details
@@ -1403,7 +1435,8 @@ const fetchFeedPost = TryCatch( async(req , res) => {
           }}
         ] ,
         as : 'communityDetails'
-      }} ,
+      }
+    } ,
 
     {$addFields : {
       author : '$authorDetails' ,
@@ -1412,9 +1445,9 @@ const fetchFeedPost = TryCatch( async(req , res) => {
       commentCount : {$size : '$totalComments'} ,
       community : {$arrayElemAt : ['$communityDetails.name' , 0]} ,
       communityId : {$arrayElemAt : ['$communityDetails._id' , 0]} ,
-    }} ,
+      totalComments : {$size : '$totalComments'} ,
+    }} , 
 
-    // {$unwind: {path: '$totalComments',preserveNullAndEmptyArrays: true} } ,
     {$unwind: {path: '$author',preserveNullAndEmptyArrays: true} } ,
     
     {$project : {
@@ -1425,6 +1458,8 @@ const fetchFeedPost = TryCatch( async(req , res) => {
       userFollowIds : 0 ,
       communityDetails : 0 ,
       isDeleted : 0 ,
+      UsersFollowing : 0 ,
+      isPinned : 0
     }}
 
   ])
@@ -1434,18 +1469,15 @@ const fetchFeedPost = TryCatch( async(req , res) => {
 } , 'fetchFeedPosts')
  
 const fetchExplorePost = TryCatch(async(req , res) => {
-
+// sort by like count ,
   const posts = await Post.aggregate([
     {
-      $sort : { 
+      $sort : {
         likeCount : -1 ,
-        createdAt : -1 ,
       }
     } ,
     { $sample : {size : 10}} ,
     { $limit : 10} ,
-
-
     {$project : {
       content  : 1 ,
       media : 1 ,
@@ -1461,7 +1493,7 @@ const fetchExplorePost = TryCatch(async(req , res) => {
 
 const increasePostViews = TryCatch (async(req , res) => {
   const {id} = req.params ;
-
+  if(!ObjectId.isValid(id)) return ResError(res , 400 , 'Invalid post id.')
   const post = await Post.findByIdAndUpdate(id , {$inc : {views : 1}}) ;
 
   if(!post) return ResError(res , 404 , 'Post not found')
