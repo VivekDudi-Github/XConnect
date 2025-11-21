@@ -7,7 +7,7 @@ import mongoose from 'mongoose';
 import { Following } from '../models/following.model.js';
 import {io} from '../app.js'
 
-let map = new Map() ;
+
 let ObjectId = mongoose.Types.ObjectId ;
 
 const createLiveStream = TryCatch(async (req , res) => {
@@ -30,7 +30,6 @@ const createLiveStream = TryCatch(async (req , res) => {
     // }
 
     const liveStream = {
-        _id : '68ee77506ffc2b3a7b4f17c5' ,
         title ,
         description ,
         host : req.user._id ,
@@ -47,8 +46,7 @@ const createLiveStream = TryCatch(async (req , res) => {
     if(videoProducerId) liveStream.producers.videoId = videoProducerId ;
     if(audioProducerId) liveStream.producers.audioId = audioProducerId ;
     
-    map.set(liveStream._id.toString() , liveStream) ;
-    // await liveStream.save() ;
+    await liveStream.save() ;
     return ResSuccess(res , 201 , liveStream)
 } , 'createLiveStream')
 
@@ -66,12 +64,9 @@ const deleteLiveStream = TryCatch(async (req , res) => {
 } , 'deleteLiveStream')
 
 const updateLiveStream = TryCatch(async (req , res) => {
-    const {id} = req.params
-    console.log(id);
-    // const liveStream = await LiveStream.findOne({_id : id}) ;
-    console.log(map);
+    const {id} = req.params;
+    const liveStream = await LiveStream.findOne({_id : id}) ;
     
-    const liveStream = map.get(id) ;
     if(!liveStream) return ResError(res , 404 , 'Live stream not found')
     if(liveStream.host != req.user._id) return ResError(res , 403 , 'You are not the host of this live stream')
 
@@ -93,8 +88,7 @@ const updateLiveStream = TryCatch(async (req , res) => {
 const getLiveStream = TryCatch(async (req , res) => {
     const {id} = req.params ;
 
-    // const liveStream = await LiveStream.findOne({_id : id}).populate('host' , 'username avatar name') ;
-    const liveStream = map.get(id) ; 
+    const liveStream = await LiveStream.findOne({_id : id}).populate('host' , 'username avatar name') ; 
     const followers = await Following.countDocuments({followedTo : liveStream?.host}) ; 
     const isFollowing = await Following.findOne({followedBy : req.user._id , followedTo : liveStream?.host}) ;
 
@@ -132,8 +126,7 @@ const getLiveChats = TryCatch(async (req , res) => {
         filter._id =  { $lt: new ObjectId(`${lastId}`) } ;
     }
 
-    // const liveStream = await LiveStream.findOne({_id : id})
-    const liveStream = map.get(id) ;
+    const liveStream = await LiveStream.findOne({_id : id})
     if(!liveStream) return ResError(res  ,404 , 'Live stream not found') ;
 
 

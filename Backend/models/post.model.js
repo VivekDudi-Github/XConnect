@@ -80,6 +80,11 @@ const postSchema = new mongoose.Schema({
     type : Boolean ,
     default : false
   } , 
+  advertisement : {
+    type : mongoose.Types.ObjectId ,
+    ref : 'Advertisement' ,
+    default : null
+  } ,
   title : {
     type : String ,
     default : null ,
