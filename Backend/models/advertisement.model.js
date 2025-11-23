@@ -2,13 +2,15 @@ import mongoose from "mongoose";
 import { validate } from "uuid";
 
 const advertisementSchema = new mongoose.Schema({
-  posts : [{
-    _id : mongoose.Schema.Types.ObjectId ,
-    type : {
-      type : String ,
-      enum : ['comment' , 'post' ]
-    }
-  }] ,
+  posts : {
+    type : [{
+      _id : mongoose.Schema.Types.ObjectId ,
+        type : {
+          type : String ,
+          enum : ['comment' , 'post' ]
+        }
+    }]
+  } ,
   price : {
     type : Number ,
     enum : [100 , 200 , 500 , 1000]

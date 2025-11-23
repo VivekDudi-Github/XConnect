@@ -10,7 +10,7 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Loader from './component/shared/Loader';
 import { login, logout } from './redux/reducer/authSlice';
-import CommentPage from './pages/CommentPage';
+
 
 
 const Auth = lazy(() => import('./pages/Auth'));
@@ -20,9 +20,14 @@ const LivePage = lazy(() => import('./pages/LivePage'));
 const MeetPage = lazy(() => import('./pages/MeetPage'));
 
 const Profile = lazy(() => import('./pages/ProfilePage'));
+const CommentPage = lazy(() => import('./pages/CommentPage'));
 const MessagesPage = lazy(() => import('./pages/MessagesPage'));
 const ExplorePage = lazy(() => import('./pages/ExplorePage')) ;
 const NotificationPage = lazy(() => import('./pages/NotificationPage'));
+
+const DashboardMain = lazy(() => import('./component/dashboard/DashboardMain'));
+const DashboardPage = lazy(() => import('./pages/DashboradPage'));
+
 const CommunitiesPage = lazy(() => import('./pages/CommunitiesPage'));
 const CommunityHome = lazy(() => import('./component/community/communityHome'));
 const CommunityHomePage = lazy(() => import('./component/community/CommunityHomePage'))
@@ -85,12 +90,21 @@ useEffect(() => {
               <Route path="chat/:username" element={<MessagesPage />} />
             </Route>
 
+            <Route path='/dashboard' element={<DashboardPage />} >
+              <Route path='' element={<DashboardMain />} />
+
+              <Route path='promote' element={<DashboardMain />} />
+              
+              <Route path='post/:id' element={<DashboardMain />} />
+            </Route> 
+
             <Route path='/live' element={<LivePage />} />
             <Route path='/live/watch/:id' element={<LivePage />} />
             <Route path='/meet' element={<MeetPage/>} />
             <Route path='/comment/:id' element ={<CommentPage />} />
             
           </Route>
+          <Route path='*' element={<Navigate to='/' />} />
         </Routes>
         <ToastContainer
           position="top-center"
