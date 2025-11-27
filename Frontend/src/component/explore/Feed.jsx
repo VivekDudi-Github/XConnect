@@ -106,7 +106,6 @@ function Feed() {
           onClose={() => dispatch(setisDeleteDialog({isOpen : false , postId : null}))}
           mainFuction={() => deletePostFunc(isDeleteDialog?.postId , deleteMutation , dispatch)}
           />) : null }
-        
     </div>
 
   )

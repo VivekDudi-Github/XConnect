@@ -78,7 +78,7 @@ export default function PostViewPage() {
       console.log('error in doing toggle post operation', error);
     }
   }
-
+  
 
   useEffect(() => {
     if(data) 

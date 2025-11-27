@@ -8,6 +8,7 @@
 import React, { useState } from "react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell, Legend } from "recharts";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 const mockFollowerSeries = [
   { date: "2025-10-01", followers: 1200 },
@@ -41,12 +42,15 @@ function DashboardMain() {
 
   const filteredPosts = mockPostReach.filter(p => p.title.toLowerCase().includes(search.toLowerCase()));
 
+  const navigate = useNavigate()
+
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      <div className="max-w-7xl mx-auto p-6">
+    <div className="min-h-screen dark:bg-black bg-white dark:text-white text-slate-900">
+      <div className="max-w-7xl mx-auto p-6 ">
+        {/* heading */}
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white font-bold">XC</div>
+            <img src="./XConnect_icon.png" alt="" className="size-12 inline-block -translate-y-0.5" />
             <div>
               <h1 className="text-2xl font-semibold">XConnect — Creator Dashboard</h1>
               <p className="text-sm text-slate-500">Overview of analytics, monetization, and campaigns</p>
@@ -54,17 +58,18 @@ function DashboardMain() {
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="px-4 py-2 bg-white border rounded-lg text-sm">Invite Collaborator</button>
             <div className="flex items-center gap-2">
-              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search posts..." className="px-3 py-2 rounded-lg border" />
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search posts..." className="px-3 py-2 rounded-md border custom_Input" />
             </div>
           </div>
         </header>
 
-        <main className="mt-6 grid grid-cols-12 gap-6">
+        <main className="mt-6 grid grid-cols-12 gap-6 text-black ">
           {/* Left column: Stats + charts */}
           <section className="col-span-8 space-y-6">
-            <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-3 gap-4">
+            <motion.div initial={{ opacity: 0, y: 6 }} 
+              animate={{ opacity: 1, y: 0 ,transition : {duration : 1} }} 
+              className="grid grid-cols-3 gap-4 ">
               <div className="p-4 bg-white rounded-2xl shadow-sm">
                 <div className="text-sm text-slate-500">Total Reach (30d)</div>
                 <div className="text-2xl font-bold">1,254,321</div>
@@ -84,10 +89,10 @@ function DashboardMain() {
               </div>
             </motion.div>
 
-            <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl p-4 shadow-sm">
+            <div className="bg-white rounded-2xl p-4 shadowLight fade-in">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-semibold">Follower Growth</h3>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 ">
                   <select value={selectedRange} onChange={e => setSelectedRange(e.target.value)} className="px-2 py-1 border rounded-md text-sm">
                     <option value="7d">7d</option>
                     <option value="30d">30d</option>
@@ -102,14 +107,15 @@ function DashboardMain() {
                     <XAxis dataKey="date" />
                     <YAxis />
                     <Tooltip />
-                    <Line type="monotone" dataKey="followers" stroke="#6366f1" strokeWidth={3} dot={{ r: 3 }} />
+                    <Line type="monotone" dataKey="followers" stroke="#a20dfe" strokeWidth={3} dot={{ r: 3 }} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-2 gap-4">
-              <div className="bg-white rounded-2xl p-4 shadow-sm">
+            <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} 
+              className="grid grid-cols-2 gap-4 ">
+              <div className="bg-white rounded-2xl p-4 shadow-sm shadowLight">
                 <h4 className="font-semibold mb-2">Top Posts by Reach</h4>
                 <div className="divide-y">
                   {filteredPosts.map(p => (
@@ -127,12 +133,17 @@ function DashboardMain() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl p-4 shadow-sm">
+              <div className="bg-white rounded-2xl p-4 shadow-sm ">
                 <h4 className="font-semibold mb-2">Engagement Breakdown</h4>
-                <div style={{ height: 180 }}>
-                  <ResponsiveContainer width="100%" height="100%">
+                <div className="h-64 w-full">
+                  <ResponsiveContainer>
                     <PieChart>
-                      <Pie data={[{ name: 'Likes', value: 5400 }, { name: 'Comments', value: 1200 }, { name: 'Shares', value: 800 }]} dataKey="value" nameKey="name" outerRadius={60} label>
+                      <Pie 
+                      data={[
+                        {name: 'Likes', value: 5400 }, 
+                        {name: 'Comments', value: 1200 }, 
+                        {name: 'Shares', value: 800 }]} 
+                        dataKey="value" nameKey="name" outerRadius={80} label>  
                         {[{ name: 'Likes' }, { name: 'Comments' }, { name: 'Shares' }].map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
@@ -144,7 +155,7 @@ function DashboardMain() {
               </div>
             </motion.div>
 
-            <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl p-4 shadow-sm">
+            {/* <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl p-4  shadowLight">
               <h4 className="font-semibold mb-2">Live Stream / Video Metrics</h4>
               <div className="grid grid-cols-3 gap-4">
                 <div className="p-3 bg-slate-50 rounded-lg text-center">
@@ -160,12 +171,12 @@ function DashboardMain() {
                   <div className="text-xl font-bold">$420</div>
                 </div>
               </div>
-            </motion.div>
+            </motion.div> */}
           </section>
 
           {/* Right column: Campaigns, Monetization, Schedule */}
           <aside className="col-span-4 space-y-6">
-            <div className="bg-white rounded-2xl p-4 shadow-sm">
+            <div className="bg-white rounded-2xl p-4 shadowLight">
               <h3 className="font-semibold mb-2">Campaign Manager</h3>
               <div className="space-y-3">
                 {campaignMock.map(c => (
@@ -181,11 +192,11 @@ function DashboardMain() {
                   </div>
                 ))}
 
-                <button className="w-full py-2 rounded-lg bg-indigo-600 text-white">Create Campaign</button>
+                <button onClick={() => navigate('/dashboard/campaign/create')} className="w-full py-2 rounded-lg bg-indigo-600 text-white">Create Campaign</button> 
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-4 shadow-sm">
+            <div className="bg-white rounded-2xl p-4 shadowLight">
               <h3 className="font-semibold mb-2">Monetization</h3>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -194,7 +205,7 @@ function DashboardMain() {
                     <div className="font-bold text-lg">$420</div>
                   </div>
                   <div>
-                    <button className="px-3 py-2 bg-white border rounded-lg">Withdraw</button>
+                    <button className="px-3 py-2 bg-white border rounded-lg hover:shadow hover:shadow-black/40 duration-200">Withdraw</button>
                   </div>
                 </div>
 
@@ -207,7 +218,7 @@ function DashboardMain() {
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-4 shadow-sm">
+            <div className="bg-white rounded-2xl p-4 shadowLight">
               <h3 className="font-semibold mb-2">Content Calendar</h3>
               <div className="text-sm text-slate-500 mb-2">Scheduled posts & campaigns</div>
               <div className="space-y-2">
@@ -221,22 +232,21 @@ function DashboardMain() {
                 </div>
               </div>
 
-              <button className="mt-3 w-full py-2 rounded-lg bg-white border">Open Calendar</button>
+              <button className="mt-3 w-full py-2 rounded-lg bg-white border hover:shadow hover:shadow-slate-600 duration-200">Open Calendar</button>
             </div>
 
+            {/* Actions */}
             <div className="bg-white rounded-2xl p-4 shadow-sm">
-              <h3 className="font-semibold mb-2">Quick Actions</h3>
+              <h3 className="font-semibold mb-2 ">Quick Actions</h3>
               <div className="grid grid-cols-2 gap-2">
-                <button className="py-2 rounded-lg border">Boost Post</button>
-                <button className="py-2 rounded-lg border">New Post</button>
-                <button className="py-2 rounded-lg border">Schedule Live</button>
-                <button className="py-2 rounded-lg border">Export Report</button>
+                <button className="py-2 rounded-lg border hover:shadow hover:shadow-black/40 duration-200">Boost Post</button>
+                <button className="py-2 rounded-lg border hover:shadow hover:shadow-black/40 duration-200">Schedule Live</button>
               </div>
             </div>
           </aside>
         </main>
 
-        <footer className="mt-6 text-xs text-slate-500">Designed for XConnect • Prototype UI — connect this to your data layer & events.</footer>
+        <footer className="mt-6 text-xs text-slate-500">• XConnect Footer Prototype UI.</footer>
       </div>
     </div>
   );

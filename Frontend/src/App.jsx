@@ -27,6 +27,8 @@ const NotificationPage = lazy(() => import('./pages/NotificationPage'));
 
 const DashboardMain = lazy(() => import('./component/dashboard/DashboardMain'));
 const DashboardPage = lazy(() => import('./pages/DashboradPage'));
+const CampaignCreatePage = lazy(() => import('./component/dashboard/CampaignCreate'));
+
 
 const CommunitiesPage = lazy(() => import('./pages/CommunitiesPage'));
 const CommunityHome = lazy(() => import('./component/community/communityHome'));
@@ -96,6 +98,7 @@ useEffect(() => {
               <Route path='promote' element={<DashboardMain />} />
               
               <Route path='post/:id' element={<DashboardMain />} />
+              <Route path='campaign/create' element={<CampaignCreatePage />} />
             </Route> 
 
             <Route path='/live' element={<LivePage />} />
