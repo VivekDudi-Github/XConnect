@@ -85,7 +85,8 @@
 
 .custom_Input {
   width: 100%;
-  padding: 0.25rem; /* p-1 */
+  padding-left: 0.25rem;
+  padding: 0.5rem; /* p-1 */
   border-radius: 0.25rem; /* rounded */
   transition-duration: 200ms; /* duration-200 */
   outline: none; /* focus:outline-none */
@@ -100,7 +101,7 @@
 /* Dark mode */
 @media (prefers-color-scheme: dark) {
   .custom_Input {
-    background-image: linear-gradient(to top, #1f2937, #000000); /* dark:bg-gradient-to-t dark:from-gray-800 dark:to-black */
+    background-image: linear-gradient(to top, #000b19, #000000); /* dark:bg-gradient-to-t dark:from-gray-800 dark:to-black */
     color: #ffffff; /* dark:text-white */
   }
 

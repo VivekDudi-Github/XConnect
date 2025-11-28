@@ -28,6 +28,10 @@ const advertisementSchema = new mongoose.Schema({
   start_date : {
     type : Date ,
   } ,
+  noTags : {
+    type : Boolean ,
+    default : false  
+  }
 } , {timestamps : true})
 
-export const advertisment  = mongoose.model('Avertisement' , advertisementSchema)
+export const Advertisement  = mongoose.model('Advertisement' , advertisementSchema)
