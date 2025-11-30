@@ -1,5 +1,9 @@
-import React, { useState } from "react";
-import { Image as ImageIcon, MessageSquare, FileText, Calendar, Target } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Image as ImageIcon, MessageSquare, FileText, Calendar, Target , XIcon, PlusCircleIcon, PlusIcon } from "lucide-react";
+import PostCard from "../post/PostCard";
+import CampaignDummyPostCard from "./CampaignPostCard";
+import TextArea from 'react-textarea-autosize'
+import {toast} from 'react-toastify';
 
 export default function CreateCampaignPage() {
   const [tab, setTab] = useState("post");
@@ -10,15 +14,21 @@ export default function CreateCampaignPage() {
   const [notes, setNotes] = useState("");
 
   // Audience
+
   const [locations, setLocations] = useState("");
-  const [ageFrom, setAgeFrom] = useState(18);
-  const [ageTo, setAgeTo] = useState(45);
-  const [interests, setInterests] = useState("");
+  const [tags, setTags] = useState([]);
+  const [tagsVal, setTagsVal] = useState("");
   const [gender, setGender] = useState("any");
 
   // Content selection
   const [selectedExisting, setSelectedExisting] = useState("");
   const [uploadedBanner, setUploadedBanner] = useState(null);
+  const [UploadPostPic, setUploadPostPic] = useState([]);
+
+  const [content , setContent] = useState("");
+
+  const [posts , setPosts] = useState([]) ;
+  const [comments , setComments] = useState([]) ;
 
   // Plan & schedule
   const [plan, setPlan] = useState("Standard");
@@ -26,12 +36,42 @@ export default function CreateCampaignPage() {
 
   const requiredFilled = campaignName.trim() !== "" && selectedExisting !== "" && plan;
 
+  const removeTag = (tag) => {
+    setTags(tags.filter((t) => t !== tag));
+  };
+  
+  const removePostPic = (pic) => {
+    setUploadPostPic(UploadPostPic.filter((p) => p.name !== pic.name));
+  };
+
+  const addPostPic = (pic) => {
+    if(UploadPostPic.length >= 5){
+      toast.error('Maximum 5 images allowed');
+      return;
+    }
+    setUploadPostPic([...UploadPostPic, pic]);
+  };
+
+  useEffect(() => {
+    if(tagsVal.at(-1) === ' '){
+      tags.length > 10 ? toast.error('Maximum 10 tags allowed') : setTags([...tags, tagsVal.trim()]);
+      setTagsVal("");
+    }
+  } , [tagsVal , tags])
+
+  const addContent = () => {
+    let post = {
+      content : description ,
+    }
+    setPosts([...posts , p]);
+  }
+  
   return (
     <div className="p-6 space-y-8 max-w-7xl mx-auto ">
       <h1 className="text-3xl font-bold dark:text-white">Create Campaign</h1>
 
       {/* Basic Details */}
-      <div className="bg-white border dark:border-gray-800 rounded-xl dark:shadow-slate-700 p-6 shadow-sm space-y-4 shadowLight dark:bg-black dark:text-white ">
+      <div className="bg-white border dark:border-gray-700 rounded-xl dark:shadow-slate-700 p-6 shadow-sm space-y-4 shadowLight dark:bg-black dark:text-white ">
         <h2 className="text-xl font-semibold">Basic Details</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -47,22 +87,17 @@ export default function CreateCampaignPage() {
             </select>
           </div>
         </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Notes (internal)</label>
-          <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional notes for this campaign" className="border p-3 rounded-lg w-full min-h-[80px] dark:bg-black dark:text-white dark:border-gray-800 custom_Input" />
-        </div>
       </div>
 
       {/* Promotion Type */}
-      <div className="bg-white border dark:border-gray-800 dark:bg-black dark:text-white rounded-xl p-6 shadow-sm space-y-6 shadowLight">
+      <div className="bg-white border dark:border-gray-700 dark:bg-black dark:text-white rounded-xl p-6 shadow-sm space-y-6 shadowLight">
         <h2 className="text-xl font-semibold">Promotion Type</h2>
 
         {/* Tabs */}
-        <div className="flex gap-3 border-b pb-2">
+        <div className="flex gap-3 border-b pb-2 w-full overflow-scroll "> 
           <button
             onClick={() => setTab("post")}
-            className={`px-4 py-2 rounded-lg flex items-center gap-2 ${tab === "post" ? "bg-gray-900 dark:bg-white dark:text-black text-white" : "hover:bg-gray-100 dark:hover:bg-gray-800 "}`}
+            className={`px-2 py-2 rounded-lg flex items-center gap-2 ${tab === "post" ? "bg-gray-900 dark:bg-white dark:text-black text-white" : "hover:bg-gray-100 dark:hover:bg-gray-800 "}`}
           >
             <FileText size={18} /> Ad Post
           </button>
@@ -84,57 +119,102 @@ export default function CreateCampaignPage() {
 
         {/* Content Switch */}
         <div className="space-y-4">
-          <label className="font-medium">Choose from existing or create new</label>
+          <div className="font-medium flex items-center gap-2 ">
+            Choose from existing or
+            <button onClick={addContent} className="bg-white text-black rounded-lg active:scale-95 duration-200 flex p-1 ">
+              Create New <PlusIcon />
+            </button>
+          </div> 
+          
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <select value={selectedExisting} onChange={(e) => setSelectedExisting(e.target.value)} className="border dark:border-gray-800 p-3 rounded-lg w-full dark:bg-black dark:text-white">
-              <option value="">Select existing...</option>
-              <option value="post1">Post #1 — Promo</option>
-              <option value="post2">Post #2 — Sale</option>
-              <option value="comment1">Comment #1</option>
-              <option value="banner1">Banner #1</option>
-            </select>
-
+            
+            
             {/* dynamic input based on tab */}
-            {tab === "post" && <textarea placeholder="Write promotional post..." className="border p-3 rounded-lg w-full min-h-[80px] dark:bg-black dark:text-white dark:border-gray-800 custom_Input" />}
-            {tab === "comment" && <textarea placeholder="Write promotional comment..." className="border p-3 rounded-lg w-full min-h-[80px] dark:bg-black dark:text-white dark:border-gray-800 custom_Input" />}
+            {tab === "post" && (
+              <>
+                <label >Description
+                  <TextArea value={content} onChange={(e) => setContent(e.target.value)} placeholder="Write promotional post..." className="border p-3 rounded-lg w-full min-h-[80px] dark:bg-black dark:text-white dark:border-gray-800 custom_Input" />
+                </label>
+                <input type="file" accept="image/*" onChange={(e) => addPostPic(e.target.files?.[0] || null)} className="border p-3 rounded-lg w-full" />
+                
+                {UploadPostPic && 
+                <div className="text-sm text-gray-600 dark:text-gray-400 flex flex-wrap gap-1">
+                  Selected: 
+                  {UploadPostPic.map((pic) => (
+                    <span className="flex items-center  text-sm text-gray-600 dark:text-gray-400 relative h-full w-full">
+                      <img src={URL.createObjectURL(pic)} alt="" className=" min-h-16 min-w-16  h-full w-full rounded-md object-cover" />  
+                      <XIcon className="absolute right-2 top-2 z-50 text-white bg-gray-900/50 rounded-full" size={17} onClick={() => removePostPic(pic)} />
+                    </span>
+                  ))} 
+                </div>}
+                  <CampaignDummyPostCard post={{content , media : UploadPostPic.map(p => {
+                    return {
+                      url : URL.createObjectURL(p) ,
+                      public_id : p.name ,
+                      type : 'image' ,
+                    }
+                  }) }} />
+                {posts.map((p , i) => (
+                  <CampaignDummyPostCard post={p} />
+                ))}
+              </>
+            )}
+            {tab === "comment" && (
+              <label>Description
+                <TextArea value={content} onChange={(e) => setContent(e.target.value)} placeholder="Write promotional post..." className="border p-3 rounded-lg w-full min-h-[80px] dark:bg-black dark:text-white dark:border-gray-800 custom_Input" />
+              </label>
+            )}
             {tab === "banner" && (
               <div className="space-y-2">
                 <input type="file" accept="image/*" onChange={(e) => setUploadedBanner(e.target.files?.[0] || null)} className="border p-3 rounded-lg w-full" />
                 {uploadedBanner && <div className="text-sm text-gray-600">Selected: {uploadedBanner.name}</div>}
               </div>
             )}
+            
+
           </div>
         </div>
       </div>
 
       {/* Target Audience */}
-      <div className="bg-white border dark:border-gray-800 dark:bg-black dark:text-white rounded-xl p-6 shadow-sm space-y-6 shadowLight">
+      <div className="bg-white border dark:border-gray-700 dark:bg-black dark:text-white rounded-xl p-6 shadow-sm space-y-6 shadowLight">
         <h2 className="text-xl font-semibold">Target Audience</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-1 dark:border-gray-800 ">Locations (comma separated)</label>
+            <label className="block text-sm font-medium mb-1 dark:border-gray-800 ">Locations (space separated)</label>
             <input value={locations} onChange={(e) => setLocations(e.target.value)} placeholder="e.g. India, United States" className="border p-3 rounded-lg w-full custom_Input dark:border-gray-800" />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Interests (comma separated)</label>
-            <input value={interests} onChange={(e) => setInterests(e.target.value)} placeholder="e.g. Tech, Gaming" className="border p-3 rounded-lg w-full custom_Input dark:border-gray-800" />
+            <label className="block text-sm font-medium mb-1">Tags (comma separated)</label>
+            <input value={tagsVal} onChange={(e) => setTagsVal(e.target.value)} placeholder="e.g. Tech, Gaming" className="border p-3 rounded-lg w-full custom_Input dark:border-gray-800" />
+            {/* Tag List */}
+            <div className="flex flex-wrap gap-2 my-2">
+              {tags.map((tag, index) => (
+                <span
+                  key={index}
+                  className="flex items-center gap-1 dark:bg-white dark:text-black white px-3 py-1 rounded-full text-sm fade-in duration-200 shadowLight"
+                >
+                {tag}
+                  <button
+                    type="button"
+                    onClick={() => removeTag(tag)}
+                    className="text-black hover:text-red-300"
+                  >
+                    <XIcon size={14} />
+                  </button>
+                </span>
+              ))}
+            </div>
           </div>
         </div>
 
         <div className="grid grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-1 ">Age From</label>
-            <input type="number" value={ageFrom} min={13} max={100} onChange={(e) => setAgeFrom(Number(e.target.value))} className="border p-3 rounded-lg w-full custom_Input dark:border-gray-800" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Age To</label>
-            <input type="number" value={ageTo} min={13} max={100} onChange={(e) => setAgeTo(Number(e.target.value))} className="border p-3 rounded-lg w-full custom_Input dark:border-gray-800" />
-          </div>
-          <div>
             <label className="block text-sm font-medium mb-1">Gender</label>
-            <select value={gender} onChange={(e) => setGender(e.target.value)} className="border p-3 rounded-lg w-full custom_Input dark:border-gray-800">
+            <select value={gender} onChange={(e) => setGender(e.target.value)} 
+              className="border p-3 rounded-lg w-full custom_Input dark:border-gray-800 dark:bg-black dark:text-white ">
               <option value="any">Any</option>
               <option value="male">Male</option>
               <option value="female">Female</option>
@@ -144,7 +224,7 @@ export default function CreateCampaignPage() {
       </div>
 
       {/* Views Plan */}
-      <div className="bg-white border dark:border-gray-800 dark:bg-black dark:text-white rounded-xl p-6 shadow-sm space-y-6 shadowLight">
+      <div className="bg-white border dark:border-gray-700 dark:bg-black dark:text-white rounded-xl p-6 shadow-sm space-y-6 shadowLight">
         <h2 className="text-xl font-semibold">Choose Views Plan (no end date)</h2>
         <p className="text-sm text-gray-600">Plans are prepaid — campaign runs until the purchased view quota is exhausted or you pause it. You can schedule start time below.</p>
 
@@ -163,7 +243,7 @@ export default function CreateCampaignPage() {
       </div>
 
       {/* Schedule */}
-      <div className="bg-white border dark:border-gray-800 dark:bg-black dark:text-white rounded-xl p-6 shadow-sm space-y-6 shadowLight ">
+      <div className="bg-white border dark:border-gray-700 dark:bg-black dark:text-white rounded-xl p-6 shadow-sm space-y-6 shadowLight ">
         <h2 className="text-xl font-semibold">Schedule Campaign</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>

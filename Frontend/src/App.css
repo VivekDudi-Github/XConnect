@@ -156,3 +156,19 @@
     color: #000000; /* dark:hover:text-black */
   }
 }
+
+
+/* fade-In animation */
+.fade-in {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeIn 0.6s ease forwards; 
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
