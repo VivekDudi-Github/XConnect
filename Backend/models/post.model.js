@@ -100,6 +100,10 @@ const postSchema = new mongoose.Schema({
   engagements : {
     type : Number ,
     default : 0 ,
+  } ,
+  isAdvertisment : {
+    type : Boolean ,
+    default : false,
   }
 } , {timestamps : true})
 

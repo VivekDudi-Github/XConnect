@@ -27,7 +27,6 @@ function CampaignDummyPostCard({post }) {
             </h2>
           </div>
         </div>
-
       </div>
 
       <div className=' absolute top-4 right-2 dark:hover:bg-slate-700 hover:bg-gray-300 rounded-full p-2 duration-200'>

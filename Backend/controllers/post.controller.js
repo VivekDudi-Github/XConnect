@@ -13,6 +13,7 @@ import { Notification } from '../models/notifiaction.model.js';
 import { WatchHistory } from '../models/watchHistory.model.js';
 import { Community } from '../models/community.model.js';
 import { Hashtag } from '../models/hastags.model.js';
+import { Advertisement } from '../models/advertisement.model.js';
 
 
 const ObjectId = mongoose.Types.ObjectId ;
@@ -1166,7 +1167,7 @@ const toggleOnPost = TryCatch(async(req , res) => {
   const {id} = req.params ;
   const {option} = req.body ;
 
-  if(!id) return ResError(res , 400 , 'Post id not provided.')
+  if(!ObjectId.isValid(id)) return ResError(res , 400 , 'Post id not provided.')
 
   if(option === 'pin'){
     const post = await Post.findOne({_id : id , author : req.user._id}) ;
@@ -1471,22 +1472,128 @@ const fetchFeedPost = TryCatch( async(req , res) => {
 } , 'fetchFeedPosts')
  
 const fetchExplorePost = TryCatch(async(req , res) => {
-// sort by like count ,
-  const posts = await Post.aggregate([
+  const {tab , page } = req.query ;
+  const userId = req.user._id ;
+
+  if(!tab || (tab !== 'Trending' && tab !== 'Media' && tab !== 'Communities' && tab !== 'people')) return ResError(res , 400 , 'Invalid tab option provided.')
+
+  let skip = (page - 1) * 10 ;
+  
+const cutoff = new Date(Date.now() - 6 * 3600 * 1000)
+    
+  const posts = await Likes.aggregate([
     {
-      $sort : {
-        likeCount : -1 ,
+      $match : {
+        createdAt : { $gte : cutoff }
+      }
+    },
+    { $group : {
+        _id : '$post' ,
+        likeCount : { $sum : 1 } ,
       }
     } ,
-    { $sample : {size : 10}} ,
+    {$sort : {
+      likeCount : -1 ,
+      }
+    } ,
+    { $skip : skip} ,
     { $limit : 10} ,
-    {$project : {
-      content  : 1 ,
-      media : 1 ,
-      author : 1 ,
-      createdAt : 1 ,
-      isEdited : 1 ,
-    }}
+    { $sample : {size : 10}} ,
+    { $lookup : {
+        from : 'posts' ,
+        let : { postId : '$_id'} ,
+        pipeline : [
+          { $match : {
+            $expr : {
+              $eq : ['$_id' , '$$postId']
+            }
+          }} ,
+          //author
+          {$lookup : {
+            from : 'users' , 
+            let : {userId : '$author'} ,
+            pipeline : [
+              {$match : {
+                $expr : {
+                  $eq : ['$_id' , '$$userId']
+                }
+              }} , 
+              {$project : {
+                avatar : 1 ,
+                username : 1 ,
+                fullname : 1
+              }}
+            ] , 
+            as : 'authorDetails'
+          }} ,
+          //likeStatus 
+          {$lookup : {
+            from : 'likes' ,
+            let : { postId : '$_id'} ,
+            pipeline : [
+              {$match : {
+                $expr : {
+                  $and : [
+                    {$eq : ['$post' , '$$postId']} ,
+                    {$eq : ['$user' , new ObjectId(`${userId}`)]}
+                  ]
+                }
+              }}
+            ] ,
+            as : 'userLike'
+          }} ,
+          //totalLike
+          {$lookup : {
+            from : 'likes' ,
+            localField : '_id' ,
+            foreignField : 'post' ,
+            as : 'likesArray' ,
+          }} ,
+          //totalComments
+          {$lookup : {
+            from : 'comments' ,
+            localField : '_id' ,
+            foreignField : 'post' ,
+            as : 'totalComments' ,
+          }} ,
+          //bookmark status
+          {$lookup : {
+            from : 'bookmarks' ,
+            let : { postId : '$_id'} ,
+            pipeline : [
+              {$match : {
+                $expr : {
+                  $and : [
+                    {$eq : ['$post' , '$$postId']} ,
+                    {$eq : ['$user' , new ObjectId(`${userId}`)]}
+                  ]
+                }
+              }}
+            ] ,
+            as : 'userBookmark'
+          }} ,
+          {$addFields : {
+            author : { $arrayElemAt: ['$authorDetails' , 0]} ,
+            likeCount : {$size : '$likesArray'} ,
+            commentCount : {$size : '$totalComments'} ,
+            likeStatus : { $gt : [{ $size : '$userLike'} , 0 ]} ,
+            bookmarkStatus : { $gt : [{ $size : '$userBookmark'} , 0 ]} ,
+          }} ,
+          {$project : {
+            totalComments : 0 ,
+            userLike : 0 ,
+            likesArray : 0 ,
+            authorDetails : 0 ,
+            isDeleted : 0 ,
+          }}
+        ] ,
+        as : 'postDetails'
+      }
+    } ,
+    {$unwind : '$postDetails'} ,
+    {$replaceRoot : {
+      newRoot : '$postDetails'
+    }} ,
   ])
 
   ResSuccess(res , 200 , posts)
@@ -1502,6 +1609,9 @@ const increasePostViews = TryCatch (async(req , res) => {
   return ResSuccess(res ,200 , null)
 
 } , 'increasePostViews' )
+
+
+
 
 export {
   createPost ,

@@ -143,18 +143,21 @@ export default function CreateCampaignPage() {
                   Selected: 
                   {UploadPostPic.map((pic) => (
                     <span className="flex items-center  text-sm text-gray-600 dark:text-gray-400 relative h-full w-full">
-                      <img src={URL.createObjectURL(pic)} alt="" className=" min-h-16 min-w-16  h-full w-full rounded-md object-cover" />  
+                      <img src={URL.createObjectURL(pic)} alt="" className=" min-h-16 min-w-16 h-full w-full rounded-md object-cover" />  
                       <XIcon className="absolute right-2 top-2 z-50 text-white bg-gray-900/50 rounded-full" size={17} onClick={() => removePostPic(pic)} />
                     </span>
                   ))} 
                 </div>}
-                  <CampaignDummyPostCard post={{content , media : UploadPostPic.map(p => {
-                    return {
-                      url : URL.createObjectURL(p) ,
-                      public_id : p.name ,
-                      type : 'image' ,
-                    }
-                  }) }} />
+                  {content.length > 0 && (
+                    <CampaignDummyPostCard post={{content , media : UploadPostPic.map(p => {
+                      return {
+                        url : URL.createObjectURL(p) ,
+                        public_id : p.name ,
+                        type : 'image' ,
+                      }
+                    }) 
+                  }} />
+                  )}
                 {posts.map((p , i) => (
                   <CampaignDummyPostCard post={p} />
                 ))}

@@ -2,16 +2,22 @@ import mongoose from "mongoose";
 
 const advertisementSchema = new mongoose.Schema({
   posts : [{
-    _id : mongoose.Schema.Types.ObjectId ,
-    ref : 'Post' ,
+    _id : {
+      type : mongoose.Schema.Types.ObjectId ,
+      ref : 'Post'
+  } 
   }] ,
   comments : [{
-    _id : mongoose.Schema.Types.ObjectId ,
-    ref : 'Comment' ,
+    _id :{
+      type : mongoose.Schema.Types.ObjectId ,
+      ref : 'Comment'
+  } 
   }] ,
   banner : [{
-    _id : mongoose.Schema.Types.ObjectId ,
-    ref : 'AdBanner' ,
+    _id : {
+      type : mongoose.Schema.Types.ObjectId ,
+      ref : 'AdBanner'
+  } 
   }] ,
   price : {
     type : Number ,
@@ -31,6 +37,11 @@ const advertisementSchema = new mongoose.Schema({
   noTags : {
     type : Boolean ,
     default : false  
+  } ,
+  creator : {
+    type : mongoose.Schema.Types.ObjectId ,
+    ref : 'User' ,
+    required : true ,
   }
 } , {timestamps : true})
 

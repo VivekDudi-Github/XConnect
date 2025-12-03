@@ -5,10 +5,8 @@ import { dummyPosts } from "../../sampleData";
 import SearchBar from "../specific/search/SearchBar";
 
 
-const EXPLORE_TABS = ["Trending", "Hashtags", "People", "Communities", "Media"];
+const EXPLORE_TABS = ["Trending", "People", "Communities", "Media"];
 
-//add search bar to explore for search  with the explore filters.
-//Add location filter ("Trending in India", "Nearby Creators")
 //Cache trending results to reduce load
 function Explore() {
   const [activeTab, setActiveTab] = useState("Trending");
