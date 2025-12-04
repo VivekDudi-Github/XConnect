@@ -1479,8 +1479,33 @@ const fetchExplorePost = TryCatch(async(req , res) => {
 
   let skip = (page - 1) * 10 ;
   
-const cutoff = new Date(Date.now() - 6 * 3600 * 1000)
+  const cutoff = new Date(Date.now() - 6 * 3600 * 1000) ;
     
+  let posts ;
+  switch (tab) {
+    case 'Trending':
+      posts = await fetchTrending(req,res) ;
+      break;
+    case 'Media' :
+      posts = await fetchOtherPosts(req,res , tab) ;
+      break ;
+    case 'Communities' :
+      posts = await fetchOtherPosts(req,res , tab) ;
+      break ;
+    case 'people' :
+      posts = await fetchPeople(req,res) ;
+      break ;
+      default:
+        return ResError(res , 400 , 'Invalid tab option provided.') ;
+      break;
+  }
+
+  ResSuccess(res , 200 , posts)
+
+} , 'fetchExplorePosts')
+
+const fetchTrending = async() => {
+  let cutoff = new Date(Date.now() - 6 * 3600 * 1000) ;
   const posts = await Likes.aggregate([
     {
       $match : {
@@ -1595,10 +1620,149 @@ const cutoff = new Date(Date.now() - 6 * 3600 * 1000)
       newRoot : '$postDetails'
     }} ,
   ])
+  return posts ;
+}
+const fetchOtherPosts = async(req , res , tab) => {
+  const cutoff = new Date(Date.now() - 6 * 24 * 3600 * 1000) ;
+  const hastags = await Hashtag.find().sort({count : 'desc'}).limit(50) ; 
 
-  ResSuccess(res , 200 , posts)
+  let filter = [];
+  switch (tab) {
+    case 'Communities':
+      filter = [
+        {$eq : ['$type' , 'community']} ,
+      ]
+      break;
+    case 'Media':
+      filter = [
+        {$gte : [{$size : '$media'}  , 1]}
+      ]
+      break ;
+    default:
+      break;
+  }
 
-} , 'fetchExplorePosts')
+
+  const posts = await Post.aggregate([
+    {$match : {
+      createdAt : { $gte : cutoff } ,
+      isDeleted : false ,
+      ...filter ,
+      hashtags : {$in : hastags.map(h => h.name)} ,
+    }} ,
+    {$sort : {
+      engagements : 'desc' ,
+    }} ,
+    { $skip : skip} ,
+    { $limit : 10} ,
+    { $sample : {size : 10}} ,
+
+    //author details
+    { $lookup : {
+      from : 'users' ,
+      let : { userId : '$author'} ,
+      pipeline : [
+        {$match : {
+          $expr : {
+            $eq : ['$_id' , '$$userId']
+          }
+        }} ,
+        {$project: {
+          avatar : 1 ,
+          username : 1 ,
+          fullname : 1 ,
+        }}
+      ] ,
+      as : 'authorDetails'
+    }} ,
+
+    //userLike
+    {$lookup : {
+      from : 'likes' ,
+      let : { postId : '$_id'} ,
+      pipeline : [
+        {$match : {
+          $expr : {
+            $and : [
+              {$eq : ['$post' , '$$postId']} ,
+              {$eq : ['$user' , new ObjectId(`${req.user._id}`)]}
+            ]
+          }
+        }}
+      ] ,
+      as : 'userLike'
+    }} ,
+
+    //totalLike
+    {$lookup : {
+      from : 'likes' ,
+      localField : '_id' ,
+      foreignField : 'post' ,
+      as : 'totalLike' ,
+    }} ,
+
+    //totalComments
+    {$lookup : {
+      from : 'comments' ,
+      localField : '_id' ,
+      foreignField : 'post' ,
+      as : 'totalComments' ,
+    }} ,
+
+    //community name
+    {$lookup : {
+        from : 'communities' ,
+        let : { communityId : '$community'} ,
+        pipeline : [
+          {$match : {
+            $expr : {
+              $eq : ['$_id' , '$$communityId']
+            }
+          }} ,
+          {$project: {
+            name : 1 ,
+          }}
+        ] ,
+        as : 'communityDetails'
+      }
+    } ,
+
+    {$addFields : {
+      author : '$authorDetails' ,
+      likeStatus : { $gt : [{ $size : '$userLike'} , 0 ]}  ,
+      likeCount : {$size : '$totalLike'} ,
+      commentCount : {$size : '$totalComments'} ,
+      community : {$arrayElemAt : ['$communityDetails.name' , 0]} ,
+      communityId : {$arrayElemAt : ['$communityDetails._id' , 0]} ,
+      totalComments : {$size : '$totalComments'} ,
+    }} , 
+
+    {$unwind: {path: '$author',preserveNullAndEmptyArrays: true} } ,
+    
+    {$project : {
+      authorDetails : 0 ,
+      totalLike : 0 ,
+      userLike : 0 ,
+      communityFollowIds : 0 ,
+      userFollowIds : 0 ,
+      communityDetails : 0 ,
+      isDeleted : 0 ,
+      UsersFollowing : 0 ,
+      isPinned : 0
+    }}
+
+  ])
+  return posts ;
+}
+const fetchPeople = async(req ,res) => {
+  const cutoff = new Date(Date.now() - 6 * 24 * 3600 * 1000) ;
+
+  const results = await Following.aggregate([
+    {$match : {
+      
+    }} ,
+    ])
+}
 
 const increasePostViews = TryCatch (async(req , res) => {
   const {id} = req.params ;
