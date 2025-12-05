@@ -1504,8 +1504,9 @@ const fetchExplorePost = TryCatch(async(req , res) => {
 
 } , 'fetchExplorePosts')
 
-const fetchTrending = async() => {
+const fetchTrending = async(req, res) => {
   let cutoff = new Date(Date.now() - 6 * 3600 * 1000) ;
+  const userId = req.user._id ;
   const posts = await Likes.aggregate([
     {
       $match : {
@@ -1756,12 +1757,74 @@ const fetchOtherPosts = async(req , res , tab) => {
 }
 const fetchPeople = async(req ,res) => {
   const cutoff = new Date(Date.now() - 6 * 24 * 3600 * 1000) ;
+  const userId = req.user._id ;
 
   const results = await Following.aggregate([
     {$match : {
-      
+      createdAt : { $gte : cutoff } , 
     }} ,
+    {$group : {
+        _id : '$followedTo' ,
+        followerCount : { $sum : 1 } ,
+    }} ,
+    {$sort : {
+      followerCount : -1
+    }} ,
+    { $skip : skip} ,
+    { $limit : 10} ,
+    { $sample : {size : 10}} ,
+    {$lookup : {
+      from : 'users' ,
+      let :  {userId : '$_id'} ,
+      pipeline : [
+        {$match : {
+          $expr : {
+            $eq : ['$_id' , '$$userId']
+          }
+        }} ,
+        // isFollowing Stasus
+        {$lookup : {
+          from : 'followings' ,
+          let : {personId : '$_id'} ,
+          pipeline : [
+            {$match : {
+              $expr : {
+                $eq : ['$followedBy' , new ObjectId(`${userId}`) ] , 
+                $eq : ['$followedTo' , '$$personId']
+              }}
+            } ,
+            { $project: { _id: 0, followedTo: 1 } }  
+          ] ,
+          as : 'IsFollowing' ,
+        }} ,
+        //following count
+        {$lookup : {
+          from : 'followings' ,
+          localField : '_id' ,
+          foreignField : 'followedTo' ,
+          as : "followingCount"
+        }} ,
+        {$addFields : {
+          isFollowing : {$gt : [{$size : '$IsFollowing'} , 0 ]} ,
+          followers : {$size : '$followingCount'} ,
+        }} ,
+        {$project : {
+          avatar : 1 ,
+          username : 1 ,
+          fullname : 1 ,
+          bio : 1 ,
+          isFollowing : 0 ,
+          followingCount : 0 ,
+        }}
+      ] ,
+      as : 'userDetails' ,
+    }} ,
+    {$project : {
+      followers : 0 ,
+      _id : 0 ,
+    }}
     ])
+    return results ;
 }
 
 const increasePostViews = TryCatch (async(req , res) => {

@@ -1,6 +1,7 @@
 import {TryCatch , ResError , ResSuccess} from '../utils/extra.js'
 
 import { User } from '../models/user.model.js'
+import { Post } from '../models/post.model.js';
 
 const search = TryCatch(async (req , res) => {
   const {q ,page = 1 ,limit = 20 } = req.params ;
@@ -8,6 +9,7 @@ const search = TryCatch(async (req , res) => {
   
   let skip = (page -1) * limit ;
 
+  const posts = await Post.find({$text : {$search : q}}) ;
   const users = await User.find({$text : {$search : q}}) ;
 
   return ResSuccess( res , 200 , {users })
