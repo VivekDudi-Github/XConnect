@@ -111,5 +111,6 @@ postSchema.query.NoDelete = function() {
   return this.where({ isDeleted : false})
 }
 
+postSchema.index({ content : 'text' , hashtags : 'text' , title : 'text' , category : 'text' } , { weights : { title : 5 , category : 3 , content : 1 , hashtags : 2 }})
 
 export const Post = mongoose.model("Post", postSchema);
