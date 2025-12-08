@@ -5,7 +5,7 @@ import { Post } from '../models/post.model.js';
 import { Community } from '../models/community.model.js';
 
 const searchBarsearch = TryCatch(async (req , res) => {
-  const {q ,page = 1 ,limit = 20 } = req.params ;
+  const {q ,page = 1 ,limit = 20 } = req.query ;
   if(!q) return ResError(res , 400 , 'Search query is required')
   //search - post -> content , hashtags , title ,
   //search - user -> username 
@@ -48,10 +48,10 @@ const searchBarsearch = TryCatch(async (req , res) => {
       name : 1 ,
     }} ,
     {$limit : 10}
-  ]) ;
+  ])
 
-  const bySearchCommunities = await getSearchCommunities(true) ;
-  const bySearchUsers = await getSearchUsers(true) ;
+  const bySearchCommunities = await getSearchCommunities(q , '' , '' ,true) ;
+  const bySearchUsers = await getSearchUsers(q, '' , '' ,true) ;
 
   return ResSuccess( res , 200 , {autocomplete : {users , communities} , users : bySearchUsers , communities : bySearchCommunities , page , limit})
 } , 'search')
@@ -297,6 +297,7 @@ const searchUsers = TryCatch(async(req ,res) => {
 } , 'searchUsers')
 
 export {
-  search , 
+  searchBarsearch,
+  normalSearch , 
   searchUsers ,
 }

@@ -1,6 +1,7 @@
+import { useEffect } from "react";
 import { useState } from "react";
 
-export default function SearchBar({ onSearch , addResults }) {
+export default function SearchBar({ onSearch , onQueryChange , addResults , addQuery }) {
   const [query, setQuery] = useState("");
   const [results , setResults] = useState() ;
 
@@ -10,7 +11,19 @@ export default function SearchBar({ onSearch , addResults }) {
       onSearch(query.trim());
     }
   };
-  
+
+  useEffect(() => {
+    if(query.trim() && onQueryChange){
+      onQueryChange(query.trim()) ;
+    }
+  } , [query])
+
+  useEffect(() => {
+    if(addQuery){
+      setQuery(addQuery)
+    }
+  } , [addQuery])
+
   return (
     <form
       onSubmit={handleSearch}
@@ -18,7 +31,7 @@ export default function SearchBar({ onSearch , addResults }) {
     >
       <input
         type="text"
-        value={query}
+        value={query} 
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search anything..."
         className="flex-grow outline-none text-sm text-gray-700  "

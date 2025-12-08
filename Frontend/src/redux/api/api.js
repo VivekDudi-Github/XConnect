@@ -330,6 +330,13 @@ const api = createApi({
         method : 'GET' ,
         credentials : 'include'
       })
+    }) ,
+    searchBar : builder.mutation({
+      query : ({q}) => ({
+        url : '/search/searchbar/'+'?q='+q ,
+        method : 'POST' ,
+        credentials : 'include' ,
+      })
     })
   })
 })
@@ -406,4 +413,5 @@ export const {
 
   //search
   useLazySearchUsersQuery ,
+  useSearchBarMutation ,
 } = api ;
