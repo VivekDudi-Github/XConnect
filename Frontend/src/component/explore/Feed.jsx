@@ -50,7 +50,6 @@ function Feed() {
   useEffect(() => {
     if(data && data.data){
       if(data.data.length === 0) setPause(true) ;
-      console.log(data.data);
       
       setPosts(prev => [...prev , ...data.data]) ;
       setPage(prev => prev + 1)
@@ -72,6 +71,7 @@ function Feed() {
     }
   } , [isError , error])
 
+  
   return (
     <div className="max-w-3xl mx-auto mt-4 px-2 sm:px-0 dark:bg-black  rounded-xl ">
       <h1 className="text-2xl font-semibold mb-4">Your Feed</h1>

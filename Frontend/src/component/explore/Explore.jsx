@@ -10,20 +10,20 @@ import { toast } from "react-toastify";
 const EXPLORE_TABS = ["Trending", "People", "Communities", "Media"];
 const autoComplete = ["#technology", "#art", "#science", "#music", "#travel", "#fitness"];
 const users = [
-  { id: 1, name: "John Doe", username: "johndoe", avatar: "https://i.pravatar.cc/150?img=1" },
-  { id: 2, name: "Jane Smith", username: "janesmith", avatar: "https://i.pravatar.cc/150?img=2" },
-  { id: 3, name: "Mike Johnson", username: "mikejohnson", avatar: "https://i.pravatar.cc/150?img=3" },
-  { id: 1, name: "John Doe", username: "johndoe", avatar: "https://i.pravatar.cc/150?img=1" },
-  { id: 2, name: "Jane Smith", username: "janesmith", avatar: "https://i.pravatar.cc/150?img=2" },
-  { id: 3, name: "Mike Johnson", username: "mikejohnson", avatar: "https://i.pravatar.cc/150?img=3" },
-  { id: 1, name: "John Doe", username: "johndoe", avatar: "https://i.pravatar.cc/150?img=1" },
-  { id: 2, name: "Jane Smith", username: "janesmith", avatar: "https://i.pravatar.cc/150?img=2" },
-  { id: 3, name: "Mike Johnson", username: "mikejohnson", avatar: "https://i.pravatar.cc/150?img=4" },
+  // { id: 1, name: "John Doe", username: "johndoe", avatar: "https://i.pravatar.cc/150?img=1" },
+  // { id: 2, name: "Jane Smith", username: "janesmith", avatar: "https://i.pravatar.cc/150?img=2" },
+  // { id: 3, name: "Mike Johnson", username: "mikejohnson", avatar: "https://i.pravatar.cc/150?img=3" },
+  // { id: 1, name: "John Doe", username: "johndoe", avatar: "https://i.pravatar.cc/150?img=1" },
+  // { id: 2, name: "Jane Smith", username: "janesmith", avatar: "https://i.pravatar.cc/150?img=2" },
+  // { id: 3, name: "Mike Johnson", username: "mikejohnson", avatar: "https://i.pravatar.cc/150?img=3" },
+  // { id: 1, name: "John Doe", username: "johndoe", avatar: "https://i.pravatar.cc/150?img=1" },
+  // { id: 2, name: "Jane Smith", username: "janesmith", avatar: "https://i.pravatar.cc/150?img=2" },
+  // { id: 3, name: "Mike Johnson", username: "mikejohnson", avatar: "https://i.pravatar.cc/150?img=4" },
 ]
 const communities = [
-  {id : 1 , name : 'Tech' , avatar : 'https://i.pravatar.cc/150?img=5' , banner : 'https://i.pravatar.cc/150?img=1' , description : 'Technology is the lifeblood of our society.' , followers : 100 } ,
-  {id : 2 , name : 'Tech' , avatar : 'https://i.pravatar.cc/150?img=4' , banner : 'https://i.pravatar.cc/150?img=1' , description : 'Technology is the lifeblood of our society.' , followers : 100 } ,
-  {id : 3 , name : 'Tech' , avatar : 'https://i.pravatar.cc/150?img=9' , banner : 'https://i.pravatar.cc/150?img=1' , description : 'Technology is the lifeblood of our society.' , followers : 100 } ,
+  // {id : 1 , name : 'Tech' , avatar : 'https://i.pravatar.cc/150?img=5' , banner : 'https://i.pravatar.cc/150?img=1' , description : 'Technology is the lifeblood of our society.' , followers : 100 } ,
+  // {id : 2 , name : 'Tech' , avatar : 'https://i.pravatar.cc/150?img=4' , banner : 'https://i.pravatar.cc/150?img=1' , description : 'Technology is the lifeblood of our society.' , followers : 100 } ,
+  // {id : 3 , name : 'Tech' , avatar : 'https://i.pravatar.cc/150?img=9' , banner : 'https://i.pravatar.cc/150?img=1' , description : 'Technology is the lifeblood of our society.' , followers : 100 } ,
 ]
 
 //Cache trending results to reduce load
@@ -36,6 +36,7 @@ function Explore() {
   const [loading, setLoading] = useState(false);
 
   const [searchResults , setSearchResults] = useState(null) ;
+  const [suggestionsBox , setSuggestionsBox] = useState(false) ;
 
   const [fetchSuggestions] = useSearchBarMutation() ;
 
@@ -51,6 +52,11 @@ function Explore() {
     }
   }
 
+  const showSuggestions = (isActive) => {
+    console.log(isActive);
+      setSuggestionsBox(isActive)
+  }
+  console.log(suggestionsBox , suggestiveQuery);
   
 
   return (
@@ -58,9 +64,10 @@ function Explore() {
 
       <div className=" flex flex-col gap-4 w-full">
         <div className="w-full relative text-black">
-          <SearchBar onSearch={() => {}} onQueryChange={onQueryChange} addQuery={suggestiveQuery}/>
+          <SearchBar onSearch={() => {}} onQueryChange={onQueryChange} addQuery={suggestiveQuery} showSuggestions={showSuggestions} isActiveSuggestions={suggestionsBox}/>
+          {suggestionsBox && (
           <div className="bg-white shadow-md rounded-xl max-h-96  max-w-xl mx-auto absolute top-12 left-0 right-0 z-10 shadowLight overflow-auto">
-            {users.length && 'users :'}
+            {users.length > 0 && 'users :'}
             <div className="flex gap-1 mb-2 overflow-x-auto w-full ">  
               {users.length > 0 && users.map((user) => (
                 <div title={'@'+user.username} className="h-16 w-16 text-sm text-black border-b flex-shrink-0 p-1 rounded-md border-1 border-slate-400 hover:bg-slate-300  overflow-hidden" key={user.id} > 
@@ -82,11 +89,11 @@ function Explore() {
               ))}
             </div>
             {autoComplete.map( item => (
-              <div onClick={() =>setSuggestiveQuery(item)} className="text-sm text-black border-b mx-2 border-slate-300 p-2 hover:bg-slate-300 duration-200" key={item} >
+              <div onClick={() => setSuggestiveQuery(item)} className="text-sm text-black border-b mx-2 border-slate-300 p-2 hover:bg-slate-300 duration-200" key={item} >
                 {item}
               </div>  
             ))}
-          </div>
+          </div>)}
         </div>
 
         <h2 className="text-xl font-semibold">

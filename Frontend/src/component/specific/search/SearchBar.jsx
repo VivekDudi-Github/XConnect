@@ -1,9 +1,10 @@
 import { useEffect } from "react";
 import { useState } from "react";
 
-export default function SearchBar({ onSearch , onQueryChange , addResults , addQuery }) {
+export default function SearchBar({ onSearch , onQueryChange , addResults , addQuery , showSuggestions , isActiveSuggestions}) {
   const [query, setQuery] = useState("");
   const [results , setResults] = useState() ;
+  const [isActive , setIsActive] = useState(false) ;
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -14,15 +15,25 @@ export default function SearchBar({ onSearch , onQueryChange , addResults , addQ
 
   useEffect(() => {
     if(query.trim() && onQueryChange){
-      onQueryChange(query.trim()) ;
+      // onQueryChange(query.trim()) ;
+      showSuggestions(true)
     }
   } , [query])
 
   useEffect(() => {
     if(addQuery){
-      setQuery(addQuery)
+      setQuery(addQuery) ;
+      // setIsActive(true) ;
     }
   } , [addQuery])
+
+  useEffect(() => {
+    if(showSuggestions) showSuggestions(isActive) ;
+  } , [isActive])
+
+  useEffect(() => {
+    setIsActive(isActiveSuggestions)
+  } , [isActiveSuggestions])
 
   return (
     <form
@@ -31,6 +42,8 @@ export default function SearchBar({ onSearch , onQueryChange , addResults , addQ
     >
       <input
         type="text"
+        onFocus={() => setIsActive(true)}
+        onBlur={() => setTimeout(() => setIsActive(false) , 500)}
         value={query} 
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search anything..."
