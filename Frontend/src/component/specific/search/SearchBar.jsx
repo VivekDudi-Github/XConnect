@@ -1,7 +1,8 @@
+import { LoaderCircleIcon } from "lucide-react";
 import { useEffect } from "react";
 import { useState } from "react";
 
-export default function SearchBar({ onSearch , onQueryChange , addResults , addQuery , showSuggestions , isActiveSuggestions}) {
+export default function SearchBar({ onSearch , onQueryChange , addResults , addQuery , showSuggestions , isActiveSuggestions , isLoading}) {
   const [query, setQuery] = useState("");
   const [results , setResults] = useState() ;
   const [isActive , setIsActive] = useState(false) ;
@@ -15,7 +16,7 @@ export default function SearchBar({ onSearch , onQueryChange , addResults , addQ
 
   useEffect(() => {
     if(query.trim() && onQueryChange){
-      // onQueryChange(query.trim()) ;
+      onQueryChange(query.trim()) ;
       showSuggestions(true)
     }
   } , [query])
@@ -45,12 +46,14 @@ export default function SearchBar({ onSearch , onQueryChange , addResults , addQ
         onFocus={() => setIsActive(true)}
         onBlur={() => setTimeout(() => setIsActive(false) , 500)}
         value={query} 
+        disabled={isLoading}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search anything..."
         className="flex-grow outline-none text-sm text-gray-700  "
       />
-      <button type="submit" className="text-blue-600 font-medium px-3 hover:text-black">
+      <button type="submit" className={`text-blue-600 font-medium px-3  duration-200 relative ${isLoading ? "text-white" : "hover:text-black"}`}>
         Search
+        {isLoading && <LoaderCircleIcon size={17}  className="animate-spin duration-200 absolute inset-0  m-auto text-black" />}
       </button>
     </form>
   );

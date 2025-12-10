@@ -26,10 +26,13 @@ const searchBarsearch = TryCatch(async (req , res) => {
         }
       }
     }} ,
+    {$limit : 10} ,
+    {$addFields : {
+      name : '$username' ,
+    }} ,
     {$project : {
-      username : 1 ,
+      name : 1 ,
     }} , 
-    {$limit : 10}
   ])
 
   const communities = await Community.aggregate([
@@ -45,15 +48,13 @@ const searchBarsearch = TryCatch(async (req , res) => {
       }
     }} , 
     {$project : {
+      _id : 0 ,
       name : 1 ,
     }} ,
     {$limit : 10}
   ])
-
-  const bySearchCommunities = await getSearchCommunities(q , '' , '' ,true) ;
-  const bySearchUsers = await getSearchUsers(q, '' , '' ,true) ;
-
-  return ResSuccess( res , 200 , {autocomplete : {users , communities} , users : bySearchUsers , communities : bySearchCommunities , page , limit})
+  
+  return ResSuccess( res , 200 , {autocomplete : {users , communities}})
 } , 'search')
 
 const getSearchPosts = async(q , skip , limit) => {
@@ -149,19 +150,12 @@ const getSearchPosts = async(q , skip , limit) => {
   return posts ;
 }
 
-const getSearchUsers = async(q , skip , limit ,isSearchBar) => {
-  let skipFilter = [] ;
-  if(isSearchBar){
-    skipFilter.push({$limit : 10}) ;
-  }else {
-    skipFilter.push({$skip : skip}) ;
-    skipFilter.push({$limit : limit}) ;
-  }
+const getSearchUsers = async(q , skip , limit ) => {
   
   const users = await User.aggregate([
     {$search : {
       index : 'autocomplete_users' ,
-      text : {
+      autocomplete : {
         query : q ,
         path : 'username' ,
         fuzzy : {
@@ -170,8 +164,9 @@ const getSearchUsers = async(q , skip , limit ,isSearchBar) => {
         }
       }
     }} ,
-    ...skipFilter ,
-    //isFollwing
+    {$skip : skip} ,
+    {$limit : limit} ,
+    // isFollwing
     {$lookup : {
       from : 'followings' ,
       let : {userId : '$_id'} ,
@@ -185,7 +180,7 @@ const getSearchUsers = async(q , skip , limit ,isSearchBar) => {
       ] ,
       as : 'followings' ,
     }} ,
-    //totalFollowers
+    // totalFollowers
     {$lookup : {
       from : 'followers' , 
       localField : '_id' ,
@@ -208,59 +203,75 @@ const getSearchUsers = async(q , skip , limit ,isSearchBar) => {
   return users ;
 }
 
-const getSearchCommunities = async(q , skip, limit , isSearchBar) => {
-  let skipFilter = [] ;
-  if(isSearchBar){
-    skipFilter.push({$limit : 10}) ;
-  }else {
-    skipFilter.push({$skip : skip}) ;
-    skipFilter.push({$limit : limit}) ;
-  }
-  
-  let projections = [] ;
-
-  if(isSearchBar){
-    projections.push({
-      name : 1 ,
-      avatar : 1 ,
-    }) ;
-  }else { 
-    projections.push({
-      name : 1 ,
-      avatar : 1 ,
-      banner : 1 ,
-      description : 1 ,
-    }) ;
-  }
+const getSearchCommunities = async(q , skip, limit , userId ) => {
 
   const communities = await Community.aggregate([
     {$search : {
       index : 'communities' ,
       text : {
         query : q ,
-        path : 'name' ,
+        path : 'description' ,
         fuzzy : {
           maxEdits : 2 ,
           prefixLength : 2 ,
         }
       }
     }} ,
-    ...skipFilter ,
+    {$skip : skip} ,
+    {$limit : limit} ,
+    //isFollowing
+    {$lookup : {
+      from : 'followings' ,
+      let : {userId : new ObjectId(`${userId}`)} ,
+      pipeline : [
+        {$match : {$expr : {
+          $eq : ['$followedBy' , '$$userId'] ,
+          $eq : ['$followingCommunity' , '$_id']}
+        }} 
+      ] ,
+      as : 'followings' ,
+    }} ,
+    {$addFields : {
+      isFollowing : {$gt : [{$size : '$followings'} , 0]}
+    }} ,
     {$project : {
-      ...projections[0] ,
+      name : 1 ,
+      avatar : 1 ,
+      banner : 1 ,
+      description : 1 ,
+      isFollowing : 1 ,
+      followings : 0 ,
     }}
   ])
 
   return communities ;
 }
 
-
-
-
 const normalSearch = TryCatch(async (req,res) => {
+  const {q , page = 1 } = req.query ;
+  if(!q) return ResError(res , 400 , 'Search query is required') ;
+
+  let skip = (page -1) * 5 ;
+
+  const userResults = await getSearchUsers(q , skip , 5) ;
+  const postResults = await getSearchPosts(q , skip , 5) ;
+  const communityResults = await getSearchCommunities(q , skip , 5 , req.user._id) ;
+
+  return ResSuccess(
+    res , 200 , {
+      userResults ,
+      postResults ,
+      communityResults ,
+    }
+  )
 
 } , 'normalSearch')
 
+const continueSearchUsers = TryCatch(async(req ,res) => {} , 'continueSearchUsers')
+
+const continueSearchCommunities = TryCatch(async(req ,res) => {} , 'continueSearchCommunities')
+
+const continueSearchPosts = TryCatch(async(req ,res) => {} , 'continueSearchPosts')
 
 const searchUsers = TryCatch(async(req ,res) => {
   const {q ,page = 1 ,limit = 20 } = req.query ;
@@ -300,4 +311,8 @@ export {
   searchBarsearch,
   normalSearch , 
   searchUsers ,
+
+  continueSearchUsers ,
+  continueSearchCommunities , 
+  continueSearchPosts ,
 }

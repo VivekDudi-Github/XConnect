@@ -7,9 +7,9 @@ import { useSearchBarMutation } from "../../redux/api/api";
 import { toast } from "react-toastify";
 
 
-const EXPLORE_TABS = ["Trending", "People", "Communities", "Media"];
-const autoComplete = ["#technology", "#art", "#science", "#music", "#travel", "#fitness"];
-const users = [
+const EXPLORE_TABS = ["Trending", "People", "Communities", "Media" , "Search"];
+// const autoComplete = ["#technology", "#art", "#science", "#music", "#travel", "#fitness"];
+const auto_users = [
   // { id: 1, name: "John Doe", username: "johndoe", avatar: "https://i.pravatar.cc/150?img=1" },
   // { id: 2, name: "Jane Smith", username: "janesmith", avatar: "https://i.pravatar.cc/150?img=2" },
   // { id: 3, name: "Mike Johnson", username: "mikejohnson", avatar: "https://i.pravatar.cc/150?img=3" },
@@ -20,7 +20,7 @@ const users = [
   // { id: 2, name: "Jane Smith", username: "janesmith", avatar: "https://i.pravatar.cc/150?img=2" },
   // { id: 3, name: "Mike Johnson", username: "mikejohnson", avatar: "https://i.pravatar.cc/150?img=4" },
 ]
-const communities = [
+const auto_communities = [
   // {id : 1 , name : 'Tech' , avatar : 'https://i.pravatar.cc/150?img=5' , banner : 'https://i.pravatar.cc/150?img=1' , description : 'Technology is the lifeblood of our society.' , followers : 100 } ,
   // {id : 2 , name : 'Tech' , avatar : 'https://i.pravatar.cc/150?img=4' , banner : 'https://i.pravatar.cc/150?img=1' , description : 'Technology is the lifeblood of our society.' , followers : 100 } ,
   // {id : 3 , name : 'Tech' , avatar : 'https://i.pravatar.cc/150?img=9' , banner : 'https://i.pravatar.cc/150?img=1' , description : 'Technology is the lifeblood of our society.' , followers : 100 } ,
@@ -35,20 +35,62 @@ function Explore() {
   const [suggestedUsers, setSuggestedUsers] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const [autoComplete , setAutoComplete] = useState([]) ; 
+
   const [searchResults , setSearchResults] = useState(null) ;
+  const [searchLoading , setSearchLoading] = useState(false) ;
+  
+  const [searchResultsPage , setSearchResultsPage] = useState(1) ;
+  const [searchResultsTotalPages , setSearchResultsTotalPages] = useState(1) ;
+
+  const [searchUsers , setSearchUsers] = useState([]) ;
+  const [searchUsersPage , setSearchUsersPage] = useState(1) ;
+  const [searchUsersTotalPages , setSearchUsersTotalPages] = useState(1) ;
+
+  const [searchCommunities , setSearchCommunities] = useState([]) ;
+  const [searchCommunitiesPage , setSearchCommunitiesPage] = useState(1) ;
+  const [searchCommunitiesTotalPages , setSearchCommunitiesTotalPages] = useState(1) ;
+
   const [suggestionsBox , setSuggestionsBox] = useState(false) ;
 
+
+  
   const [fetchSuggestions] = useSearchBarMutation() ;
+  const [fetchSearchResults] = useSearchBarMutation() ;
+
+  
 
   if (loading) return <Loader message={'Loading...'}/>;
 
   const onQueryChange = async(q) => {
     try {
       const res = await fetchSuggestions({q : q}).unwrap() ; 
-      if(res.data) console.log(res.data) ;
+      if(res.data) {
+        console.log(res.data);
+        setAutoComplete([...res.data.autocomplete.communities , ...res.data.autocomplete.users]) ;
+      }
     } catch (error) {
       console.log(error);
       toast.error(error.message || 'Failed to fetch suggestions') ;
+    }
+  }
+
+  const onSearch = async(q) => {
+    setSearchLoading(true) ;
+    try {
+      setActiveTab('Search') ;
+      resetSearch() ;
+      const res = await fetchSearchResults({q : q}).unwrap() ; 
+      if(res.data) {
+        setSearchResults(res.data.results) ;
+        setSearchResultsPage(res.data.page) ;
+        setSearchResultsTotalPages(res.data.totalPages) ;
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error.message || 'Failed to fetch suggestions') ;
+    } finally {
+      setSearchLoading(false) ;
     }
   }
 
@@ -56,7 +98,21 @@ function Explore() {
     console.log(isActive);
       setSuggestionsBox(isActive)
   }
-  console.log(suggestionsBox , suggestiveQuery);
+
+  const resetSearch = () => {
+    setSearchResults(null) ;
+    setSearchUsers(null) ;
+    setSearchCommunities(null) ;
+
+    setSearchResultsPage(1) ;
+    setSearchUsersPage(1) ;
+    setSearchCommunitiesPage(1) ;
+    
+    setSearchResultsTotalPages(1) ;
+    setSearchUsersTotalPages(1) ;
+    setSearchCommunitiesTotalPages(1) ;
+  }
+
   
 
   return (
@@ -64,33 +120,12 @@ function Explore() {
 
       <div className=" flex flex-col gap-4 w-full">
         <div className="w-full relative text-black">
-          <SearchBar onSearch={() => {}} onQueryChange={onQueryChange} addQuery={suggestiveQuery} showSuggestions={showSuggestions} isActiveSuggestions={suggestionsBox}/>
-          {suggestionsBox && (
-          <div className="bg-white shadow-md rounded-xl max-h-96  max-w-xl mx-auto absolute top-12 left-0 right-0 z-10 shadowLight overflow-auto">
-            {users.length > 0 && 'users :'}
-            <div className="flex gap-1 mb-2 overflow-x-auto w-full ">  
-              {users.length > 0 && users.map((user) => (
-                <div title={'@'+user.username} className="h-16 w-16 text-sm text-black border-b flex-shrink-0 p-1 rounded-md border-1 border-slate-400 hover:bg-slate-300  overflow-hidden" key={user.id} > 
-                  <img src={user.avatar} alt="" className="w-10 h-10 rounded-full object-cover mx-auto" />
-                  <span className=" text-sm " >@{user.username}</span>
-                </div>
-              ))}
-            </div>
-            {communities.length > 0 && 'communities :'}
-            <div className="flex gap-1 mb-1 overflow-x-auto">
-              {communities.length > 0 && communities.map((c) => (
-                <div title={c.name} className="h-20 w-20 text-sm text-black border-b p-1 rounded-md border-1 border-red-400 hover:bg-slate-300  overflow-hidden" key={c.id} > 
-                  <img src={c.avatar} alt="" className="w-10 h-10 rounded-xl object-cover mx-auto" />
-                  <div>
-                    <div className=" text-xs text-center " >{c.name}</div>
-                    <div className=" text-xs " >Joined:{c.followers}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            {autoComplete.map( item => (
-              <div onClick={() => setSuggestiveQuery(item)} className="text-sm text-black border-b mx-2 border-slate-300 p-2 hover:bg-slate-300 duration-200" key={item} >
-                {item}
+          <SearchBar onSearch={onSearch} onQueryChange={onQueryChange} addQuery={suggestiveQuery} showSuggestions={showSuggestions} isActiveSuggestions={suggestionsBox} isLoading={searchLoading}/>
+          {suggestionsBox && autoComplete.length >0  && ( 
+          <div className="bg-white shadow-md rounded-xl max-h-96  max-w-xl mx-auto absolute top-12 left-0 right-0 z-10 shadowLight overflow-auto duration-200">
+            {autoComplete.length > 0 && autoComplete.map( item => (
+              <div onClick={() => setSuggestiveQuery(item.name)} className="text-sm text-black border-b mx-2 border-slate-300 p-2 hover:bg-slate-300 duration-200" key={item} >
+                {item.name}
               </div>  
             ))}
           </div>)}
@@ -117,11 +152,13 @@ function Explore() {
             ))}
           </div>
         
-        <div className="w-full mt-6 columns-1 sm:columns-2 lg:columns-3 gap-4 max-w-6xl">
-          {dummyPosts.map(post => (
-            <PostCard key={post.id} post={post} />
-          ))}
-        </div>
+        {activeTab !== 'Search' ? (
+          <div className="w-full mt-6 columns-1 sm:columns-2 lg:columns-3 gap-4 max-w-6xl">
+            {dummyPosts.map(post => (
+              <PostCard key={post.id} post={post} />
+            ))}
+          </div> ): null 
+        }
       </div>
 
 

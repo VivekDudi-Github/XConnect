@@ -68,7 +68,7 @@ useEffect(() => {
 
 useEffect(() => {
   if(isError){
-    toast.error(`Error fetching posts: ${error.data.message || 'Something went wrong while fetching posts.'}`) ;
+    toast.error(`Error fetching posts: ${error?.data?.message || 'Something went wrong while fetching posts.'}`) ;
     console.error('Error fetching posts:', error);
   }
 } , [isError]) ;
