@@ -336,8 +336,14 @@ const api = createApi({
         url : '/search/searchbar/'+'?q='+q ,
         method : 'POST' ,
         credentials : 'include' ,
+      }) , 
+    }) ,
+     continueSearch : builder.query({
+      query : ({q , page , tab}) => ({
+        url : '/search/continue/' +'?q='+q +'?page=' +page + '?tab=' + tab ,
+        credentials : 'include'
       })
-    })
+    }) ,
   })
 })
 
@@ -414,4 +420,5 @@ export const {
   //search
   useLazySearchUsersQuery ,
   useSearchBarMutation ,
+  useLazyContinueSearchQuery ,
 } = api ;

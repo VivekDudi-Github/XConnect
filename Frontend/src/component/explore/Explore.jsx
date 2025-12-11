@@ -5,28 +5,36 @@ import { dummyPosts } from "../../sampleData";
 import SearchBar from "../specific/search/SearchBar";
 import { useSearchBarMutation } from "../../redux/api/api";
 import { toast } from "react-toastify";
+import { data } from "react-router-dom";
+import {SearchUserCard , SearchUserCardSkeleton} from "../shared/SearchUserCard";
+import SearchCommunityCard from "../shared/SearchCommunityCard";
 
 
-const EXPLORE_TABS = ["Trending", "People", "Communities", "Media" , "Search"];
+const EXPLORE_TABS = ["Trending", "People", "Communities", "Media" , "Results"];
 // const autoComplete = ["#technology", "#art", "#science", "#music", "#travel", "#fitness"];
-const auto_users = [
-  // { id: 1, name: "John Doe", username: "johndoe", avatar: "https://i.pravatar.cc/150?img=1" },
-  // { id: 2, name: "Jane Smith", username: "janesmith", avatar: "https://i.pravatar.cc/150?img=2" },
-  // { id: 3, name: "Mike Johnson", username: "mikejohnson", avatar: "https://i.pravatar.cc/150?img=3" },
-  // { id: 1, name: "John Doe", username: "johndoe", avatar: "https://i.pravatar.cc/150?img=1" },
-  // { id: 2, name: "Jane Smith", username: "janesmith", avatar: "https://i.pravatar.cc/150?img=2" },
-  // { id: 3, name: "Mike Johnson", username: "mikejohnson", avatar: "https://i.pravatar.cc/150?img=3" },
-  // { id: 1, name: "John Doe", username: "johndoe", avatar: "https://i.pravatar.cc/150?img=1" },
-  // { id: 2, name: "Jane Smith", username: "janesmith", avatar: "https://i.pravatar.cc/150?img=2" },
-  // { id: 3, name: "Mike Johnson", username: "mikejohnson", avatar: "https://i.pravatar.cc/150?img=4" },
-]
+const searchUsersDummy = [
+  //username , avatar , isFollowing , totalFollowers , fullname
+  { id: 1, username: "johndoe", avatar: {url :"https://i.pravatar.cc/150?img=1"} , isFollowing : true , totalFollowers : 100 , fullname : "John Doe" },
+  { id: 2, username: "janesmith", avatar: {url : "https://i.pravatar.cc/150?img=2"} , isFollowing : true , totalFollowers : 5865 , fullname : "Jane Smith" },
+  { id: 3, username: "mikejohnson", avatar: {url : "https://i.pravatar.cc/150?img=3"} , isFollowing : true , totalFollowers : 1200 , fullname : "Mike Johnson" },
+  { id: 4, username: "johndoe", avatar: {url : "https://i.pravatar.cc/150?img=4"} , isFollowing : false , totalFollowers : 12 , fullname : "John Doe" },
+  { id: 5, username: "janesmith", avatar: {url : "https://i.pravatar.cc/150?img=5"} , isFollowing : false , totalFollowers : 100 , fullname : "Jane Smith" },
+  ]
 const auto_communities = [
-  // {id : 1 , name : 'Tech' , avatar : 'https://i.pravatar.cc/150?img=5' , banner : 'https://i.pravatar.cc/150?img=1' , description : 'Technology is the lifeblood of our society.' , followers : 100 } ,
-  // {id : 2 , name : 'Tech' , avatar : 'https://i.pravatar.cc/150?img=4' , banner : 'https://i.pravatar.cc/150?img=1' , description : 'Technology is the lifeblood of our society.' , followers : 100 } ,
-  // {id : 3 , name : 'Tech' , avatar : 'https://i.pravatar.cc/150?img=9' , banner : 'https://i.pravatar.cc/150?img=1' , description : 'Technology is the lifeblood of our society.' , followers : 100 } ,
+  // name , avatar , banner , isFollowing , totalFollowers , description  
+  { id : 1 , name : 'Tech' , isFollowing : true  , avatar : {url :'https://i.pravatar.cc/150?img=5'} , banner : {url :'https://i.pravatar.cc/150?img=1'} , description : 'Technology is the lifeblood of our society.' , followers : 100 , tagline : 'Technology is the lifeblood of our society.' } ,
+  { id : 2 , name : 'Art'  , isFollowing : false , avatar : {url :'https://i.pravatar.cc/150?img=9'} , banner : {url : 'https://i.prbanner.cc/150?img=2'} , description : 'Art is the expression of human creativity and imagination.' , followers : 250 ,tagline : 'Art is the expression of human creativity and imagination.' } ,  
+  { id : 3 , name : 'Tech' , isFollowing : true , avatar : {url :'https://i.pravatar.cc/150?img=5'} , banner : {url :'https://i.pravatar.cc/150?img=1'} , description : 'Technology is the lifeblood of our society.' , followers : 100 , tagline : 'Technology is the lifeblood of our society.' } ,
+  { id : 4 , name : 'Art'  , isFollowing : false  , avatar : {url :'https://i.pravatar.cc/150?img=9'} , banner : {url : 'https://i.prbanner.cc/150?img=2'} , description : 'Art is the expression of human creativity and imagination.' , followers : 250 ,tagline : 'Art is the expression of human creativity and imagination.' } ,  
 ]
 
 //Cache trending results to reduce load
+
+// add three jsx components for posts  ,communities and posts under "Result" tab rendering
+// each one will show passed data and fetch anotherOne when required
+// will keep code well documented and factored 
+
+
 function Explore() {
   const [activeTab, setActiveTab] = useState("Trending");
   const [suggestiveQuery , setSuggestiveQuery] = useState('') ;
@@ -53,14 +61,11 @@ function Explore() {
 
   const [suggestionsBox , setSuggestionsBox] = useState(false) ;
 
-
-  
   const [fetchSuggestions] = useSearchBarMutation() ;
   const [fetchSearchResults] = useSearchBarMutation() ;
-
   
 
-  if (loading) return <Loader message={'Loading...'}/>;
+  if (loading) return <Loader message={'Loading...'}/>
 
   const onQueryChange = async(q) => {
     try {
@@ -82,9 +87,7 @@ function Explore() {
       resetSearch() ;
       const res = await fetchSearchResults({q : q}).unwrap() ; 
       if(res.data) {
-        setSearchResults(res.data.results) ;
-        setSearchResultsPage(res.data.page) ;
-        setSearchResultsTotalPages(res.data.totalPages) ;
+        addSearchResults(data) ;
       }
     } catch (error) {
       console.log(error);
@@ -113,7 +116,27 @@ function Explore() {
     setSearchCommunitiesTotalPages(1) ;
   }
 
+  const addSearchResults = (data) => {
+    const {user , communities , post} =  data ;
+
+    if (post?.results) setSearchResults(post.results);
+    if (post?.totalPages) setSearchResultsTotalPages(post.totalPages);
+
+    if (user?.results) setSearchUsers(user.results);
+    if (user?.totalPages) setSearchUsersTotalPages(user.totalPages);
+
+    if (communities?.results) setSearchCommunities(communities.results);
+    if (communities?.totalPages) setSearchCommunitiesTotalPages(communities.totalPages);
+
+
+    setSearchResultsPage(2) ;
+    setSearchUsersPage(2) ;
+    setSearchCommunitiesPage(2) ;
+  }
   
+  
+  
+
 
   return (
     <div className="w-full mx-auto px-4 py-6  gap-6">
@@ -152,12 +175,35 @@ function Explore() {
             ))}
           </div>
         
-        {activeTab !== 'Search' ? (
+        {activeTab !== 'Results' ? (
           <div className="w-full mt-6 columns-1 sm:columns-2 lg:columns-3 gap-4 max-w-6xl">
             {dummyPosts.map(post => (
               <PostCard key={post.id} post={post} />
             ))}
-          </div> ): null 
+          </div> ): (
+            <div>
+              {/* user */}
+              <div className="w-full mb-2 rounded-md ">  
+                <span>Users:</span>
+                <div className="flex items-center gap-2 pb-3 mt-2 overflow-y-auto overflow-x-auto flex-shrink-0">
+                  {searchUsersDummy.map(user => (
+                    <SearchUserCard key={user.id} username={user.username} fullname={user.fullname} avatar={user.avatar} isFollowing={user.isFollowing} totalFollowers={user.totalFollowers} onToggleFollow={() => console.log('follow')} />
+                    // <SearchUserCardSkeleton key={user.id} />
+                  ))}
+                </div>
+              </div>
+              {/* communities  */}
+              <div className="w-full mb-2 h-24 rounded-md ">  
+                <span>Community:</span>
+                <div className="flex items-center gap-2 pb-3 mt-2 overflow-y-auto overflow-x-auto flex-shrink-0">
+                  {auto_communities.map(com => (
+                    <SearchCommunityCard key={com.id} name={com.name} avatar={com.avatar} banner={com.banner} isFollowing={com.isFollowing} totalFollowers={com.followers} description={com.description} onToggleFollow={() => console.log('follow')} />
+                  ))}
+                </div>
+              </div>
+              {/* posts */}
+            </div>
+          )
         }
       </div>
 

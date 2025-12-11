@@ -38,7 +38,7 @@ const searchBarsearch = TryCatch(async (req , res) => {
   const communities = await Community.aggregate([
     {$search : {
       index : 'communities' ,
-      autocomplete : {
+      text : {
         query : q ,
         path : 'name' ,
         fuzzy : {
@@ -57,7 +57,20 @@ const searchBarsearch = TryCatch(async (req , res) => {
   return ResSuccess( res , 200 , {autocomplete : {users , communities}})
 } , 'search')
 
-const getSearchPosts = async(q , skip , limit) => {
+const getSearchPosts = async(q , skip , limit , userId) => {
+  let totalPosts ;
+  
+  if(skip === 0){
+    totalPosts = await Post.aggregate([
+      {$searchMeta : {
+        index : 'posts' ,
+        text : {query : q , path : 'content' , fuzzy : {maxEdits : 2 , prefixLength : 2}}
+      }}
+    ])
+    
+    totalPosts = totalPosts[0].count.lowerBound ;
+  }
+
   const posts = await Post.aggregate([
     {$search : {
       index : 'posts' ,
@@ -99,7 +112,7 @@ const getSearchPosts = async(q , skip , limit) => {
           $expr : {
             $and : [
               {$eq : ['$post' , '$$postId']} ,
-              {$eq : ['$user' , new ObjectId(`${req.user._id}`)]}
+              {$eq : ['$user' , new ObjectId(`${userId}`)]}
             ]
           }
         }}
@@ -147,11 +160,23 @@ const getSearchPosts = async(q , skip , limit) => {
     }}
   ]) 
 
-  return posts ;
+  return {posts , totalPosts} ;
 }
 
-const getSearchUsers = async(q , skip , limit ) => {
-  
+const getSearchUsers = async(q , skip , limit , userId) => {
+  let totalUsers ;
+
+  if(skip === 0){
+    let totalUsers = await User.aggregate([
+      {$searchMeta : {
+        index : 'users' ,
+        text : {query : q , path : 'username' , fuzzy : {maxEdits : 2 , prefixLength : 2}}
+      }}
+    ])
+    
+    totalUsers = totalUsers[0].count.lowerBound ;
+  }
+
   const users = await User.aggregate([
     {$search : {
       index : 'autocomplete_users' ,
@@ -173,7 +198,8 @@ const getSearchUsers = async(q , skip , limit ) => {
       pipeline : [
         {$match : {
           $expr : {
-            $eq : ['$followedBy' , '$$userId']
+            $eq : ['$followedBy' , new ObjectId(`${userId}`)] ,
+            $eq : ['$follwedTo' , "$$userId"]
           }}
         } ,
         { $project: { _id: 0, followedTo: 1,   followingCommunity : 1 } } 
@@ -200,17 +226,28 @@ const getSearchUsers = async(q , skip , limit ) => {
     }}
   ])
 
-  return users ;
+  return {users , totalUsers} ;
 }
 
 const getSearchCommunities = async(q , skip, limit , userId ) => {
+  let totalComm ;
+  if(skip === 0){
+    let totalComm = await User.aggregate([
+      {$searchMeta : {
+        index : 'communities' ,
+        text : {query : q , path : ['name' , 'description'] , fuzzy : {maxEdits : 2 , prefixLength : 2}}
+      }}
+    ])
+    
+    totalComm = totalComm[0].count.lowerBound ;
+  }
 
   const communities = await Community.aggregate([
     {$search : {
       index : 'communities' ,
       text : {
         query : q ,
-        path : 'description' ,
+        path : ['description' , 'name'] ,
         fuzzy : {
           maxEdits : 2 ,
           prefixLength : 2 ,
@@ -231,20 +268,29 @@ const getSearchCommunities = async(q , skip, limit , userId ) => {
       ] ,
       as : 'followings' ,
     }} ,
+    //follwers count
+    {$lookup : {
+      from : 'followers' ,
+      localField : '_id' ,
+      foreignField : 'followedTo' ,
+      as : 'totalFollowers'
+    }} ,
     {$addFields : {
-      isFollowing : {$gt : [{$size : '$followings'} , 0]}
+      isFollowing : {$gt : [{$size : '$followings'} , 0]} ,
+      totalFollowers : {$size : '$totalFollowers'}
     }} ,
     {$project : {
       name : 1 ,
       avatar : 1 ,
       banner : 1 ,
-      description : 1 ,
       isFollowing : 1 ,
+      totalFollowers : 1 ,
+      description : 1 ,
       followings : 0 ,
     }}
   ])
 
-  return communities ;
+  return {communities , totalComm} ;
 }
 
 const normalSearch = TryCatch(async (req,res) => {
@@ -253,25 +299,47 @@ const normalSearch = TryCatch(async (req,res) => {
 
   let skip = (page -1) * 5 ;
 
-  const userResults = await getSearchUsers(q , skip , 5) ;
-  const postResults = await getSearchPosts(q , skip , 5) ;
-  const communityResults = await getSearchCommunities(q , skip , 5 , req.user._id) ;
+  const {users , totalUsers} = await getSearchUsers(q , skip , 5) ;
+  const {posts , totalPosts} = await getSearchPosts(q , skip , 5) ;
+  const {communities , totalComm} = await getSearchCommunities(q , skip , 5 , req.user._id) ;
 
   return ResSuccess(
     res , 200 , {
-      userResults ,
-      postResults ,
-      communityResults ,
+      user : {results : users , total : totalUsers} ,
+      post : {results : posts , total :totalPosts} ,
+      communities : {results : communities , total : totalComm} ,
     }
   )
 
 } , 'normalSearch')
 
-const continueSearchUsers = TryCatch(async(req ,res) => {} , 'continueSearchUsers')
+const continueSearch = TryCatch(async(req ,res) => {
+  const {q , page = 2 , limit = 20 , tab } = req.query ;
+  if(!q) return ResError(res , 400 , 'Search query is required')
 
-const continueSearchCommunities = TryCatch(async(req ,res) => {} , 'continueSearchCommunities')
+  let skip = (page -1) * limit ;
+  if(tab !== 'post' && tab !== 'user' && tab !== 'community' ) return ResError(res , 400 , 'Wrong tab type.')
 
-const continueSearchPosts = TryCatch(async(req ,res) => {} , 'continueSearchPosts')
+  let results  = [] ;
+
+  switch (tab) {
+    case 'post':
+      results = await getSearchPosts(q , skip , 5) ;
+    break;
+    case 'community' :
+      results = await getSearchCommunities(q , skip , 5 , req.user._id) ;
+    break ;
+    case 'user' :
+      results = await getSearchUsers(q, skip , 5)
+    break ;
+    default:
+      break;
+  }
+
+
+  return ResSuccess(res , 200 , results) ;
+} , 'continueSearchUsers')
+
 
 const searchUsers = TryCatch(async(req ,res) => {
   const {q ,page = 1 ,limit = 20 } = req.query ;
@@ -312,7 +380,5 @@ export {
   normalSearch , 
   searchUsers ,
 
-  continueSearchUsers ,
-  continueSearchCommunities , 
-  continueSearchPosts ,
+  continueSearch ,
 }
