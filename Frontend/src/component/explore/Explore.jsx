@@ -1,13 +1,12 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Loader from '../shared/Loader'
 import PostCard from "../post/PostCard";
 import { dummyPosts } from "../../sampleData";
 import SearchBar from "../specific/search/SearchBar";
-import { useSearchBarMutation } from "../../redux/api/api";
+import { useLazyGetTrendingQuery, useNormalSearchMutation, useSearchBarMutation } from "../../redux/api/api";
 import { toast } from "react-toastify";
-import { data } from "react-router-dom";
-import {SearchUserCard , SearchUserCardSkeleton} from "../shared/SearchUserCard";
-import SearchCommunityCard from "../shared/SearchCommunityCard";
+import { ShowResultCommunities , ShowResultPosts , ShowResultUsers } from "./SearchResultTab";
+import lastRefFunc from "../specific/LastRefFunc";
 
 
 const EXPLORE_TABS = ["Trending", "People", "Communities", "Media" , "Results"];
@@ -29,41 +28,30 @@ const auto_communities = [
 ]
 
 //Cache trending results to reduce load
-
-// add three jsx components for posts  ,communities and posts under "Result" tab rendering
-// each one will show passed data and fetch anotherOne when required
-// will keep code well documented and factored 
-
-
 function Explore() {
+  const observer = useRef() ;
+
   const [activeTab, setActiveTab] = useState("Trending");
   const [suggestiveQuery , setSuggestiveQuery] = useState('') ;
 
-  const [trendingPosts, setTrendingPosts] = useState([]);
+  const [tabContent, setTabContent] = useState([]);
   const [suggestedUsers, setSuggestedUsers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [queryUsed , setQueryUsed] = useState('') ;
 
   const [autoComplete , setAutoComplete] = useState([]) ; 
+  const [currPage , setCurrPage] = useState(1) ;
 
-  const [searchResults , setSearchResults] = useState(null) ;
+  const [searchResults , setSearchResults] = useState({}) ;
   const [searchLoading , setSearchLoading] = useState(false) ;
   
-  const [searchResultsPage , setSearchResultsPage] = useState(1) ;
-  const [searchResultsTotalPages , setSearchResultsTotalPages] = useState(1) ;
-
-  const [searchUsers , setSearchUsers] = useState([]) ;
-  const [searchUsersPage , setSearchUsersPage] = useState(1) ;
-  const [searchUsersTotalPages , setSearchUsersTotalPages] = useState(1) ;
-
-  const [searchCommunities , setSearchCommunities] = useState([]) ;
-  const [searchCommunitiesPage , setSearchCommunitiesPage] = useState(1) ;
-  const [searchCommunitiesTotalPages , setSearchCommunitiesTotalPages] = useState(1) ;
 
   const [suggestionsBox , setSuggestionsBox] = useState(false) ;
 
   const [fetchSuggestions] = useSearchBarMutation() ;
-  const [fetchSearchResults] = useSearchBarMutation() ;
-  
+  const [fetchSearchResults] = useNormalSearchMutation() ;
+  const [fetchTrending , {data , isError , error ,isLoading, isFetching}] = useLazyGetTrendingQuery() ;
+
 
   if (loading) return <Loader message={'Loading...'}/>
 
@@ -83,15 +71,18 @@ function Explore() {
   const onSearch = async(q) => {
     setSearchLoading(true) ;
     try {
-      setActiveTab('Search') ;
-      resetSearch() ;
+      setActiveTab('Results') ;
+      
       const res = await fetchSearchResults({q : q}).unwrap() ; 
+      
       if(res.data) {
-        addSearchResults(data) ;
+        setQueryUsed(q) ;
+        setSearchResults(res.data) ; // {results , total} for each tab
+        console.log(res.data);
       }
     } catch (error) {
       console.log(error);
-      toast.error(error.message || 'Failed to fetch suggestions') ;
+      toast.error(error?.data?.message || 'Failed to fetch searches') ;  
     } finally {
       setSearchLoading(false) ;
     }
@@ -102,41 +93,37 @@ function Explore() {
       setSuggestionsBox(isActive)
   }
 
-  const resetSearch = () => {
-    setSearchResults(null) ;
-    setSearchUsers(null) ;
-    setSearchCommunities(null) ;
+  const fetchMoreFunc = useCallback((node) => {
+    lastRefFunc({
+      page : currPage ,
+      node ,
+      fetchFunc : fetchTrending ,
+      isLoading , 
+      isFetching,
+      activeTab ,
+      observer ,
+    })
+  } , [data ,activeTab , currPage , isLoading , isFetching]) ;
 
-    setSearchResultsPage(1) ;
-    setSearchUsersPage(1) ;
-    setSearchCommunitiesPage(1) ;
-    
-    setSearchResultsTotalPages(1) ;
-    setSearchUsersTotalPages(1) ;
-    setSearchCommunitiesTotalPages(1) ;
-  }
+  useEffect(() => {
+  setCurrPage(1) ;
+  setTabContent([]) ;
+  fetchTrending({page : 1 , tab : activeTab}) ;
+  }  , [activeTab])
 
-  const addSearchResults = (data) => {
-    const {user , communities , post} =  data ;
+  useEffect(() => {
+    if(data?.data){
+      setTabContent(prev => [
+        ...prev , ...data.data
+      ])
+      setCurrPage(prev => prev+1) ;
+    }
+  } , [data])
 
-    if (post?.results) setSearchResults(post.results);
-    if (post?.totalPages) setSearchResultsTotalPages(post.totalPages);
-
-    if (user?.results) setSearchUsers(user.results);
-    if (user?.totalPages) setSearchUsersTotalPages(user.totalPages);
-
-    if (communities?.results) setSearchCommunities(communities.results);
-    if (communities?.totalPages) setSearchCommunitiesTotalPages(communities.totalPages);
-
-
-    setSearchResultsPage(2) ;
-    setSearchUsersPage(2) ;
-    setSearchCommunitiesPage(2) ;
-  }
+  useEffect(() => {
+    if(isError ) toast.error(error?.message || 'something went wrong') ;
+  } , [isError ,error]) ;
   
-  
-  
-
 
   return (
     <div className="w-full mx-auto px-4 py-6  gap-6">
@@ -182,26 +169,9 @@ function Explore() {
             ))}
           </div> ): (
             <div>
-              {/* user */}
-              <div className="w-full mb-2 rounded-md ">  
-                <span>Users:</span>
-                <div className="flex items-center gap-2 pb-3 mt-2 overflow-y-auto overflow-x-auto flex-shrink-0">
-                  {searchUsersDummy.map(user => (
-                    <SearchUserCard key={user.id} username={user.username} fullname={user.fullname} avatar={user.avatar} isFollowing={user.isFollowing} totalFollowers={user.totalFollowers} onToggleFollow={() => console.log('follow')} />
-                    // <SearchUserCardSkeleton key={user.id} />
-                  ))}
-                </div>
-              </div>
-              {/* communities  */}
-              <div className="w-full mb-2 h-24 rounded-md ">  
-                <span>Community:</span>
-                <div className="flex items-center gap-2 pb-3 mt-2 overflow-y-auto overflow-x-auto flex-shrink-0">
-                  {auto_communities.map(com => (
-                    <SearchCommunityCard key={com.id} name={com.name} avatar={com.avatar} banner={com.banner} isFollowing={com.isFollowing} totalFollowers={com.followers} description={com.description} onToggleFollow={() => console.log('follow')} />
-                  ))}
-                </div>
-              </div>
-              {/* posts */}
+              <ShowResultUsers data={searchResults?.user?.results || []} totalPages={searchResults?.user?.total || 1} q={queryUsed} />   
+              <ShowResultCommunities data={searchResults?.communities?.results || []} totalPages={searchResults?.communities?.total || 1} q={queryUsed} />
+              <ShowResultPosts data={searchResults?.post?.results || []} totalPages={searchResults?.post?.total || 1} q={queryUsed} />
             </div>
           )
         }

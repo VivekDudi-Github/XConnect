@@ -1,5 +1,5 @@
 import {TryCatch , ResError , ResSuccess} from '../utils/extra.js'
-
+import { ObjectId } from 'mongodb';
 import { User } from '../models/user.model.js'
 import { Post } from '../models/post.model.js';
 import { Community } from '../models/community.model.js';
@@ -63,17 +63,35 @@ const getSearchPosts = async(q , skip , limit , userId) => {
   if(skip === 0){
     totalPosts = await Post.aggregate([
       {$searchMeta : {
-        index : 'posts' ,
-        text : {query : q , path : 'content' , fuzzy : {maxEdits : 2 , prefixLength : 2}}
-      }}
+        index : 'post' ,
+        compound: {
+        must: [
+          {
+            text: {
+              query: q,
+              path: 'content',
+              fuzzy: { maxEdits: 2, prefixLength: 2 }
+            }
+          }
+        ],
+        mustNot: [
+          {
+            equals: {
+              path: "isDeleted",
+              value: true
+            }
+          }
+        ]
+      }}}
     ])
+    console.log(totalPosts);
     
-    totalPosts = totalPosts[0].count.lowerBound ;
+    totalPosts = Math.ceil(totalPosts[0].count.lowerBound / limit );
   }
 
   const posts = await Post.aggregate([
     {$search : {
-      index : 'posts' ,
+      index : 'post' ,
       text : {
         query : q , 
         path  : 'content' ,
@@ -83,6 +101,11 @@ const getSearchPosts = async(q , skip , limit , userId) => {
         }
       }
     }} , 
+    {$match : {
+      $expr : {
+        $eq : ['$isDeleted' , false ]
+      }
+    }} ,
     {$skip : skip} ,
     {$limit : limit} ,
     //author details
@@ -136,6 +159,7 @@ const getSearchPosts = async(q , skip , limit , userId) => {
       as : 'totalComments' ,
     }} ,
 
+    {$unwind : '$authorDetails'} ,
     {$addFields : {
       author : '$authorDetails' ,
       likeStatus : { $gt : [{ $size : '$userLike'} , 0 ]}  ,
@@ -143,8 +167,6 @@ const getSearchPosts = async(q , skip , limit , userId) => {
       commentCount : {$size : '$totalComments'} ,
     }} ,
     
-    {$unwind : '$authorDetails'} ,
-
     {$project : {
       content : 1 ,
       hashtags : 1 ,
@@ -152,11 +174,11 @@ const getSearchPosts = async(q , skip , limit , userId) => {
       category : 1 ,
       createdAt : 1 ,
       media : 1 ,
-      authorDetails : 0 ,
-      totalLike : 0 ,
-      userLike : 0 ,
-      isDeleted : 0 ,
-      author : '$authorDetails' ,
+      author : 1 ,
+      likeStatus : 1 ,
+      likeCount : 1 ,
+      commentCount : 1 ,
+      views : 1 ,
     }}
   ]) 
 
@@ -167,16 +189,15 @@ const getSearchUsers = async(q , skip , limit , userId) => {
   let totalUsers ;
 
   if(skip === 0){
-    let totalUsers = await User.aggregate([
+    totalUsers = await User.aggregate([
       {$searchMeta : {
-        index : 'users' ,
-        text : {query : q , path : 'username' , fuzzy : {maxEdits : 2 , prefixLength : 2}}
+        index : 'autocomplete_users' ,
+        autocomplete : {query : q , path : 'username' , fuzzy : {maxEdits : 2 , prefixLength : 2}}
       }}
     ])
-    
-    totalUsers = totalUsers[0].count.lowerBound ;
+    totalUsers = Math.ceil(totalUsers[0].count.lowerBound / limit) ;
   }
-
+    console.log(skip , totalUsers);
   const users = await User.aggregate([
     {$search : {
       index : 'autocomplete_users' ,
@@ -198,17 +219,19 @@ const getSearchUsers = async(q , skip , limit , userId) => {
       pipeline : [
         {$match : {
           $expr : {
-            $eq : ['$followedBy' , new ObjectId(`${userId}`)] ,
-            $eq : ['$follwedTo' , "$$userId"]
+            $and : [
+              {$eq : ['$followedBy' , new ObjectId(`${userId}`)]} ,
+              {$eq : ['$followedTo' , "$$userId"]}
+            ]
           }}
         } ,
-        { $project: { _id: 0, followedTo: 1,   followingCommunity : 1 } } 
+        { $project: { _id: 1} }
       ] ,
       as : 'followings' ,
     }} ,
     // totalFollowers
     {$lookup : {
-      from : 'followers' , 
+      from : 'followings' , 
       localField : '_id' ,
       foreignField : 'followedTo' ,
       as : 'totalFollowers'
@@ -239,7 +262,7 @@ const getSearchCommunities = async(q , skip, limit , userId ) => {
       }}
     ])
     
-    totalComm = totalComm[0].count.lowerBound ;
+    totalComm = Math.floor(totalComm[0].count.lowerBound / limit);
   }
 
   const communities = await Community.aggregate([
@@ -259,11 +282,15 @@ const getSearchCommunities = async(q , skip, limit , userId ) => {
     //isFollowing
     {$lookup : {
       from : 'followings' ,
-      let : {userId : new ObjectId(`${userId}`)} ,
+      let : {commId : '$_id' } ,
       pipeline : [
-        {$match : {$expr : {
-          $eq : ['$followedBy' , '$$userId'] ,
-          $eq : ['$followingCommunity' , '$_id']}
+        {$match : {
+          $expr : {
+            $and : [
+              {$eq : ['$followedBy' , new ObjectId(`${userId}`) ] },
+              {$eq : ['$followingCommunity' , '$commId']}
+            ]
+          }
         }} 
       ] ,
       as : 'followings' ,
@@ -286,7 +313,6 @@ const getSearchCommunities = async(q , skip, limit , userId ) => {
       isFollowing : 1 ,
       totalFollowers : 1 ,
       description : 1 ,
-      followings : 0 ,
     }}
   ])
 
@@ -296,11 +322,12 @@ const getSearchCommunities = async(q , skip, limit , userId ) => {
 const normalSearch = TryCatch(async (req,res) => {
   const {q , page = 1 } = req.query ;
   if(!q) return ResError(res , 400 , 'Search query is required') ;
+  if(q.length > 100) return ResError(res , 400 , 'Search query is too long') ;
 
   let skip = (page -1) * 5 ;
 
-  const {users , totalUsers} = await getSearchUsers(q , skip , 5) ;
-  const {posts , totalPosts} = await getSearchPosts(q , skip , 5) ;
+  const {users , totalUsers} = await getSearchUsers(q , skip , 5 , req.user._id) ;
+  const {posts , totalPosts} = await getSearchPosts(q , skip , 5 , req.user._id) ;
   const {communities , totalComm} = await getSearchCommunities(q , skip , 5 , req.user._id) ;
 
   return ResSuccess(
@@ -314,9 +341,9 @@ const normalSearch = TryCatch(async (req,res) => {
 } , 'normalSearch')
 
 const continueSearch = TryCatch(async(req ,res) => {
-  const {q , page = 2 , limit = 20 , tab } = req.query ;
+  const {q , page = 2 , tab } = req.query ;
   if(!q) return ResError(res , 400 , 'Search query is required')
-
+  let limit = 5 ;
   let skip = (page -1) * limit ;
   if(tab !== 'post' && tab !== 'user' && tab !== 'community' ) return ResError(res , 400 , 'Wrong tab type.')
 
@@ -324,13 +351,13 @@ const continueSearch = TryCatch(async(req ,res) => {
 
   switch (tab) {
     case 'post':
-      results = await getSearchPosts(q , skip , 5) ;
+      results = (await getSearchPosts(q , skip , 5 , req.user._id)).posts ;
     break;
     case 'community' :
-      results = await getSearchCommunities(q , skip , 5 , req.user._id) ;
+      results = (await getSearchCommunities(q , skip , 5 , req.user._id)).communities ;
     break ;
     case 'user' :
-      results = await getSearchUsers(q, skip , 5)
+      results = (await getSearchUsers(q, skip , 5 , req.user._id)).users ;
     break ;
     default:
       break;
@@ -339,7 +366,6 @@ const continueSearch = TryCatch(async(req ,res) => {
 
   return ResSuccess(res , 200 , results) ;
 } , 'continueSearchUsers')
-
 
 const searchUsers = TryCatch(async(req ,res) => {
   const {q ,page = 1 ,limit = 20 } = req.query ;

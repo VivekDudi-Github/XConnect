@@ -99,6 +99,12 @@ const api = createApi({
         credentials : 'include' ,
       })
     }) ,
+    getTrending : builder.query({
+      query : (({tab ,page}) => ({
+        url : '/trending/' + '?tab=' +tab + '?page=' + page ,
+        credentials : 'include'
+      }))
+    }) ,
     increasePostViews : builder.mutation({
       query : ({id}) => ({
         url : `/post/increaseViews/${id}` ,
@@ -338,9 +344,16 @@ const api = createApi({
         credentials : 'include' ,
       }) , 
     }) ,
-     continueSearch : builder.query({
+    normalSearch : builder.mutation({
+      query : ({q}) => ({
+        url : '/search/n/'+'?q='+q ,
+        method : 'POST' ,
+        credentials : 'include' ,
+      }) ,
+    }) ,
+    continueSearch : builder.query({
       query : ({q , page , tab}) => ({
-        url : '/search/continue/' +'?q='+q +'?page=' +page + '?tab=' + tab ,
+        url : '/search/continue/' +'?q='+q +'&page=' +page + '&tab=' + tab ,
         credentials : 'include'
       })
     }) ,
@@ -364,6 +377,7 @@ export const {
   useDeletePostMutation ,
   useGetPostQuery ,
 
+  useLazyGetTrendingQuery ,
   useLazyGetUserPostsQuery,
   useToggleOnPostMutation ,
   useIncreasePostViewsMutation ,
@@ -421,4 +435,5 @@ export const {
   useLazySearchUsersQuery ,
   useSearchBarMutation ,
   useLazyContinueSearchQuery ,
+  useNormalSearchMutation ,
 } = api ;

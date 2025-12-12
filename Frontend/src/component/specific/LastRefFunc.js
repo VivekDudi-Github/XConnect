@@ -12,6 +12,7 @@ const lastRefFunc = (config) => {
     totalPages,
     fetchFunc ,
     username ,
+    q ,
   } = config;
 
   if(observer.current) observer.current.disconnect() ;
@@ -20,7 +21,7 @@ const lastRefFunc = (config) => {
     if(entries[0].isIntersecting && !isLoading && !isFetching && ( (totalPages || totalPages === 0) ? page <= totalPages : true) && page > 1){ 
       console.log('fetcheing post');
       
-      fetchFunc({page : page , id , tab: activeTab , sortBy : sortBy , isComment , username }) ;
+      fetchFunc({page : page , id , tab: activeTab , sortBy : sortBy , isComment , username , q }) ;
     }
   } , {
     root : null ,

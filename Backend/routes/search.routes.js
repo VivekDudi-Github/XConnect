@@ -5,9 +5,9 @@ import {checkUser} from '../utils/chekAuth.js'
 const router = express.Router()
 
 router.post('/searchbar' ,checkUser , searchBarsearch) ;
-router.post('/searchPosts', checkUser , normalSearch) ;
+router.post('/n', checkUser , normalSearch) ;
 
-router.post('/continue' , checkUser , continueSearch)
+router.get('/continue' , checkUser , continueSearch)
 
 router.get('/searchUsers' , checkUser , searchUsers)
 

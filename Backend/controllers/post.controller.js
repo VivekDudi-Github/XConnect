@@ -1642,8 +1642,6 @@ const fetchOtherPosts = async(req , res , tab) => {
     default:
       break;
   }
-
-
   const posts = await Post.aggregate([
     {$match : {
       createdAt : { $gte : cutoff } ,
@@ -1836,9 +1834,6 @@ const increasePostViews = TryCatch (async(req , res) => {
   return ResSuccess(res ,200 , null)
 
 } , 'increasePostViews' )
-
-
-
 
 export {
   createPost ,
