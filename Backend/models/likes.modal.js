@@ -5,16 +5,19 @@ const likesSchema = new mongoose.Schema({
     type: mongoose.Types.ObjectId,
     ref: "Post",
     default : null ,
+    index : true ,
   },
   comment : {
     type: mongoose.Types.ObjectId,
     ref: "Comment",
-    default: null
+    default: null , 
+    index : true ,
   } ,
   user: {
     type: mongoose.Types.ObjectId,
     ref: "User",
     required: true,
+    index : true ,
   }
 
 }, { timestamps: true });

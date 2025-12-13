@@ -1,5 +1,4 @@
 import {createApi , fetchBaseQuery} from '@reduxjs/toolkit/query/react'
-import { CreativeCommonsIcon, Delete } from 'lucide-react';
 
 
 const api = createApi({
@@ -100,10 +99,16 @@ const api = createApi({
       })
     }) ,
     getTrending : builder.query({
-      query : (({tab ,page}) => ({
-        url : '/trending/' + '?tab=' +tab + '?page=' + page ,
+      query : (({tab ,page}) => {
+        console.log("API hit" , tab , page);
+        return {
+        url : '/post/trending/' + '?tab=' +tab + '&page=' + page ,
         credentials : 'include'
-      }))
+      }}),
+      providesTags : (result , error , arg) => {
+        return [{type : 'Post' , id : `TRENDING-${arg.tab}-${arg.page}`}]
+      } ,
+      keepUnusedDataFor : 60* 5 , // 5 minutes
     }) ,
     increasePostViews : builder.mutation({
       query : ({id}) => ({
@@ -112,7 +117,6 @@ const api = createApi({
         credentials : 'include' ,
       })
     }) ,
-
 //comments
     postComment : builder.mutation({
       query : ({postId , ...data}) => ({

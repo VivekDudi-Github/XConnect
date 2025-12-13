@@ -53,6 +53,7 @@ const postSchema = new mongoose.Schema({
     type : String ,
     enum : ['post' , 'community' ] ,
     required : true ,
+    index : true
   } ,
   community : {
     type : mongoose.Types.ObjectId ,

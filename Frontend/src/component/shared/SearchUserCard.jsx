@@ -4,6 +4,7 @@ function SearchUserCard({
   username,
   fullname,
   avatar,
+  bio ,
   isFollowing,
   totalFollowers,
   onToggleFollow,
@@ -23,6 +24,7 @@ function SearchUserCard({
           <span className="text-base font-semibold truncate">{fullname}</span>
           <span className="text-sm text-cyan-600 font-semibold truncate">@{username}</span>
           <span className="text-xs ">{totalFollowers} followers</span>
+          {bio && <p className="text-sm text-gray-400 mt-1 truncate">{bio}</p>}
         </div>
       </div>
 

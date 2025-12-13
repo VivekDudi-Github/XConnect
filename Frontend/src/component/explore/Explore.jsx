@@ -7,6 +7,8 @@ import { useLazyGetTrendingQuery, useNormalSearchMutation, useSearchBarMutation 
 import { toast } from "react-toastify";
 import { ShowResultCommunities , ShowResultPosts , ShowResultUsers } from "./SearchResultTab";
 import lastRefFunc from "../specific/LastRefFunc";
+import { SearchUserCard, SearchUserCardSkeleton } from "../shared/SearchUserCard";
+import PostCardSkeleton  from "../shared/PostCardSkeleton";
 
 
 const EXPLORE_TABS = ["Trending", "People", "Communities", "Media" , "Results"];
@@ -35,6 +37,8 @@ function Explore() {
   const [suggestiveQuery , setSuggestiveQuery] = useState('') ;
 
   const [tabContent, setTabContent] = useState([]);
+  const [pageEnd , setPageEnd] = useState(false) ;
+  
   const [suggestedUsers, setSuggestedUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [queryUsed , setQueryUsed] = useState('') ;
@@ -102,28 +106,39 @@ function Explore() {
       isFetching,
       activeTab ,
       observer ,
+      preferCached : true ,
     })
   } , [data ,activeTab , currPage , isLoading , isFetching]) ;
 
   useEffect(() => {
-  setCurrPage(1) ;
-  setTabContent([]) ;
-  fetchTrending({page : 1 , tab : activeTab}) ;
+    setCurrPage(1) ;
+    setTabContent([]) ;
+    setPageEnd(false) ;
+    fetchTrending({page : 1 , tab : activeTab} , true) ;
   }  , [activeTab])
 
   useEffect(() => {
-    if(data?.data){
-      setTabContent(prev => [
-        ...prev , ...data.data
-      ])
-      setCurrPage(prev => prev+1) ;
+    if(data?.data && !isFetching){
+      setTabContent(prev => [...prev , ...data.data])
+      setCurrPage(prev => prev+1) ; 
+      if(data.data.length === 0 ) setPageEnd(true) ;
     }
-  } , [data])
+  } , [data , isFetching])
+console.log(isLoading , isFetching);
 
   useEffect(() => {
     if(isError ) toast.error(error?.message || 'something went wrong') ;
   } , [isError ,error]) ;
+  console.log(pageEnd , currPage);
   
+  useEffect(() => {
+    return () => {
+      setCurrPage(1) ;
+      setTabContent([]) ;
+      setPageEnd(false) ;
+      setSearchResults({}) ;
+    }
+  }, [])
 
   return (
     <div className="w-full mx-auto px-4 py-6  gap-6">
@@ -163,10 +178,21 @@ function Explore() {
           </div>
         
         {activeTab !== 'Results' ? (
-          <div className="w-full mt-6 columns-1 sm:columns-2 lg:columns-3 gap-4 max-w-6xl">
-            {dummyPosts.map(post => (
-              <PostCard key={post.id} post={post} />
-            ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-6xl">
+            {activeTab === 'Trending' && tabContent.map(({postDetails} , i) => {
+              if(!postDetails ) return Array(4).map( (_, idx) => ( <PostCardSkeleton key={idx} /> )) ;
+              return(
+              <div key={postDetails._id} ref={(i === tabContent.length - 1 && !pageEnd)? fetchMoreFunc : null}> 
+                <PostCard post={postDetails} />
+              </div>
+            )})}
+            {activeTab === 'People' &&!isLoading && !isFetching && tabContent.map(({userDetails} , i) => {
+              if(!userDetails ) return Array(4).map( (_, idx) => ( <SearchUserCardSkeleton key={idx} /> )) ;
+              return (
+              <div key={userDetails._id} ref={(i === tabContent.length - 1 && !pageEnd)? fetchMoreFunc : null}> 
+                <SearchUserCard username={userDetails?.username} bio={userDetails?.bio} avatar={userDetails?.avatar} fullname={userDetails?.fullname} isFollowing={userDetails?.isFollowing} totalFollowers={userDetails?.followers}  />  
+              </div>
+            )})}
           </div> ): (
             <div>
               <ShowResultUsers data={searchResults?.user?.results || []} totalPages={searchResults?.user?.total || 1} q={queryUsed} />   
