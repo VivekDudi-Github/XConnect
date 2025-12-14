@@ -1496,18 +1496,19 @@ const fetchExplorePost = TryCatch(async(req , res) => {
 } , 'fetchExplorePosts')
 
 const fetchTrending = async(req, res , tab , skip) => {
-  let cutoff = new Date(Date.now() - 7 * 3600 * 1000) ;
+  let cutoff = new Date(Date.now() - 7 * 24 * 3600 * 1000) ;
   const userId = req.user._id ;
 
-  const filter = [] ;
+  let andConditions = [{$eq : ['$_id' , '$$postId']}] ;
+  
   switch (tab) {
     case 'Communities':
-    filter.push({$eq : ['$type' , 'community']} ) ;
+    andConditions.push( {$eq : ['$type' , 'community']}) ;
       break;
     case 'Media':
-      filter.push({ $gte: [ 
+      andConditions.push({ $gte: [ 
         { $size: { $ifNull: ['$media', []] } }, 1 
-      ]}) ;
+      ]} )
       break ;
     default:
       break;
@@ -1530,10 +1531,7 @@ const fetchTrending = async(req, res , tab , skip) => {
       pipeline : [
         {$match : {
           $expr : {
-            $and : [
-              {$eq : ['$_id' , '$$postId'] },
-              ...filter
-            ]
+            $and : andConditions ,
           }
         }} ,
         {$project : { _id : 1}} 
@@ -1641,7 +1639,11 @@ const fetchTrending = async(req, res , tab , skip) => {
       }
     } ,
     { $unwind: { path: '$postDetails', preserveNullAndEmptyArrays: false } } ,
-  ]) ; 
+    {$project : {
+      filteredPost : 0 ,
+    }}
+  ]) ;
+  
   return posts ;
 }
 const fetchPeople = async(req ,res , skip) => {

@@ -9,6 +9,7 @@ import { ShowResultCommunities , ShowResultPosts , ShowResultUsers } from "./Sea
 import lastRefFunc from "../specific/LastRefFunc";
 import { SearchUserCard, SearchUserCardSkeleton } from "../shared/SearchUserCard";
 import PostCardSkeleton  from "../shared/PostCardSkeleton";
+import CommunityPostCard from "../community/CommunityPostCard";
 
 
 const EXPLORE_TABS = ["Trending", "People", "Communities", "Media" , "Results"];
@@ -114,7 +115,7 @@ function Explore() {
     setCurrPage(1) ;
     setTabContent([]) ;
     setPageEnd(false) ;
-    fetchTrending({page : 1 , tab : activeTab} , true) ;
+    if(activeTab !== 'Results') fetchTrending({page : 1 , tab : activeTab} , true) ;
   }  , [activeTab])
 
   useEffect(() => {
@@ -156,9 +157,11 @@ console.log(isLoading , isFetching);
           </div>)}
         </div>
 
-        <h2 className="text-xl font-semibold">
-          Explore {' '}
-          <img src="./XConnect_icon.png" alt="" className="size-6 inline-block -translate-y-1" />Connect Now</h2>
+          <h2 className="text-xl font-semibold">
+            Explore {' '}
+            <img src="./XConnect_icon.png" alt="" className="size-6 inline-block -translate-y-1" />
+            Connect Now
+          </h2>
           
           {/* Tabs */}
           <div className="flex gap-4 ml-1 border-b   overflow-x-auto overflow-y-clip w-full ">
@@ -178,18 +181,22 @@ console.log(isLoading , isFetching);
           </div>
         
         {activeTab !== 'Results' ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-6xl">
-            {activeTab === 'Trending' && tabContent.map(({postDetails} , i) => {
+          <div className=" mx-2 columns-1 sm:columns-1 lg:columns-3 gap-4 ">
+            {activeTab !== 'People' && tabContent.map(({postDetails} , i) => {
               if(!postDetails ) return Array(4).map( (_, idx) => ( <PostCardSkeleton key={idx} /> )) ;
               return(
-              <div key={postDetails._id} ref={(i === tabContent.length - 1 && !pageEnd)? fetchMoreFunc : null}> 
-                <PostCard post={postDetails} />
+              <div key={postDetails._id} ref={(i === tabContent.length - 1 && !pageEnd)? fetchMoreFunc : null} className="break-inside-avoid"> 
+                {postDetails.community ? (
+                  <CommunityPostCard post={postDetails} heading={false}/>
+                ) : (
+                  <PostCard post={postDetails} />
+                )}
               </div>
             )})}
             {activeTab === 'People' &&!isLoading && !isFetching && tabContent.map(({userDetails} , i) => {
               if(!userDetails ) return Array(4).map( (_, idx) => ( <SearchUserCardSkeleton key={idx} /> )) ;
               return (
-              <div key={userDetails._id} ref={(i === tabContent.length - 1 && !pageEnd)? fetchMoreFunc : null}> 
+              <div key={userDetails._id} ref={(i === tabContent.length - 1 && !pageEnd)? fetchMoreFunc : null} className="break-inside-avoid"> 
                 <SearchUserCard username={userDetails?.username} bio={userDetails?.bio} avatar={userDetails?.avatar} fullname={userDetails?.fullname} isFollowing={userDetails?.isFollowing} totalFollowers={userDetails?.followers}  />  
               </div>
             )})}

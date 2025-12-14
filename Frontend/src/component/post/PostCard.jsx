@@ -100,7 +100,9 @@ useEffect(() => {
 } , [isVisible])
 
   return (
-    <article ref={ref} className="bg-white w-full mx-auto relative rounded-xl dark:shadow-sm p-2 mb-4 dark:bg-black  dark:from-slate-900 dark:to-black dark:text-white shadow-slate-400 shadow-lg border-t dark:border-y dark:border-white dark:border-b-gray-600 border-slate-800/50 duration-200 break-inside-avoid  ">
+    <article ref={ref} className="bg-white w-full mx-auto p-2 mb-4 relative rounded-xl  duration-200 break-inside-avoid fade-in 
+    dark:shadow-sm  dark:bg-black  dark:from-slate-900 dark:to-black dark:text-white shadow-slate-400 shadow-lg border-t dark:border-y dark:border-white dark:border-b-gray-600 border-slate-800/50
+    ">
       {/* Header */}
       <div className="flex items-center justify-between gap-3 mb-2 pr-7">
         <div className='flex justify-between gap-2'>
@@ -117,7 +119,6 @@ useEffect(() => {
             </h2>
           </NavLink>
         </div>
-
       </div>
 
       <div 

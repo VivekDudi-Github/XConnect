@@ -31,9 +31,10 @@ const CommunityPostCard = ({ post , heading }) => {
       }
     }
   } , [isVisible])
-
+  // console.log(ref.current);
+  
   return (
-    <div ref={ref} className=' mb-4 scale-100 '>
+    <div ref={ref} className=' mb-4 scale-100 fade-in '>
       {/* Top Info */}
       {heading && (
         <div className=" flex justify-start items-center px-4 ">  
@@ -83,12 +84,12 @@ const CommunityPostCard = ({ post , heading }) => {
           <button className="dark:hover:text-white hover:text-gray-800 flex items-center gap-1 duration-200">
            <MessageCircleIcon size={17} /> <span>{post?.commentCount ?? ''} Comment</span>
           </button>
-          <button className="dark:hover:text-white hover:text-gray-800 flex items-center gap-1 duration-200">
-           <Share2Icon size={17} className='fill-blue-500 text-blue-500'/> <span>Share</span>
+          {/* <button className="dark:hover:text-white hover:text-gray-800 flex items-center gap-1 duration-200">
+           <Share2Icon size={17} className='fill-blue-500 text-blue-500'/> <span></span>
           </button>
           <button className="dark:hover:text-white hover:text-gray-800 flex items-center gap-1 duration-200">
-            <BookmarkIcon size={17} className='fill-yellow-500 text-yellow-500' /> <span>Bookmark</span>
-          </button>
+            <BookmarkIcon size={17} className='fill-yellow-500 text-yellow-500' /> <span></span>
+          </button> */}
           <button className="dark:hover:text-white hover:text-gray-800 flex items-center gap-1 duration-200">
             <BarChart2Icon size={17} className=' text-cyan-500 '/><span>{post?.views ?? 0} Views</span> 
           </button>

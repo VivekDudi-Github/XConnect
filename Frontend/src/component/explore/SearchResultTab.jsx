@@ -47,7 +47,7 @@ const ShowResultPosts = ({ data , totalPages , q}) => {
   return (
     <div className="w-full mt-6 columns-1 sm:columns-2 lg:columns-3 gap-4 max-w-6xl">
       {posts.map((post , i) => (
-        <div key={post._id} ref={i === posts.length - 1 ? fetchNew : null}>
+        <div key={post._id} ref={i === posts.length - 1 ? fetchNew : null} className=" break-inside-avoid-column">
           <PostCard post={post} />
         </div>
       ))}
