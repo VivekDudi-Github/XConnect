@@ -39,12 +39,15 @@ const liveStreamSchema = new mongoose.Schema({
   producers : {
     videoId : {
       type : String ,
-      required : true ,
     } ,
     audioId : {
       type : String ,
-      required : true ,
     } ,
+  } ,
+  scheduledAt : {
+    type : Date ,
+    default : null ,
+    index : true ,
   }
 }, { timestamps: true });
 

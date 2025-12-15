@@ -312,10 +312,14 @@ const api = createApi({
       })
     }) ,
     getLiveStream : builder.query({
-      query : ({id}) => ({
+      query : ({id}) => {
+        console.log('id' , id);
+        
+        return {
         url : `/live/get/${id}` ,
         credentials : 'include' ,
-      })
+      }
+      }
     }) ,
     getLiveChats : builder.query({
       query : ({id , limit , lastId }) => ({
@@ -358,6 +362,14 @@ const api = createApi({
     continueSearch : builder.query({
       query : ({q , page , tab}) => ({
         url : '/search/continue/' +'?q='+q +'&page=' +page + '&tab=' + tab ,
+        credentials : 'include'
+      })
+    }) ,
+
+    //analytics
+    getAnalyticsPage : builder.query({
+      query : () => ({
+        url : '/analytics/home' ,
         credentials : 'include'
       })
     }) ,
@@ -440,4 +452,7 @@ export const {
   useSearchBarMutation ,
   useLazyContinueSearchQuery ,
   useNormalSearchMutation ,
+
+  //analytics
+  useGetAnalyticsPageQuery ,
 } = api ;

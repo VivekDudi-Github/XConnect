@@ -13,8 +13,6 @@ import { Notification } from '../models/notifiaction.model.js';
 import { WatchHistory } from '../models/watchHistory.model.js';
 import { Community } from '../models/community.model.js';
 import { Hashtag } from '../models/hastags.model.js';
-import { Advertisement } from '../models/advertisement.model.js';
-
 
 const ObjectId = mongoose.Types.ObjectId ;
 
@@ -373,6 +371,7 @@ const getPost = TryCatch(async(req , res) => {
     await WatchHistory.create({
       post : post[0]._id ,
       user : req.user._id ,
+      author : post[0].author._id ,
     }) ;
   }
 

@@ -20,6 +20,7 @@ import searchRouter from './routes/search.routes.js' ;
 import commentRouter from './routes/comment.routes.js' ;
 import messageRouter from './routes/message.routes.js' ;
 import communityRouter from './routes/community.routes.js' ;
+import analyticsRouter from './routes/analytics.routes.js' ;
 import stripeRouter from './routes/stripePayment.routes.js' ;
 import stripeWebhook from './routes/stripeWebhook.routes.js' ;
 
@@ -98,6 +99,7 @@ app.use('/api/v1/community' , communityRouter)
 app.use('/api/v1/live' , liveRouter)
 app.use('/api/v1/stripe/payment' , stripeRouter)
 app.use('/api/v1/search' , searchRouter) ;
+app.use('/api/v1/analytics' , analyticsRouter) ;
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,

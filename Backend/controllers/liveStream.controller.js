@@ -17,7 +17,7 @@ const createLiveStream = TryCatch(async (req , res) => {
 
     if(media) req.CreateMediaForDelete = [media?.[0]] ;
 
-//   if(!title || !description ) return ResError(res , 400 , 'All fields are required') ;
+  if(!title || !description ) return ResError(res , 400 , 'All fields are required') ;
     
     const user = await User.findOne({_id : req.user._id}) ;
     if(!user) return ResError(res , 400 ,'User not found' ) ;
@@ -29,7 +29,7 @@ const createLiveStream = TryCatch(async (req , res) => {
     //   results = await uploadFilesTOCloudinary(media)
     // }
 
-    const liveStream = {
+    const liveStream = new LiveStream({
         title ,
         description ,
         host : req.user._id ,
@@ -37,7 +37,8 @@ const createLiveStream = TryCatch(async (req , res) => {
         startedAt : Date.now() ,
         endedAt : Date.now() ,
         producers : {} ,
-    }
+        isLive : false ,
+    })
 
     if(results.length > 0) liveStream.thumbnail = {
       public_id : results[0].public_id ,
@@ -80,22 +81,25 @@ const updateLiveStream = TryCatch(async (req , res) => {
     if (audioId !== undefined) liveStream.producers.audioId = audioId;
 
     io.to(`liveStream:${liveStream._id}`).emit('RECEIVE_LIVE_STREAM_DATA' , liveStream) ;
-    // await liveStream.save();
+    await liveStream.save();
     
     return ResSuccess(res , 200 , 'Live stream updated successfully')
 } , 'updateLiveStream')
 
 const getLiveStream = TryCatch(async (req , res) => {
     const {id} = req.params ;
-
+    console.log(id, 'line:91');
+    
+    if(!ObjectId.isValid(id)) return ResError(res , 400 , 'Invalid id') ;
     const liveStream = await LiveStream.findOne({_id : id}).populate('host' , 'username avatar name') ; 
+
     const followers = await Following.countDocuments({followedTo : liveStream?.host}) ; 
     const isFollowing = await Following.findOne({followedBy : req.user._id , followedTo : liveStream?.host}) ;
 
     console.log(followers);
     
     if(!liveStream) return ResError(res , 404 , 'Live stream not found') ;
-    return ResSuccess(res , 200 , {...liveStream , isFollowing , followers}) ;
+    return ResSuccess(res , 200 , {...liveStream._doc , isFollowing , followers}) ;
 } , 'getLiveStream')
 
 const getUserLiveStreams = TryCatch(async (req , res) => {

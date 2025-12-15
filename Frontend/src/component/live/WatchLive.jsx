@@ -32,7 +32,8 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
   }) ;
   
 
-  const {data , error , isError , isLoading} = useGetLiveStreamQuery({id : id || SData._id} ) ;
+  
+  const {data , error , isError , isLoading} = useGetLiveStreamQuery({id : id ?? SData._id} ) ;
   const  { streams, rtcCapabilities, transportRef, init, cleanup , consumersRef } = useMediasoupConsumers(null , socket , true ) ;
 
   
@@ -89,6 +90,7 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
       if(intervalRef.current) clearInterval(intervalRef.current) ;
     }
   } , [data , socket])
+
 
   useEffect(() => {
     if(!socket) return ;

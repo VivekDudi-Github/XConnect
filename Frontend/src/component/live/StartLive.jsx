@@ -14,6 +14,7 @@ import 'moment-duration-format';
 
 export default function StartLive() {
   const socket = useSocket();
+  const timerRef = useRef(null);
 
   const [isRoomAvailable , setIsRoomAvailable] = useState(false);
   const [isRoomAvailableTime , setisRoomAvailableTime] = useState(false) ; 
@@ -51,6 +52,7 @@ export default function StartLive() {
 
   const goLive = async() => {
     if(isRoomAvailable){
+      if(timerRef.current ) clearInterval(timerRef.current) ; 
       rejoinLiveStream() ;
       await startBroadcast(isCameraOn , null );
       return ;
@@ -71,6 +73,7 @@ export default function StartLive() {
       return toast.error(error?.data?.message || 'Error creating live stream' );
     }
   };
+console.log('ss');
 
   useEffect(() => {
     const update = async() => {
@@ -129,9 +132,13 @@ export default function StartLive() {
           removeLiveHost() ;
         }else {setisRoomAvailableTime(prev => prev - 1000) ; }
       } , 1000)
+      timerRef.current = interval ;
+    }
+    if(isRoomAvailable === false && timerRef.current){
+      clearInterval(timerRef.current) ;
     }
   }, [isRoomAvailable] )
-
+  
   return (
     <>
       {!isLive ? (
@@ -193,7 +200,7 @@ export default function StartLive() {
             {!isLive ? (
               <div className="w-full flex justify-center transition gap-2">
                 <button 
-                onClick={() => setIsRoomAvailable(setIsRoomAvailable(false))} className={` py-3 items-center flex justify-center  bg-white shadowLight text-black rounded-xl  showdow-lg shadow-red-400/20 hover:bg-red-700 duration-200 ${!isRoomAvailable ? 'w-0 overflow-hidden' : 'w-full'} `}>  
+                onClick={() => setIsRoomAvailable(false)} className={` py-3 items-center flex justify-center  bg-white shadowLight text-black rounded-xl  showdow-lg shadow-red-400/20 hover:bg-red-700 duration-200 ${!isRoomAvailable ? 'w-0 overflow-hidden' : 'w-full'} `}>  
                   Cancel
                 </button>
                 <button 

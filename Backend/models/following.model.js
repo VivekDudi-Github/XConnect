@@ -19,5 +19,6 @@ const followingSchema = new mongoose.Schema({
   }
 
 } , {timestamps : true})
+followingSchema.index({followedTo : 1 , createdAt : 1})
 
 export const Following = mongoose.model('following' , followingSchema)

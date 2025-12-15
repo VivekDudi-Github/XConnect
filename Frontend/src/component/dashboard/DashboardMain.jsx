@@ -1,14 +1,15 @@
 // most performing posts
 // most imporessions
 
-// promote new post
-// run new Advertisement campaign
 // impressions , clicks , views , likes
 
 import React, { useState } from "react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell, Legend } from "recharts";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { useGetAnalyticsPageQuery } from "../../redux/api/api";
+import { useEffect } from "react";
+import {toast} from 'react-toastify';
 
 const mockFollowerSeries = [
   { date: "2025-10-01", followers: 1200 },
@@ -43,6 +44,21 @@ function DashboardMain() {
   const filteredPosts = mockPostReach.filter(p => p.title.toLowerCase().includes(search.toLowerCase()));
 
   const navigate = useNavigate()
+
+  const {data , error , isError , isLoading} = useGetAnalyticsPageQuery() ;
+
+  useEffect(() => {
+    if(data?.data){
+      console.log('data' , data.data);
+    }
+  } , [data])
+
+  useEffect(()=> {
+    if(isError){
+      toast.error(error?.data?.message || 'Error fetching analytics data') ;
+      console.log('error fetching analytics data' , error);
+    }
+  } , [error , isError])
 
   return (
     <div className="min-h-screen dark:bg-black bg-white dark:text-white text-slate-900">
@@ -176,7 +192,7 @@ function DashboardMain() {
 
           {/* Right column: Campaigns, Monetization, Schedule */}
           <aside className="col-span-4 space-y-6">
-            <div className="bg-white rounded-2xl p-4 shadowLight">
+            {/* <div className="bg-white rounded-2xl p-4 shadowLight">
               <h3 className="font-semibold mb-2">Campaign Manager</h3>
               <div className="space-y-3">
                 {campaignMock.map(c => (
@@ -194,7 +210,7 @@ function DashboardMain() {
 
                 <button onClick={() => navigate('/dashboard/campaign/create')} className="w-full py-2 rounded-lg bg-indigo-600 text-white">Create Campaign</button> 
               </div>
-            </div>
+            </div> */}
 
             <div className="bg-white rounded-2xl p-4 shadowLight">
               <h3 className="font-semibold mb-2">Monetization</h3>

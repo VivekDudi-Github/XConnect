@@ -105,6 +105,9 @@ const postSchema = new mongoose.Schema({
   isAdvertisment : {
     type : Boolean ,
     default : false,
+  } ,
+  scheduledAt : {
+    type : Date ,
   }
 } , {timestamps : true})
 
