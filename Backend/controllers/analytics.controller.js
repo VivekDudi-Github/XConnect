@@ -9,16 +9,16 @@ import { TryCatch , ResError , ResSuccess } from "../utils/extra.js";
 
 const getAnalyticsPage = TryCatch(async(req , res) => {
   const userId = req.user._id ;
-  const Month = 30 * 24 * 3600 * 1000 ;
+  const Month = 30 * 24 * 3600 * 1000 ; //30 days
 
-  const thisMonthReach = await getUserReach(userId , new Date(Date.now() - Month) , Date.now()) ;
+  const thisMonthReach = await getUserReach(userId , new Date(Date.now() - Month) , new Date(Date.now())) ;
   const lastMonthReach = await getUserReach(userId , new Date(Date.now() - 2*Month) , new Date(Date.now() - Month)) ;
   
   const payouts = await getPendingPayouts(userId) ;
 
   const topEngagedPosts = await WatchHistory.aggregate([
     {$match : {
-      author : new ObjectId(`${userId}`) ,
+      author : {$eq : new ObjectId(`${userId}`)},
       createdAt : {$gte : new Date(Date.now() - Month)} ,
     }} ,
     {$group : {
@@ -48,14 +48,22 @@ const getAnalyticsPage = TryCatch(async(req , res) => {
     }}
   ]) ;
 
-  const followerGraphData = await getFollowerGraphData(new Date( Month * 3) , Date.now() , userId) ;
+  const followerGraphData = await getFollowerGraphData(new Date( Date.now() - Month * 3) , new Date(Date.now()) , userId) ;
+  
+  const newFollowers = await getFollowers(userId , new Date( Date.now() - Month * 1) , new Date(Date.now())) ; 
+  const lastFollowers = await getFollowers(userId , new Date(  Date.now() - Month * 2) , new Date(Date.now() - Month )) ; 
 
+  console.log(newFollowers ,lastFollowers);
+  
   return ResSuccess(res , 200 , {
     thisMonthReach ,
     lastMonthReach ,
     payouts ,
     topEngagedPosts ,
     followerGraphData ,
+
+    newFollowers ,
+    lastFollowers ,
   })
 } , 'getAnalyticsPage')
 
@@ -93,7 +101,7 @@ const getUserReach = async(id , startTime , endTime) => {
   const reach = await WatchHistory.aggregate([
     {$match : match} ,
     {$group : {
-      _id : '$_id' ,
+      _id : '$author' ,
       count : {$sum : 1} ,
     }}
   ])
@@ -115,20 +123,21 @@ const getFollowers = async(id , startTime , endTime) => {
       }
     }} ,
     {$group : {
-      _id : '$_id' ,
+      _id : '$followedTo' ,
       count : {$sum : 1} ,
-    }}
+    }} ,
   ])
-
-  return reach ;
+  console.log(reach[0]?.count);
+  
+  return reach[0]?.count  ;
 }
 
 const getPendingPayouts = async(userId) => {
   const LastPayout = await Payout.findOne().sort({createdAt : -1}) ;
 
-  const getAllViews = await getUserReach(userId, LastPayout?.createdAt , Date.now()) ;
-
-  return getAllViews*0.5 ;
+  const getAllViews = await getUserReach(userId, LastPayout?.createdAt,new Date( Date.now())) ; 
+  
+  return getAllViews[0]?.count*0.5 ?? 0 ;
 }
 
 const getFollowerGraphData = async(startTime , endTime , userId) => {

@@ -358,13 +358,12 @@ const getPost = TryCatch(async(req , res) => {
     }}
 
   ])
-  
 
   if(post.length === 0) return ResError(res , 404 , 'Post not found.')
 
   ResSuccess(res , 200 , post[0])
 
-  await Post.findByIdAndUpdate({id} , {$inc : {engagements : 1}}) ;
+  await Post.findByIdAndUpdate({_id : id} , {$inc : {engagements : 1}}) ;
 
   if( !post[0].author._id.equals(req.user._id)){
     await WatchHistory.deleteOne({post : post[0]._id , user : req.user._id}) ;

@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { useGetAnalyticsPageQuery } from "../../redux/api/api";
 import { useEffect } from "react";
 import {toast} from 'react-toastify';
+import moment from 'moment'
 
 const mockFollowerSeries = [
   { date: "2025-10-01", followers: 1200 },
@@ -35,7 +36,9 @@ const campaignMock = [
 ];
 
 const COLORS = ["#8884d8", "#82ca9d", "#ffc658"];
-
+const ONE_DAY = 1000*3600*24
+const sevenDates = Array(7).fill().map((_,i) => moment(Date.now()-(i*ONE_DAY)).format('YYYY-MM-DD')) ;
+                  
 
 function DashboardMain() {
   const [selectedRange, setSelectedRange] = useState("30d");
@@ -47,11 +50,33 @@ function DashboardMain() {
 
   const {data , error , isError , isLoading} = useGetAnalyticsPageQuery() ;
 
+  const [payout , setPayout] = useState(0);
+  const [thisMonthReach , setThisMonthReach] = useState(0);
+  const [lastMonthReach , setLastMonthReach] = useState(0);
+
+  const [newFollowers , setNewFollowers] = useState(0);
+  const [lastFollowers , setLastFollowers] = useState(0);
+
+  const [followerGrowth , setFollowerGrowth] = useState(0);
+  const [topEngagedPosts , setTopEngagedPosts] = useState([]);
+  const [followerGraphData , setFollowerGraphData] = useState([]);
+
   useEffect(() => {
     if(data?.data){
       console.log('data' , data.data);
+      setThisMonthReach(data.data?.thisMonthReach?.[0]?.count) ;
+      setLastMonthReach(data.data?.lastMonthReach?.[0]?.count) ;
+
+      setNewFollowers(data?.data?.newFollowers ?? 0) ;
+      setLastFollowers(data?.data?.lastFollowers ?? 0) ;
+      setPayout(data?.data?.payouts) ;
+      setTopEngagedPosts(data?.data?.topEngagedPosts) ;
+      setFollowerGraphData(data.data.followerGraphData)
     }
   } , [data])
+  console.log(newFollowers , lastFollowers , payout , topEngagedPosts , thisMonthReach , lastMonthReach);
+  
+
 
   useEffect(()=> {
     if(isError){
@@ -60,11 +85,23 @@ function DashboardMain() {
     }
   } , [error , isError])
 
+  const calcP = (n , d) => {
+    return (n/d)*100;
+  }
+  
+  const dates = () => {
+    const dateArrays = Array(Number(selectedRange)).fill().map((_,i) => moment(Date.now()-(i*ONE_DAY)).format('YYYY-MM-DD')).reverse() ; 
+    console.log(selectedRange);
+    
+    return dateArrays.map(d => ( followerGraphData.find(e => e._id.slice(0,10) === d) || {count : 0 , _id : d}))
+  }
+
+  
   return (
     <div className="min-h-screen dark:bg-black bg-white dark:text-white text-slate-900">
       <div className="max-w-7xl mx-auto p-6 ">
         {/* heading */}
-        <header className="flex items-center justify-between">
+        <header className="flex items-center flex-wrap gap-2 justify-between">
           <div className="flex items-center gap-4">
             <img src="./XConnect_icon.png" alt="" className="size-12 inline-block -translate-y-0.5" />
             <div>
@@ -80,57 +117,63 @@ function DashboardMain() {
           </div>
         </header>
 
-        <main className="mt-6 grid grid-cols-12 gap-6 text-black ">
+        <main className="mt-6 grid md:grid-cols-12 grid-cols-1 gap-6 text-black ">
           {/* Left column: Stats + charts */}
-          <section className="col-span-8 space-y-6">
+          <section className="md:col-span-8 grid-cols-1 space-y-6">
             <motion.div initial={{ opacity: 0, y: 6 }} 
               animate={{ opacity: 1, y: 0 ,transition : {duration : 1} }} 
-              className="grid grid-cols-3 gap-4 ">
+              className="grid md:grid-cols-3 grid-cols-2 gap-4 ">
               <div className="p-4 bg-white rounded-2xl shadow-sm">
                 <div className="text-sm text-slate-500">Total Reach (30d)</div>
-                <div className="text-2xl font-bold">1,254,321</div>
-                <div className="text-xs text-green-600 mt-1">+12.4% vs last month</div>
+                <div className="text-2xl font-bold">{thisMonthReach}</div>
+                <div className={`text-xs ${calcP(thisMonthReach , lastMonthReach) > 0 ? 'text-green-600' : 'text-red-600' } mt-1`}>
+                  {calcP(thisMonthReach , lastMonthReach) == Infinity ? '∞' : calcP(thisMonthReach , lastMonthReach)} % vs last month
+                </div>
               </div>
 
               <div className="p-4 bg-white rounded-2xl shadow-sm">
                 <div className="text-sm text-slate-500">New Followers</div>
-                <div className="text-2xl font-bold">2,270</div>
-                <div className="text-xs text-green-600 mt-1">+8.3% vs last month</div>
+                <div className="text-2xl font-bold">{newFollowers}</div>
+                <div className={`text-xs ${calcP(newFollowers , lastFollowers) > 0 ? 'text-green-600' : 'text-red-600' } mt-1`}>
+                  {calcP(newFollowers , lastFollowers) == Infinity ? 'no data from last month' : calcP(newFollowers , lastFollowers) + '% vs last month '} 
+                </div>
               </div>
 
               <div className="p-4 bg-white rounded-2xl shadow-sm">
                 <div className="text-sm text-slate-500">Estimated Earnings</div>
-                <div className="text-2xl font-bold">$1,820</div>
+                <div className="text-2xl font-bold">₹{payout}</div>
                 <div className="text-xs text-slate-500 mt-1">Pending payout: $420</div>
               </div>
+
             </motion.div>
 
-            <div className="bg-white rounded-2xl p-4 shadowLight fade-in">
+            {/* chart */}
+            <div className="bg-white rounded-2xl p-4 px-2 shadowLight fade-in">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-semibold">Follower Growth</h3>
                 <div className="flex items-center gap-2 ">
                   <select value={selectedRange} onChange={e => setSelectedRange(e.target.value)} className="px-2 py-1 border rounded-md text-sm">
-                    <option value="7d">7d</option>
-                    <option value="30d">30d</option>
-                    <option value="90d">90d</option>
+                    <option value={7}>7d</option>
+                    <option value={30}>30d</option>
+                    <option value={90}>90d</option>
                   </select>
                 </div>
               </div>
-              <div style={{ height: 220 }}>
+              <div style={{ height: 220 }} className="-translate-x-5 duration-200">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={mockFollowerSeries}>
+                  <LineChart data={dates()}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
+                    <XAxis dataKey={'_id'} />
+                    <YAxis dataKey={'count'} />
                     <Tooltip />
-                    <Line type="monotone" dataKey="followers" stroke="#a20dfe" strokeWidth={3} dot={{ r: 3 }} />
+                    <Line type="monotone" dataKey="count" stroke="#a20dfe" strokeWidth={3} dot={{ r: 3 }} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
             <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} 
-              className="grid grid-cols-2 gap-4 ">
+              className="grid sm:grid-cols-2 grid-cols-1 gap-4 ">
               <div className="bg-white rounded-2xl p-4 shadow-sm shadowLight">
                 <h4 className="font-semibold mb-2">Top Posts by Reach</h4>
                 <div className="divide-y">
@@ -159,12 +202,12 @@ function DashboardMain() {
                         {name: 'Likes', value: 5400 }, 
                         {name: 'Comments', value: 1200 }, 
                         {name: 'Shares', value: 800 }]} 
-                        dataKey="value" nameKey="name" outerRadius={80} label>  
+                        dataKey="value" nameKey="name" outerRadius={80} cx={'50%'} cy={'50%'} label>  
                         {[{ name: 'Likes' }, { name: 'Comments' }, { name: 'Shares' }].map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
-                      <Legend />
+                      <Legend/>
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
@@ -190,8 +233,8 @@ function DashboardMain() {
             </motion.div> */}
           </section>
 
-          {/* Right column: Campaigns, Monetization, Schedule */}
-          <aside className="col-span-4 space-y-6">
+          {/* Right column: Monetization, Schedule */}
+          <aside className="md:col-span-4 grid-cols-1 space-y-6">
             {/* <div className="bg-white rounded-2xl p-4 shadowLight">
               <h3 className="font-semibold mb-2">Campaign Manager</h3>
               <div className="space-y-3">
