@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Smile, ImagePlus, Loader2Icon, X,  GlobeIcon, Users2Icon, UserPlus2Icon, UserCheck2 } from 'lucide-react';
+import { Smile, ImagePlus, Loader2Icon, X,  GlobeIcon, Users2Icon, UserPlus2Icon, UserCheck2, CalendarClockIcon } from 'lucide-react';
 import data from '@emoji-mart/data';
 import  Picker  from '@emoji-mart/react';
 import { toast } from 'react-toastify';
@@ -19,7 +19,7 @@ export default function CreatePost() {
   const [content, setContent] = useState('');
   const [media, setMedia] = useState([]);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [visiblity , setVisiblity] = useState('public') ;
+  const [scheduledAt, setScheduledAt] = useState(null) ;
   const [hashtags  , sethashTags] = useState([])
   const [mentions , setMentions] = useState([]) ;
   const [repost, setRepost] = useState(null);
@@ -56,7 +56,7 @@ export default function CreatePost() {
     
     const form = new FormData();
     form.append('content', content);
-    form.append('visiblity', visiblity);
+    if(scheduledAt) form.append('scheduledAt' , new Date(scheduledAt).toUTCString())
     
     hashtags.forEach((tag) => {
       form.append(`hashtags[]` , tag)
@@ -115,7 +115,15 @@ export default function CreatePost() {
     detectMentions() ;
   } , [content]);
   
-
+console.log(scheduledAt);
+  const addSchedule = (e) => {
+    let newSchedule = new Date(e.target.value) ;
+    if(newSchedule < new Date()){
+      setScheduledAt(null);
+      return toast.error('Past dates are not allowed ! Schedule is cleared.') ; 
+    } 
+    setScheduledAt(newSchedule);
+  }
   
   return (
     <div {...getRootProps()} className="mt-2 w-full max-w-3xl mx-auto dark:bg-gradient-to-b dark:from-slate-950 dark:to-black rounded-2xl p-4 shadow-lg shadow-slate-800/50 text-white duration-200">
@@ -169,30 +177,15 @@ export default function CreatePost() {
                 <Smile size={20} />
               </button>
               
-              <button 
-              onClick={() => setOpenVisiblity(prev => !prev)}
+              <button title='Schedule post' 
+              onClick={() => setOpenVisiblity(prev => true)}
               className="relative text-cyan-400 hover:text-cyan-500 dark:text-zinc-400 dark:hover:text-white transition">
-                <GlobeIcon size={20} />
+                <CalendarClockIcon size={20} />
 
-                <div className={`absolute left-0 mt-2 w-40 rounded-lg border border-zinc-300 dark:border-zinc-800 bg-white dark:bg-black shadow-lg flex flex-col p-1 duration-200 ${openVisiblity ? '' : 'scale-0 -translate-x-14 -translate-y-14 '} `}>
-                  <div 
-                  onClick={() => setVisiblity('public')}
-                  className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-300 dark:hover:bg-zinc-700 cursor-pointer">
-                    <GlobeIcon size={17} />
-                    <span>Public</span>
-                  </div>
-                  <div 
-                  onClick={() => setVisiblity('followers')}
-                  className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-300 dark:hover:bg-zinc-700 cursor-pointer">
-                    <UserCheck2 size={17} />
-                    <span>Followers Only</span>
-                  </div>
-                  <div 
-                  onClick={() => setVisiblity('group')}
-                  className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-300 dark:hover:bg-zinc-700 cursor-pointer">
-                    <Users2Icon size={17} />
-                    <span>Group</span>
-                  </div>
+                <div className={`absolute left-0 mt-2 w-fit rounded-lg border border-zinc-300 dark:border-zinc-800 bg-white dark:bg-black shadow-lg flex flex-col p-1 duration-300 ${openVisiblity ? '' : 'scale-0 -translate-x-24 -translate-y-8 '} `}>
+                  <input onChange={addSchedule}  type="datetime-local" onBlur={() => setOpenVisiblity(false)}
+                    className='className="flex items-center gap-2 bg-black px-2 py-1.5 rounded-md hover:bg-gray-300 dark:hover:bg-zinc-700 cursor-pointer"' 
+                    />  
                 </div>
               </button>
 
@@ -221,7 +214,6 @@ export default function CreatePost() {
             </div>
           )}
           
-
           {hashtags.length > 0 && (
             <div className="mt-2 text-xs text-indigo-400">
               Detected hashtags: {hashtags.join(', ')}

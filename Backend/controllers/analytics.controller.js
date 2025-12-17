@@ -4,6 +4,7 @@ import { WatchHistory } from "../models/watchHistory.model.js";
 import { Payout} from "../models/payout.model.js";
 import { Post } from "../models/post.model.js";
 import { TryCatch , ResError , ResSuccess } from "../utils/extra.js";
+import { LiveStream } from "../models/liveStream.model.js";
 
 
 
@@ -42,6 +43,7 @@ const getAnalyticsPage = TryCatch(async(req , res) => {
       title : '$postDetails.title' ,
       createdAt : '$postDetails.createdAt' ,
       engagement : '$postDetails.engagements' ,
+      views : '$postDetails.views' ,
     }} ,
     {$project : {
       postDetails : 0 ,
@@ -52,6 +54,22 @@ const getAnalyticsPage = TryCatch(async(req , res) => {
   
   const newFollowers = await getFollowers(userId , new Date( Date.now() - Month * 1) , new Date(Date.now())) ; 
   const lastFollowers = await getFollowers(userId , new Date(  Date.now() - Month * 2) , new Date(Date.now() - Month )) ; 
+
+  const lastPayouts = await Payout.find().sort({createdAt : -1}).limit(3) ;
+
+  const ScheduledPosts = await Post.find({ 
+    scheduledAt : {$gt : new Date(Date.now())},
+    author : new ObjectId(`${userId}`),
+  })
+  .sort({scheduledAt : 1}) 
+  .limit(5);
+
+  const ScheduledLive = await LiveStream.find({
+    host : new ObjectId(`${userId}`),
+    scheduledAt : {$gt : new Date(Date.now())},
+  }).sort({scheduledAt : 1})
+  .limit(5) ;
+
 
   console.log(newFollowers ,lastFollowers);
   
@@ -64,6 +82,9 @@ const getAnalyticsPage = TryCatch(async(req , res) => {
 
     newFollowers ,
     lastFollowers ,
+    lastPayouts ,
+    ScheduledLive ,
+    ScheduledPosts ,
   })
 } , 'getAnalyticsPage')
 

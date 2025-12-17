@@ -13,13 +13,14 @@ import { Notification } from '../models/notifiaction.model.js';
 import { WatchHistory } from '../models/watchHistory.model.js';
 import { Community } from '../models/community.model.js';
 import { Hashtag } from '../models/hastags.model.js';
+import moment from 'moment';
 
 const ObjectId = mongoose.Types.ObjectId ;
 
 
 const createPost = TryCatch( async(req , res) => {
   req.CreateMediaForDelete = [] ;
-  const {content , hashtags = [] , title , community  , isCommunityPost = false,  repost , mentions= [] , visiblity , category ,isAnonymous } = req.body ;
+  const {content , hashtags = [] , title , community  , isCommunityPost = false,  repost , mentions= [] , scheduledAt , category ,isAnonymous } = req.body ;
   
   const {media} = req.files ;
   if(media) media.forEach(file => req.CreateMediaForDelete.push(file)) ;
@@ -29,9 +30,11 @@ const createPost = TryCatch( async(req , res) => {
   if( media && !Array.isArray(media)) return ResError(res , 400 , "Media's data is invalid.")
   if(!Array.isArray(hashtags)) return ResError(res , 400 , "Hastags' data is invalid.")
   if(!Array.isArray(mentions)) return ResError(res , 400 , "Mentions' data is invalid.")
-   
+
+  if(scheduledAt && !moment(scheduledAt).isValid()) return ResError(res , 400 , 'Invalid scheduled date.')
+  if(new Date(scheduledAt).getTime() < new Date().getTime()) return ResError(res , 400 , 'Past dates are not allowed.')
+
   if(repost && !ObjectId.isValid(repost)) return ResError(res , 400 , "Repost's data is invalid.") ;  
-  if(visiblity && !['public' , 'followers' , 'group'].includes(visiblity)) return ResError(res , 400 , "Visiblity's data is invalid.")
 
   if(isCommunityPost){
     if(category && typeof category !== 'string') return ResError(res , 400 , 'Category is required.') ;
@@ -54,7 +57,7 @@ const createPost = TryCatch( async(req , res) => {
     media : cloudinaryResults || [] ,
     hashtags : hashtags || [] ,
     repost : repost || null ,
-    visiblity : visiblity || 'public' ,
+    scheduledAt : scheduledAt ||  null ,
     mentions : mentions || [] ,
     community : isCommunityPost ? community : null ,
     title : isCommunityPost ? title : null ,
@@ -141,7 +144,7 @@ const deletePost = TryCatch(async(req , res) => {
 } , 'DeletePost')
 
 const editPost = TryCatch(async(req , res) => {
-  const {content , hashtags , repost , visiblity } = req.body;
+  const {content , hashtags , repost } = req.body;
   const {media} = req.files ;
   const {id} = req.params;
 
@@ -150,7 +153,6 @@ const editPost = TryCatch(async(req , res) => {
   if(!Array.isArray(media)) return ResError(res , 400 , "Media's data is invalid.")
   if(!Array.isArray(hashtags)) return ResError(res , 400 , "Hastags' data is invalid.")
   if(repost || typeof repost !== 'string') return ResError(res , 400 , "Repost's data is invalid.")
-  if(visiblity && !['public' , 'followers' , 'group'].includes(visiblity)) return ResError(res , 400 , "Visiblity's data is invalid.")
 
   const post = await Post.findById(id).NoDelete();
   if(!post) return ResError(res , 404 , 'Post not found.')
@@ -168,7 +170,6 @@ const editPost = TryCatch(async(req , res) => {
   post.hashtags = hashtags || [];
   post.media = cloudinaryResults || [];
   post.repost = repost || null;
-  post.visiblity = visiblity || 'public';
   await post.save();
 
   return ResSuccess(res , 200 , post)
@@ -180,14 +181,13 @@ const getPost = TryCatch(async(req , res) => {
   
   if(!id) return ResError(res , 400 , 'Post ID is required.')
 
-  const postData = await Post.findById(id).select('author visiblity') ;
+  const postData = await Post.findById(id).select('author scheduledAt') ;
   
   if(!postData || postData.isDeleted === true) return ResError(res , 404 , 'Post not found.') ;
+  if(!postData.author.equals( req.user._id) && postData.scheduledAt && new Date(postData.scheduledAt).getTime() < new Date().getTime()) return ResError(res , 403 , 'The post is private.')
+
   
-  if( !postData.author.equals( req.user._id) && postData.visiblity === 'private') return ResError(res , 403 , 'The post is private.')
-  
-  const IsFollower = await Following.exists({followedBy : req.user._id , followedTo : postData.author}) ;
-  if(!IsFollower && postData.visiblity === 'followers') return ResError(res , 403 , 'You are not authorized to view this post.')
+  // const IsFollower = await Following.exists({followedBy : req.user._id , followedTo : postData.author}) ;
 
 
   const post = await Post.aggregate([
@@ -244,7 +244,6 @@ const getPost = TryCatch(async(req , res) => {
             $and : [
               {$eq : [ '$_id' , '$$repostsId']} ,
               {$eq : ['$isDeleted' , false]} ,
-              {$eq : ['$visiblity' , 'public']} ,
             ]
           }
         }} ,
@@ -280,7 +279,6 @@ const getPost = TryCatch(async(req , res) => {
           content : 1 ,
           media : 1 ,
           hashtags : 1 ,
-          visiblity : 1 ,
         }}
       ] , 
       as : 'repostDetails'

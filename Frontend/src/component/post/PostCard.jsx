@@ -28,6 +28,7 @@ export default function PostCard({ post }) {
   const [isOpenOptions , setOpenOptions] = useState(false) ;
   const [likeStatus , setLikeStatus] = useState(post.likeStatus) ; 
   const [totalLikes , setTotalLikes] = useState(post.likeCount) ;
+  const [postScheduledAt , setPosterScheduledAt] = useState(post?.scheduledAt) ;
 
   const [pinStatus , setPinStatus] = useState(post.isPinned) ;
   const [bookmarkStatus , setBookmarkStatus] = useState(post.isBookmarked) ;
@@ -165,7 +166,8 @@ useEffect(() => {
       style={{
         maxHeight : textExpended ? '800px' : '48px' ,
       }}
-      >
+      > 
+      {postScheduledAt && <div className='text-xs text-gray-500 mt-2'>Scheduled for {moment(postScheduledAt).format('MMMM Do YYYY , h:mm a')}</div>}
         <pre ref={renderPreRef} className="dark:text-gray-300 mb-2 font-sans text-wrap"><RenderPostContent text={post?.content}/></pre>
       </div>
       <button 

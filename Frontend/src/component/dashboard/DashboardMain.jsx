@@ -41,12 +41,12 @@ const sevenDates = Array(7).fill().map((_,i) => moment(Date.now()-(i*ONE_DAY)).f
                   
 
 function DashboardMain() {
-  const [selectedRange, setSelectedRange] = useState("30d");
+  const [selectedRange, setSelectedRange] = useState(30);
   const [search, setSearch] = useState("");
 
   const filteredPosts = mockPostReach.filter(p => p.title.toLowerCase().includes(search.toLowerCase()));
 
-  const navigate = useNavigate()
+  const navigate = useNavigate() ;
 
   const {data , error , isError , isLoading} = useGetAnalyticsPageQuery() ;
 
@@ -60,6 +60,8 @@ function DashboardMain() {
   const [followerGrowth , setFollowerGrowth] = useState(0);
   const [topEngagedPosts , setTopEngagedPosts] = useState([]);
   const [followerGraphData , setFollowerGraphData] = useState([]);
+
+  const [lastPayouts , setLastPayouts] = useState([]);
 
   useEffect(() => {
     if(data?.data){
@@ -91,7 +93,6 @@ function DashboardMain() {
   
   const dates = () => {
     const dateArrays = Array(Number(selectedRange)).fill().map((_,i) => moment(Date.now()-(i*ONE_DAY)).format('YYYY-MM-DD')).reverse() ; 
-    console.log(selectedRange);
     
     return dateArrays.map(d => ( followerGraphData.find(e => e._id.slice(0,10) === d) || {count : 0 , _id : d}))
   }
@@ -177,14 +178,14 @@ function DashboardMain() {
               <div className="bg-white rounded-2xl p-4 shadow-sm shadowLight">
                 <h4 className="font-semibold mb-2">Top Posts by Reach</h4>
                 <div className="divide-y">
-                  {filteredPosts.map(p => (
-                    <div key={p.id} className="py-3 flex items-center justify-between">
+                  {topEngagedPosts.map(p => (
+                    <div key={p?._id} className="py-3 flex items-center justify-between">
                       <div>
-                        <div className="font-medium">{p.title}</div>
-                        <div className="text-xs text-slate-500">{p.date} • {p.engagement} engagements</div>
+                        <div className="font-medium truncate">{p?.title ?? p?.content?.split(' ').slice(0,3).join(' ')}</div>
+                        <div className="text-xs text-slate-500">{p?.createdAt?.slice(0,10)} • {p?.count} engagements</div>
                       </div>
                       <div className="text-right">
-                        <div className="font-semibold">{p.reach.toLocaleString()}</div>
+                        <div className="font-semibold">{p?.engagement?.toLocaleString()}</div> 
                         <div className="text-xs text-slate-400">reach</div>
                       </div>
                     </div>
@@ -261,7 +262,7 @@ function DashboardMain() {
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-sm text-slate-500">Pending Balance</div>
-                    <div className="font-bold text-lg">$420</div>
+                    <div className="font-bold text-lg">₹{payout}</div>
                   </div>
                   <div>
                     <button className="px-3 py-2 bg-white border rounded-lg hover:shadow hover:shadow-black/40 duration-200">Withdraw</button>
@@ -270,10 +271,12 @@ function DashboardMain() {
 
                 <div className="text-xs text-slate-500">Last 3 payouts</div>
                 <div className="divide-y">
-                  <div className="py-2 flex items-center justify-between text-sm"><div>Oct 20, 2025</div><div>$240</div></div>
-                  <div className="py-2 flex items-center justify-between text-sm"><div>Sep 12, 2025</div><div>$180</div></div>
-                  <div className="py-2 flex items-center justify-between text-sm"><div>Aug 03, 2025</div><div>$120</div></div>
-                </div>
+                  {lastPayouts.length > 0 ? lastPayouts.map((p) => (
+                    <div className="py-2 flex items-center justify-between text-sm"><div>{p.createdAt.slice(0,10)}</div><div>${p.amount}</div></div>
+                  )) : (
+                    <div className="py-2 flex items-center justify-between text-sm"><div>No payouts yet</div><div></div></div>
+                  )} 
+                  </div>
               </div>
             </div>
 
