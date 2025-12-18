@@ -24,6 +24,7 @@ function ProfileTabs() {
   const {username} =  useParams() ;
 
   const {isDeleteDialog} = useSelector(state => state.misc);
+  const {user} = useSelector(state => state.auth) ;
 
   const [activeTab, setActiveTab] = useState('Posts');
   
@@ -44,7 +45,7 @@ function ProfileTabs() {
       isLoading , 
       page ,
       activeTab ,
-      username ,
+      username : username ?? user?.username ,
       totalPages : totalPages ,
       fetchFunc : fetchMorePost ,
     })
@@ -61,7 +62,7 @@ useEffect(() => {
   setPosts([]) ;
   setTotalPages(1);
   
-  fetchMorePost({page : 1 , tab : activeTab , username : username}) ; 
+  fetchMorePost({page : 1 , tab : activeTab , username : username ?? user?.username}) ; 
   
 }, [activeTab])
 

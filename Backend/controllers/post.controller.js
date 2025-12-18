@@ -14,6 +14,7 @@ import { WatchHistory } from '../models/watchHistory.model.js';
 import { Community } from '../models/community.model.js';
 import { Hashtag } from '../models/hastags.model.js';
 import moment from 'moment';
+import { LikesCount } from '../models/likesCount.model.js';
 
 const ObjectId = mongoose.Types.ObjectId ;
 
@@ -378,13 +379,13 @@ const getPost = TryCatch(async(req , res) => {
 const getUserPosts = TryCatch(async(req , res) => {
   const {page = 1 , username , limit = 2 , tab = 'Posts'} = req.query;
   const skip = (page - 1) * limit;
-
+  
   const user = await User.exists({username : username}) ;
   let id ;
   if(user) {
     id = user._id ;
   }else {
-    id = req.user._id ;
+    return ResError(res , 400 , 'User not found.')
   }
    
   let data ;
@@ -409,7 +410,7 @@ const getUserPosts = TryCatch(async(req , res) => {
 
 
  if(!data || !data.posts || data.posts.length === 0 ){
-  return ;
+  return ResSuccess(res, 200, {posts : [] , totalPages : 0});
  }
 
   
@@ -1226,11 +1227,17 @@ const LikePost = async(req , res , postId , ) => {
     emitEvent('notification:retract' , `user` , [`${IsPostExist.author._id.toString()}`] , {
       type : 'like' ,
       _id : DeletedNotifcation._id.toString() ,
-    } )
-  }
-  
+      } )
+    }
+
+    await LikesCount.findOneAndUpdate({
+      user : IsPostExist.author._id ,
+      createdAt : IsPostExist.createdAt ,
+    } , {
+      $inc : {count : -1}
+    })
+
     if(hashtags.length > 0){
-      console.log('removed like');
       const ops = hashtags.map((h) => ({
         updateOne : {
           filter : { user : req.user._id , hashtags  : h} ,
@@ -1247,7 +1254,16 @@ const LikePost = async(req , res , postId , ) => {
   } else {
     await Likes.create({post : postId , user : req.user._id}) ;
     ResSuccess(res , 200 , {operation : true} )
-    console.log(IsPostExist.author._id.toString() , );
+
+    await LikesCount.findOneAndUpdate({
+      user : IsPostExist.author._id ,
+    } , {
+      $inc : {count : 1}
+    } , {
+      upsert : true ,
+    })
+    
+    if(IsPostExist.author._id.equals(req.user._id)) return ;
 
    const notification = await Notification.create({
       type : 'like' ,
@@ -1262,7 +1278,6 @@ const LikePost = async(req , res , postId , ) => {
       username : req.user.username ,
       avatar : req.user.avatar ,
     }} ) 
-    
     
 
     if(hashtags.length > 0){  

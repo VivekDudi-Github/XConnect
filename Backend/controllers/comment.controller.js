@@ -7,6 +7,7 @@ import { User } from '../models/user.model.js';
 import { Notification } from '../models/notifiaction.model.js';
 import { emitEvent } from '../utils/socket.js';
 import { Dislikes } from '../models/dislikes.modal.js';
+import { CommentCount } from '../models/commentCount.model.js';
 
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -42,6 +43,8 @@ const createComment  = TryCatch( async (req , res ) => {
   } )
 
   ResSuccess(res ,200 , comment) ;
+
+  await CommentCount.findOneAndUpdate({user : isExistPost.author._id} , {$inc : {count : 1}} , {upsert : true })
 
   if(!comment_id ){
     if(!isExistPost.author._id.equals(req.user._id)){
@@ -368,6 +371,12 @@ const deleteComment = TryCatch(async (req , res) => {
   if( !isExistComment.user.equals(req.user._id)) return ResError(res , 403 , 'You are not the owner of this comment') ;
 
   const existsReply = await Comment.exists({ comment_id : id })
+  await CommentCount.findOneAndUpdate({
+    user : isExistComment.user ,  
+    createdAt : isExistComment.createdAt ,
+  } , 
+  {$inc : {count : -1}}) ;
+
   if(!existsReply){
     await isExistComment.deleteOne()
     return ResSuccess(res , 200 , 'Comment deleted successfully') ;
@@ -377,6 +386,8 @@ const deleteComment = TryCatch(async (req , res) => {
       await isExistComment.save() ;
     return ResSuccess(res , 200 , 'Comment deleted successfully') ;
   }
+
+
 } , 'delete Comment')
 
 const getSingleComment = TryCatch(async (req , res) => {

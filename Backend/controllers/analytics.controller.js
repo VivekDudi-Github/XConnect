@@ -5,7 +5,8 @@ import { Payout} from "../models/payout.model.js";
 import { Post } from "../models/post.model.js";
 import { TryCatch , ResError , ResSuccess } from "../utils/extra.js";
 import { LiveStream } from "../models/liveStream.model.js";
-
+import {LikesCount} from '../models/likesCount.model.js'
+import {CommentCount} from '../models/commentCount.model.js'
 
 
 const getAnalyticsPage = TryCatch(async(req , res) => {
@@ -59,19 +60,38 @@ const getAnalyticsPage = TryCatch(async(req , res) => {
 
   const ScheduledPosts = await Post.find({ 
     scheduledAt : {$gt : new Date(Date.now())},
-    author : new ObjectId(`${userId}`),
+    author : req.user._id,
   })
+  .select('scheduledAt author content title')
   .sort({scheduledAt : 1}) 
   .limit(5);
 
   const ScheduledLive = await LiveStream.find({
     host : new ObjectId(`${userId}`),
-    scheduledAt : {$gt : new Date(Date.now())},
-  }).sort({scheduledAt : 1})
+  })
+  .sort({scheduledAt : 1})
   .limit(5) ;
 
+  const likesCount = await LikesCount.aggregate([
+    {$match : {
+      user : new ObjectId(`${userId}`) ,
+    }} ,
+    {$group : {
+      _id : '$user' ,
+      count : {$sum : '$count'} ,
+    }}
+  ])
 
-  console.log(newFollowers ,lastFollowers);
+  const commentCount = await CommentCount.aggregate([
+    {$match : {
+      user : new ObjectId(`${userId}`) ,
+      createdAt : {$gte : new Date(Date.now() - Month)} ,
+    }} ,
+    {$group : {
+      _id : '$user' ,
+      count : {$sum : '$count'} ,
+    }}
+  ])
   
   return ResSuccess(res , 200 , {
     thisMonthReach ,
@@ -85,6 +105,9 @@ const getAnalyticsPage = TryCatch(async(req , res) => {
     lastPayouts ,
     ScheduledLive ,
     ScheduledPosts ,
+
+    likesCount ,
+    commentCount ,
   })
 } , 'getAnalyticsPage')
 

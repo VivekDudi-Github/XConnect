@@ -1,6 +1,6 @@
 // most performing posts
 // most imporessions
-
+// add profile visits
 // impressions , clicks , views , likes
 
 import React, { useState } from "react";
@@ -11,6 +11,7 @@ import { useGetAnalyticsPageQuery } from "../../redux/api/api";
 import { useEffect } from "react";
 import {toast} from 'react-toastify';
 import moment from 'moment'
+import { useSelector } from "react-redux";
 
 const mockFollowerSeries = [
   { date: "2025-10-01", followers: 1200 },
@@ -41,6 +42,8 @@ const sevenDates = Array(7).fill().map((_,i) => moment(Date.now()-(i*ONE_DAY)).f
                   
 
 function DashboardMain() {
+  const {user} = useSelector(state => state.auth);
+
   const [selectedRange, setSelectedRange] = useState(30);
   const [search, setSearch] = useState("");
 
@@ -61,7 +64,12 @@ function DashboardMain() {
   const [topEngagedPosts , setTopEngagedPosts] = useState([]);
   const [followerGraphData , setFollowerGraphData] = useState([]);
 
+  const [scheduled , setScheduled] = useState([]);
+
   const [lastPayouts , setLastPayouts] = useState([]);
+
+  const [commentCount , setCommentCount] = useState(0);
+  const [likeCount , setLikeCount] = useState(0);
 
   useEffect(() => {
     if(data?.data){
@@ -73,12 +81,13 @@ function DashboardMain() {
       setLastFollowers(data?.data?.lastFollowers ?? 0) ;
       setPayout(data?.data?.payouts) ;
       setTopEngagedPosts(data?.data?.topEngagedPosts) ;
-      setFollowerGraphData(data.data.followerGraphData)
+      setFollowerGraphData(data.data.followerGraphData) ;
+      setScheduled([...data.data?.ScheduledPosts , ...data?.data?.ScheduledLive])
+    
+      setCommentCount(data?.data?.commentCount[0]?.count ?? 0) ;
+      setLikeCount(data?.data?.likesCount[0]?.count ?? 0) ;
     }
   } , [data])
-  console.log(newFollowers , lastFollowers , payout , topEngagedPosts , thisMonthReach , lastMonthReach);
-  
-
 
   useEffect(()=> {
     if(isError){
@@ -94,7 +103,7 @@ function DashboardMain() {
   const dates = () => {
     const dateArrays = Array(Number(selectedRange)).fill().map((_,i) => moment(Date.now()-(i*ONE_DAY)).format('YYYY-MM-DD')).reverse() ; 
     
-    return dateArrays.map(d => ( followerGraphData.find(e => e._id.slice(0,10) === d) || {count : 0 , _id : d}))
+    return dateArrays.map(d => ( followerGraphData.find(e => e._id.slice(0,10) === d) || {count : 0 , _id : d})) ;
   }
 
   
@@ -121,6 +130,19 @@ function DashboardMain() {
         <main className="mt-6 grid md:grid-cols-12 grid-cols-1 gap-6 text-black ">
           {/* Left column: Stats + charts */}
           <section className="md:col-span-8 grid-cols-1 space-y-6">
+            <div className="grid md:grid-cols-2 gap-4 fade-in"> 
+              <div className="p-4 bg-white rounded-2xl shadow-sm">
+                <div className="text-sm text-slate-500">Total Followers</div>
+                <div className="text-2xl font-bold">{user?.followers}</div>
+                <div className="text-xs text-slate-500 mt-1">Total Following: {user?.following} </div>
+              </div>
+              <div className="p-4 bg-white rounded-2xl shadow-sm">
+                <div className="text-sm text-slate-500">Estimated Earnings</div>
+                <div className="text-2xl font-bold">₹{payout}</div>
+                <div className="text-xs text-slate-500 mt-1">Pending payout: $420</div>
+              </div>
+            </div>
+
             <motion.div initial={{ opacity: 0, y: 6 }} 
               animate={{ opacity: 1, y: 0 ,transition : {duration : 1} }} 
               className="grid md:grid-cols-3 grid-cols-2 gap-4 ">
@@ -173,7 +195,7 @@ function DashboardMain() {
               </div>
             </div>
 
-            <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} 
+            <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
               className="grid sm:grid-cols-2 grid-cols-1 gap-4 ">
               <div className="bg-white rounded-2xl p-4 shadow-sm shadowLight">
                 <h4 className="font-semibold mb-2">Top Posts by Reach</h4>
@@ -200,11 +222,11 @@ function DashboardMain() {
                     <PieChart>
                       <Pie 
                       data={[
-                        {name: 'Likes', value: 5400 }, 
-                        {name: 'Comments', value: 1200 }, 
-                        {name: 'Shares', value: 800 }]} 
+                        {name: 'Likes', value: Number(likeCount) }, 
+                        {name: 'Comments', value: Number(commentCount) }
+                      ]} 
                         dataKey="value" nameKey="name" outerRadius={80} cx={'50%'} cy={'50%'} label>  
-                        {[{ name: 'Likes' }, { name: 'Comments' }, { name: 'Shares' }].map((entry, index) => (
+                        {[{ name: 'Likes' }, { name: 'Comments' }].map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
@@ -282,8 +304,15 @@ function DashboardMain() {
 
             <div className="bg-white rounded-2xl p-4 shadowLight">
               <h3 className="font-semibold mb-2">Content Calendar</h3>
-              <div className="text-sm text-slate-500 mb-2">Scheduled posts & campaigns</div>
+              <div className="text-sm text-slate-500 mb-2">Scheduled posts & Lives</div>
               <div className="space-y-2">
+                {scheduled.map((p) => (
+                  <div key={p?._id} className="flex items-center justify-between p-2 bg-slate-50 rounded-md">
+                    <div className="text-sm  truncate ">{moment(p?.scheduledAt).fromNow()} —{p?.title ?? p?.content }</div>  
+                    <div className="text-xs text-slate-400">{p?.host ? 'Live' : 'Post'}</div>
+                  </div>  
+                ))}
+{/*                 
                 <div className="flex items-center justify-between p-2 bg-slate-50 rounded-md">
                   <div className="text-sm">Nov 25 — Post: Building an Ads Manager</div>
                   <div className="text-xs text-slate-400">Draft</div>
@@ -291,7 +320,7 @@ function DashboardMain() {
                 <div className="flex items-center justify-between p-2 bg-slate-50 rounded-md">
                   <div className="text-sm">Dec 02 — Live: Stream Q&A</div>
                   <div className="text-xs text-green-600">Scheduled</div>
-                </div>
+                </div> */}
               </div>
 
               <button className="mt-3 w-full py-2 rounded-lg bg-white border hover:shadow hover:shadow-slate-600 duration-200">Open Calendar</button>
@@ -316,3 +345,4 @@ function DashboardMain() {
 
 
 export default DashboardMain
+
