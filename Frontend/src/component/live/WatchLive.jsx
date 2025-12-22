@@ -31,8 +31,6 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
     audioStream : localStreamRef?.current?.audioStream || null ,
   }) ;
   
-
-  
   const {data , error , isError , isLoading} = useGetLiveStreamQuery({id : id ?? SData._id} ) ;
   const  { streams, rtcCapabilities, transportRef, init, cleanup , consumersRef } = useMediasoupConsumers(null , socket , true ) ;
 
@@ -60,7 +58,7 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
       interval = setInterval(() => {
         socket.emit('CHECK_ROOM_ACTIVE' , {room : 'liveStream' , roomId : data?.data?._id} , (res) => {
           setViewersCount(res.active) ;
-          if(!isProducer && !res.isRoom ){setActiveStream(null) }
+          if(!isProducer && !res.isRoom ){setActiveStream(null) } ;
         }) ;
         if(isProducer){
           socket.emit('CHECK_ROOM_JOINED', {room : 'liveStream' , roomId : data?.data?._id} , (res) => {

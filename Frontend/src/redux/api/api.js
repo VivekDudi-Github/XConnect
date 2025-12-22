@@ -336,6 +336,13 @@ const api = createApi({
         credentials : 'include'
       })
     }) ,
+    increaseLiveViews : builder.mutation({
+      query : ({id}) => ({
+        url : '/live/views/'+id ,
+        method : 'POST' ,
+        credentials : 'include'
+      })
+    }) ,
 
     //search
     searchUsers : builder.query({

@@ -2,6 +2,7 @@
 // most imporessions
 // add profile visits
 // impressions , clicks , views , likes
+// top viwed posts , total likes , engagement rate , withdraw money , add Schedule for posts/live
 
 import React, { useState } from "react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell, Legend } from "recharts";

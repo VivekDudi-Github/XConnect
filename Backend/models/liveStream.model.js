@@ -48,7 +48,11 @@ const liveStreamSchema = new mongoose.Schema({
     type : Date ,
     default : null ,
     index : true ,
-  }
+  } ,
+  peakViewers : {
+    type : Number ,
+    default : 0 ,
+  } ,
 }, { timestamps: true });
 
 export const LiveStream = mongoose.model("LiveStream", liveStreamSchema);
