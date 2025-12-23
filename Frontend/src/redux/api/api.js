@@ -380,6 +380,24 @@ const api = createApi({
         credentials : 'include'
       })
     }) ,
+
+    //upload
+    intializeVideoUpload : builder.mutation({
+      query : ({fileSize , fileType}) => ({
+        url : '/videoUpload/session' ,
+        method : 'POST' ,
+        body : {fileSize , fileType} ,
+        credentials : 'include'
+      })
+    }) ,
+    uploadVideoChunks : builder.mutation({
+      query : ({form}) => ({
+        url : '/videoUpload/chunk' ,
+        method : 'POST' ,
+        body : form ,
+        credentials : 'include'
+      })
+    }) ,
   })
 })
 
@@ -462,4 +480,8 @@ export const {
 
   //analytics
   useGetAnalyticsPageQuery ,
+
+  //upload 
+  useIntializeVideoUploadMutation ,
+  useUploadVideoChunksMutation ,
 } = api ;

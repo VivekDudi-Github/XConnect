@@ -23,6 +23,7 @@ import communityRouter from './routes/community.routes.js' ;
 import analyticsRouter from './routes/analytics.routes.js' ;
 import stripeRouter from './routes/stripePayment.routes.js' ;
 import stripeWebhook from './routes/stripeWebhook.routes.js' ;
+import videoUploadRouter from './routes/videoUpload.routes.js' ;
 
 import { checkSocketUser } from "./utils/chekAuth.js";
 
@@ -100,6 +101,7 @@ app.use('/api/v1/live' , liveRouter)
 app.use('/api/v1/stripe/payment' , stripeRouter)
 app.use('/api/v1/search' , searchRouter) ;
 app.use('/api/v1/analytics' , analyticsRouter) ;
+app.use('/api/v1/videoUpload' , videoUploadRouter) ;
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -173,8 +175,7 @@ async function StartServer(){
     console.log('error while starting server' , error);
     process.exit(1) ;
   }
-
 }
 StartServer() ;
 
-export {io}
+export {io} ;

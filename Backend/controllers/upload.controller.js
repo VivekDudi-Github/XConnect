@@ -28,7 +28,7 @@ const InitVideoUpload = TryCatch(async(req , res) => {
     status : 'pending' ,
   })
 
-  return ResSuccess(res , 200 , {uploadId , chunkSize , totalChunks}) ;
+  return ResSuccess(res , 200 , {uploadId , _id : videoUpload._id  , chunkSize , totalChunks}) ;
 } , 'InitVideoUpload')
 
 const uploadVideoChunk = TryCatch(async( req , res) => {
@@ -59,7 +59,20 @@ const uploadVideoChunk = TryCatch(async( req , res) => {
     return ResSuccess(res , 200 , null);
 } , 'uploadVideoChunk')
 
+const uploadStatusCheck = TryCatch(async(req , res) => {
+  const {uploadId} = req.params ;
+  
+  const uploadDoc = await VideoUpload.findOne({ uploadId });
+  
+  if (!uploadDoc) {
+    return ResError(res , 404 , 'Upload Not Found');
+  }
+  
+  return ResSuccess(res , 200 , {status : uploadDoc.status , chunks : uploadDoc.uploadedChunks});
+} , 'uploadStatusCheck')
+
 export {
   InitVideoUpload ,
-  uploadVideoChunk
+  uploadVideoChunk ,
+  uploadStatusCheck
 }
