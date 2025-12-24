@@ -8,7 +8,7 @@ import ProtectedRoute from './component/specific/ProtectedRoute';
 import { useLazyFetchMeQuery } from './redux/api/api';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import Loader from './component/shared/Loader';
+import Loader from './component/ui/Loader';
 import { login, logout } from './redux/reducer/authSlice';
 
 

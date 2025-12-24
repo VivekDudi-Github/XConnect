@@ -6,7 +6,7 @@ import { useDeleteCommentMutation, useGetPostQuery, useLazyGetCommentQuery, useP
 import moment from "moment";
 import RenderPostContent from "../specific/RenderPostContent";
 import { toast } from "react-toastify";
-import ImageSlider from "../shared/ImagesSlider";
+import ImageSlider from "../ui/ImagesSlider";
 import TextArea from 'react-textarea-autosize'
 import CommentCardSkeleton from "../shared/CommentCardSkeleton";
 

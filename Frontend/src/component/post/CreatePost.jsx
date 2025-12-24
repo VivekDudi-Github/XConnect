@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
-import { Smile, ImagePlus, Loader2Icon, X,  GlobeIcon, Users2Icon, UserPlus2Icon, UserCheck2, CalendarClockIcon } from 'lucide-react';
+import { useState, useRef, useEffect, lazy } from 'react';
+import { Smile, ImagePlus, Loader2Icon, X,  GlobeIcon, Users2Icon, UserPlus2Icon, UserCheck2, CalendarClockIcon, UploadIcon, LoaderCircleIcon, CheckCircleIcon } from 'lucide-react';
 import data from '@emoji-mart/data';
 import  Picker  from '@emoji-mart/react';
 import { toast } from 'react-toastify';
@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import { useDropzone } from 'react-dropzone';
 import { useCreatePostMutation } from '../../redux/api/api';
 import { useSelector } from 'react-redux';
+import UploadVideo from '../shared/uploadVideo';
 
 
 export default function CreatePost() {
@@ -24,11 +25,16 @@ export default function CreatePost() {
   const [mentions , setMentions] = useState([]) ;
   const [repost, setRepost] = useState(null);
 
+  const [videoUploaded , setVideoUploaded] = useState([]) ;
+
+
   const inputRef = useRef(null);
   const imageInputRef  = useRef(null);
 
   const [createPostMutate] =  useCreatePostMutation();
-
+  const {isUploading , progress , InitUpload , fileName} = UploadVideo() ;
+  console.log('media:', media.length); 
+  
   const onDrop = (acceptedFiles) => {
     const newMedia = acceptedFiles.map(file => ({
       file,
@@ -88,7 +94,17 @@ export default function CreatePost() {
     setLoading(false);
     setShowEmojiPicker(false);
   }
-};
+  };
+  const upload = async(file , isSingleUp = false) => {
+    const videos = isSingleUp ? media.filter(m => m.type === 'video') : [file] ;
+    console.log(videos);
+    for(const v of videos){
+      const res = await InitUpload(v) ;
+      if(!res) return ;
+      // setVideoUploaded(prev => [...prev , v.file]);
+    }
+    
+  }
 
   const handleEmojiSelect = (emoji) => {
     setContent(prev => prev + emoji.native);
@@ -115,7 +131,6 @@ export default function CreatePost() {
     detectMentions() ;
   } , [content]);
   
-console.log(scheduledAt);
   const addSchedule = (e) => {
     let newSchedule = new Date(e.target.value) ;
     if(newSchedule < new Date()){
@@ -125,8 +140,9 @@ console.log(scheduledAt);
     setScheduledAt(newSchedule);
   }
   
+
   return (
-    <div {...getRootProps()} className="mt-2 w-full max-w-3xl mx-auto dark:bg-gradient-to-b dark:from-slate-950 dark:to-black rounded-2xl p-4 shadow-lg shadow-slate-800/50 text-white duration-200">
+    <div {...getRootProps()} className="mt-2 w-full max-w-3xl mx-auto dark:bg-gradient-to-b dark:from-slate-950 dark:to-black rounded-2xl p-4 shadow-md shadow-slate-600/50  text-white duration-200">
       <div className="flex items-start space-x-4">
         <img
           src={user?.avatar?.url || 'https://img.freepik.com/premium-vector/male-face-avatar-icon-set-flat-design-social-media-profiles_1281173-3806.jpg?semt=ais_hybrid&w=740'}
@@ -155,6 +171,15 @@ console.log(scheduledAt);
                     className="absolute top-1 right-1 bg-black/60 text-white p-1 rounded-full"
                   >
                     <X size={16} />
+                  </button>
+                  <button
+                    onClick={() => {videoUploaded.find(v => v.name == m.file.name) ? null : upload(m , true) }}
+                    className="absolute top-1 right-8 bg-black/60 text-white p-1 rounded-full hover:bg-black"  
+                  >
+                    {videoUploaded.find(v => v.name == m.file.name) ? <CheckCircleIcon size={16} /> : <UploadIcon size={16} />} 
+                    {fileName === m.file.name ? <>
+                      <span className='text-xs flex justify-center items-center gap-1'><Loader2Icon size={16} className='animate-spin'/> {progress }%</span>
+                    </> : null}
                   </button>
                 </div>
               ))}
@@ -188,14 +213,13 @@ console.log(scheduledAt);
                     />  
                 </div>
               </button>
-
-
+              <span className='text-gray-400'>{media.some(m => m.type === 'video') ? `[${videoUploaded.length}/${media.filter(v => v.type === 'video').length} uploaded]` : null }</span>
             </div>
-            {media.length < 2 && <div className='animate-pulse dark:text-white text-black opacity-20 '>
+            <div className='animate-pulse dark:text-white text-black opacity-20 '>
               You can drag  & drop media.
-            </div>}
+            </div>
             <button
-              onClick={submitPost}
+              onClick={upload}
               disabled={loading || (!content.trim() && media.length === 0)}
               className="bg-gradient-to-r from-indigo-500 to-purple-600 px-4 py-1.5 rounded-full text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed duration-200"
             >

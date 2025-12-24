@@ -1,16 +1,22 @@
-import { TryCatch , ResError , ResSuccess } from "../utils/extra";
+import { TryCatch , ResError , ResSuccess } from "../utils/extra.js";
 import { v4 as uuidv4 } from 'uuid';
 import { VideoUpload } from '../models/videoUpload.model.js';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from "url"; 
+
+
+
+const __dirname = path.dirname(process.cwd());
 
 const chunkSize = 1024*100 ;
-const STORAGE_DIR = path.join(__dirname , "uploads/storage/"); 
+const STORAGE_DIR = path.join(__dirname , "Backend/uploads/storage/"); 
 
 const InitVideoUpload = TryCatch(async(req , res) => {
   const {fileSize , fileType } = req.body ;
   const userId = req.user._id ;
-
+  console.log(fileSize , fileType);
+  
   if(!fileSize || !fileType ) return ResError(res , 400 , 'Invalid request body.')
   if(isNaN(fileSize)) return ResError(res , 400 , 'invalid filesize type')
 
@@ -18,6 +24,8 @@ const InitVideoUpload = TryCatch(async(req , res) => {
 
   let totalChunks = Math.ceil(fileSize/chunkSize) ;
 
+  console.log(path.join(STORAGE_DIR, uploadId) , 'join');
+  
   fs.mkdirSync(path.join(STORAGE_DIR, uploadId), { recursive: true });
 
   const videoUpload = await VideoUpload.create({
@@ -36,7 +44,7 @@ const uploadVideoChunk = TryCatch(async( req , res) => {
 
   
     const uploadDoc = await VideoUpload.findOne({ uploadId }); 
-    if (!uploadDoc || uploadDoc.status !== "uploading") {
+    if (!uploadDoc || uploadDoc.status !== "pending") {
       return ResError(res , 400 , 'Invalid upload id');
     }
 

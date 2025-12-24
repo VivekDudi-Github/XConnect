@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import Loader from '../shared/Loader'
+import Loader from '../ui/Loader'
 import PostCard from "../post/PostCard";
 import { dummyPosts } from "../../sampleData";
 import SearchBar from "../specific/search/SearchBar";

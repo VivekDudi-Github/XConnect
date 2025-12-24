@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState , useMemo, lazy} from "react";
 import {ArrowDownIcon, ChevronDown, ChevronDownIcon, ChevronRightIcon, EllipsisVerticalIcon, IndianRupeeIcon, Loader2Icon,} from 'lucide-react' ;
 import { useSocket } from "../specific/socket";
 import { toast } from "react-toastify";
-import Loader from "../shared/Loader";
+import Loader from "../ui/Loader";
 import { useCreateSuperchatIntentMutation, useLazyGetLiveChatsQuery } from "../../redux/api/api";
 import { useSelector } from "react-redux";
 import RenderPostContent from "../specific/RenderPostContent";

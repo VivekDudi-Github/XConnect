@@ -148,5 +148,5 @@ export {
     updateLiveStream ,
     getLiveStream ,
     getUserLiveStreams ,
-    getLiveChat
+    getLiveChats
 }
