@@ -41,30 +41,32 @@ const InitVideoUpload = TryCatch(async(req , res) => {
 
 const uploadVideoChunk = TryCatch(async( req , res) => {
   const {uploadId , chunkIdx} = req.body ;
-
+  console.log(uploadId);
   
-    const uploadDoc = await VideoUpload.findOne({ uploadId }); 
-    if (!uploadDoc || uploadDoc.status !== "pending") {
-      return ResError(res , 400 , 'Invalid upload id');
-    }
+  
+  const uploadDoc = await VideoUpload.findOne({ uploadId : uploadId }); 
+  
+  if (!uploadDoc || uploadDoc.status !== "pending") {
+    return ResError(res , 400 , 'Invalid upload id');
+  }
 
-    if (chunkIdx < 0 || chunkIdx >= uploadDoc.totalChunks) { 
-      return ResError(res , 400 , 'Invalid chunk index');
-    }
+  if (chunkIdx < 0 || chunkIdx >= uploadDoc.totalChunks) { 
+    return ResError(res , 400 , 'Invalid chunk index');
+  }
 
-    const chunkPath = path.join(
-      STORAGE_DIR,
-      uploadId,
-      `part-${chunkIdx}`
-    );
-    
-    if (!fs.existsSync(chunkPath)) {
-      fs.writeFileSync(chunkPath, req.file.buffer);
-      uploadDoc.uploadedChunks.push(chunkIdx);
-      await uploadDoc.save();
-    }
+  const chunkPath = path.join(
+    STORAGE_DIR,
+    uploadId,
+    `part-${chunkIdx}`
+  );
+  
+  if (!fs.existsSync(chunkPath)) {
+    fs.writeFileSync(chunkPath, req.file.buffer);
+    uploadDoc.uploadedChunks.push(chunkIdx);
+    await uploadDoc.save();
+  }
 
-    return ResSuccess(res , 200 , null);
+  return ResSuccess(res , 200 , null);
 } , 'uploadVideoChunk')
 
 const uploadStatusCheck = TryCatch(async(req , res) => {

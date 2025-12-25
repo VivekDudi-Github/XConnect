@@ -32,8 +32,8 @@ export default function CreatePost() {
   const imageInputRef  = useRef(null);
 
   const [createPostMutate] =  useCreatePostMutation();
-  const {isUploading , progress , InitUpload , fileName} = UploadVideo() ;
-  console.log('media:', media.length); 
+  const {isUploading , progress , InitUpload , fileName} = UploadVideo() ; 
+  console.log(fileName , progress+'%');
   
   const onDrop = (acceptedFiles) => {
     const newMedia = acceptedFiles.map(file => ({
@@ -101,7 +101,7 @@ export default function CreatePost() {
     for(const v of videos){
       const res = await InitUpload(v) ;
       if(!res) return ;
-      // setVideoUploaded(prev => [...prev , v.file]);
+      setVideoUploaded(prev => [...prev , v.file]);
     }
     
   }
@@ -174,12 +174,13 @@ export default function CreatePost() {
                   </button>
                   <button
                     onClick={() => {videoUploaded.find(v => v.name == m.file.name) ? null : upload(m , true) }}
-                    className="absolute top-1 right-8 bg-black/60 text-white p-1 rounded-full hover:bg-black"  
+                    className="absolute top-1 right-8 bg-black/60 text-white p-1 rounded-full hover:bg-black duration-200"  
                   >
-                    {videoUploaded.find(v => v.name == m.file.name) ? <CheckCircleIcon size={16} /> : <UploadIcon size={16} />} 
                     {fileName === m.file.name ? <>
-                      <span className='text-xs flex justify-center items-center gap-1'><Loader2Icon size={16} className='animate-spin'/> {progress }%</span>
-                    </> : null}
+                      <span className='text-xs flex justify-center items-center gap-1'><Loader2Icon size={16} className='animate-spin'/> {Math.round(progress) }%</span>
+                    </> : <>
+                      {videoUploaded.find(v => v.name == m.file.name) ? <CheckCircleIcon size={16} /> : <UploadIcon size={16} />} 
+                    </>}
                   </button>
                 </div>
               ))}
