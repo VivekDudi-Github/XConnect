@@ -24,33 +24,50 @@ function UploadVideo() {
     
     if(!file) return toast.error('Please select a file to upload.');
     try {
-      setFileName(file.file.name);
-      if(sessionStorage.getItem(file.file.name)){
-        const {uploadId , size} = JSON.parse(sessionStorage.getItem(file.file.name));
+      let fingerprint = `activeUpload:${file?.file?.name}-${file?.file?.size}-${file?.file?.lastModified}` ;  
+      setFileName(file?.file?.name);
 
+      if(localStorage.getItem(fingerprint)){
+        const {uploadId , size , _id , chunkSize} = JSON.parse(localStorage.getItem(fingerprint));
+        uploadIdRef.current = uploadId ;
+        totalChunks.current = Math.ceil(size/chunkSize) ;
+        
+        set_id(_id);
+
+        let arr = await createChunk(file.file , totalChunks.current , chunkSize) ;
+        if(arr.length > 0) await uploadChunks(arr , fingerprint);
+
+        return {uploadId : uploadIdRef.current };
 
       }else {
-         const res = await inti({ fileSize : file.file.size , fileType : file.type }).unwrap();
+        const res = await inti({ fileSize : file.file.size , fileType : file.type }).unwrap();
         
         if(!res?.data) return toast.error('Couldn\'t initialize the video. Please try again.');
         console.log(res);
         
         set_id(res.data._id);
-        uploadIdRef.current = res.data.uploadId ; 
+        uploadIdRef.current = res.data.uploadId ;
         totalChunks.current = res.data.totalChunks ;
-        sessionStorage.setItem(file.file.name , {
-          uploadId : uploadIdRef.current ,
-          size : file.file.size ,
-          _id : res.data._id ,
-        });
-        await createChunk(file.file , res.data.totalChunks , res.data.chunkSize) ;
+
+        localStorage.setItem(`activeUpload:${file.file.name}-${file.file.size}-${file.file.lastModified}` , 
+            JSON.stringify({
+            uploadId : uploadIdRef.current ,
+            size : file.file.size ,
+            _id : res.data._id ,
+            chunkSize : res.data.chunkSize ,
+          })
+        );
+
+
+        let arr = await createChunk(file.file , res.data.totalChunks , res.data.chunkSize) ;
+        if(arr.length > 0) await uploadChunks(arr , fingerprint);
         
         return {uploadId : uploadIdRef.current };
       }
 
     } catch (error) {
       console.log(error , ' error in intializing the video');
-      toast.error(error.data?.message || "Couldn't initialize the video. Please try again.");
+      toast.error(error.data?.message || error?.message || "Couldn't initialize the video. Please try again.");
       return false ;
     }
      finally { setFileName('') ; setUploading(false); setProgress(0) ;}
@@ -67,29 +84,29 @@ function UploadVideo() {
       });
       pointer += size ;
     }
-    if(arr.length > 0) await uploadChunks(arr);
+    return arr ;
   }
 
-  const uploadChunks = async(chunks) => {
+  const uploadChunks = async(chunks , fingerprint) => {
     if(!chunks.length) return ;
 
     for(const chunk of chunks){
-      console.log(chunk?.index);
-      
       const form  = new FormData();
       form.append('chunk' , chunk.blob);
       form.append('uploadId' , uploadIdRef.current);
       form.append('chunkIdx' , chunk.index);
       try {
-        const res = await uploadChunk({form}).unwrap();
-        if(!res.success) return toast.error('Couldn\'t upload the video. Please try again.');
+        await uploadChunk({form}).unwrap();
+        
         setChunkIdx(chunk.index);
         setProgress((chunk.index/(totalChunks.current-1))*100);
       } catch (error) {
         console.log('error in uploading the video' ,error , );
-        toast.error(error.data?.message || "Couldn't upload the video. Please try again.");
+        throw new Error(error.data?.message || "Couldn't upload the video. Please try again.");
       }
     }
+
+    localStorage.removeItem(fingerprint);
   }
 
   return {isUploading , progress , InitUpload , fileName }

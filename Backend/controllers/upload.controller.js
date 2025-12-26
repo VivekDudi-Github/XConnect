@@ -9,7 +9,7 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(process.cwd());
 
-const chunkSize = 1024*100 ;
+const chunkSize = 1024*1024*1 ;
 const STORAGE_DIR = path.join(__dirname , "Backend/uploads/storage/"); 
 
 const InitVideoUpload = TryCatch(async(req , res) => {
@@ -41,8 +41,6 @@ const InitVideoUpload = TryCatch(async(req , res) => {
 
 const uploadVideoChunk = TryCatch(async( req , res) => {
   const {uploadId , chunkIdx} = req.body ;
-  console.log(uploadId);
-  
   
   const uploadDoc = await VideoUpload.findOne({ uploadId : uploadId }); 
   

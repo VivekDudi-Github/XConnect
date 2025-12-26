@@ -8,10 +8,12 @@ import { useDropzone } from 'react-dropzone';
 import { useCreatePostMutation } from '../../redux/api/api';
 import { useSelector } from 'react-redux';
 import UploadVideo from '../shared/uploadVideo';
+import DialogBox from '../shared/DialogBox';
 
 
 export default function CreatePost() {
   const {user}  = useSelector(state => state.auth) ;
+  const [showDialog , setShowDialog] = useState(true) ;
 
   const [loading, setLoading] = useState(false);
   const [ openVisiblity ,setOpenVisiblity] = useState(false)
@@ -96,14 +98,15 @@ export default function CreatePost() {
   }
   };
   const upload = async(file , isSingleUp = false) => {
-    const videos = isSingleUp ? media.filter(m => m.type === 'video') : [file] ;
+    const videos = isSingleUp ? [file] : media.filter(m => m.type === 'video') ;
     console.log(videos);
+    
     for(const v of videos){
       const res = await InitUpload(v) ;
-      if(!res) return ;
+      if(!res?.uploadId) continue ;
+      console.log('VideoUpload updated' , res)
       setVideoUploaded(prev => [...prev , v.file]);
     }
-    
   }
 
   const handleEmojiSelect = (emoji) => {
@@ -140,6 +143,16 @@ export default function CreatePost() {
     setScheduledAt(newSchedule);
   }
   
+  const uploadButtonHandler = (m) => {
+    if(fileName === m.file.name) return ;
+    videoUploaded.find(v => v.name == m.file.name) ? null : upload(m , true) ;
+  }
+
+  useEffect(() => {
+    if(localStorage.getItem('activeUpload')){
+      setShowDialog(true) ;
+    }
+  } , [])
 
   return (
     <div {...getRootProps()} className="mt-2 w-full max-w-3xl mx-auto dark:bg-gradient-to-b dark:from-slate-950 dark:to-black rounded-2xl p-4 shadow-md shadow-slate-600/50  text-white duration-200">
@@ -173,7 +186,7 @@ export default function CreatePost() {
                     <X size={16} />
                   </button>
                   <button
-                    onClick={() => {videoUploaded.find(v => v.name == m.file.name) ? null : upload(m , true) }}
+                    onClick={() => uploadButtonHandler(m)}
                     className="absolute top-1 right-8 bg-black/60 text-white p-1 rounded-full hover:bg-black duration-200"  
                   >
                     {fileName === m.file.name ? <>
@@ -251,6 +264,15 @@ export default function CreatePost() {
           )}
         </div>
       </div>
+
+      {showDialog && (
+        <DialogBox 
+          message={'You have an unfinished video upload. Please re-select the file to resume. '}
+          onClose={() => setShowDialog(false)}
+          mainFuction={() => setShowDialog(false)}
+        />
+      )}
+
     </div>
   );
 }

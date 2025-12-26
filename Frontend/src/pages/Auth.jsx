@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useRegisterMeMutation , useLoginMeMutation } from '../redux/api/api';
-import Loader from '../component/shared/Loader';
+import Loader from '../component/ui/Loader';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
