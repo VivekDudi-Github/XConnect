@@ -1,4 +1,5 @@
 import fs from 'fs/promises';
+import path from 'path';
 
 const ResError = (res , statusCode , message) => {
   return res.status(statusCode).json({
@@ -31,9 +32,28 @@ const TryCatch = (func , funcName ) => {
   }
 }
 
+const mergeChunks = async(uploadId , totalChunks , STORAGE_DIR , type) => {
+  const outputPath = path.join(path.resolve('/uploads/processed') , `${uploadId}.${type}` )
+  
+  // path.join(STORAGE_DIR, uploadId, `${uploadId}.mp4`);
+  const dir = path.join(STORAGE_DIR, uploadId);
+
+  const writeStream = fs.createWriteStream(outputPath);
+
+  for (let i = 0 ; i < totalChunks; i++) {
+    const chunkPath = path.join(dir, `part-${i}`);
+    const buffer = fs.readFileSync(chunkPath);
+    writeStream.write(buffer);
+  }
+
+  writeStream.end();
+}
+
+
 
 export {
   TryCatch ,
   ResError ,
   ResSuccess ,
+  mergeChunks ,
 }

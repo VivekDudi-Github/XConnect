@@ -49,8 +49,10 @@ function UploadVideo() {
         uploadIdRef.current = res.data.uploadId ;
         totalChunks.current = res.data.totalChunks ;
 
-        localStorage.setItem(`activeUpload:${file.file.name}-${file.file.size}-${file.file.lastModified}` , 
+        localStorage.setItem(fingerprint , 
             JSON.stringify({
+            fingerprint ,
+            name : file.file.name , 
             uploadId : uploadIdRef.current ,
             size : file.file.size ,
             _id : res.data._id ,
@@ -109,6 +111,7 @@ function UploadVideo() {
     localStorage.removeItem(fingerprint);
   }
 
+  
   return {isUploading , progress , InitUpload , fileName }
 }
 

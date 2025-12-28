@@ -13,10 +13,12 @@ import DialogBox from '../shared/DialogBox';
 
 export default function CreatePost() {
   const {user}  = useSelector(state => state.auth) ;
-  const [showDialog , setShowDialog] = useState(true) ;
+  const [showDialog , setShowDialog] = useState(false) ;
+  const [oldPendingUpload , setOldPendingUpload] = useState([]) ;
 
   const [loading, setLoading] = useState(false);
   const [ openVisiblity ,setOpenVisiblity] = useState(false)
+console.log(oldPendingUpload);
 
 
   const [content, setContent] = useState('');
@@ -38,11 +40,13 @@ export default function CreatePost() {
   console.log(fileName , progress+'%');
   
   const onDrop = (acceptedFiles) => {
-    const newMedia = acceptedFiles.map(file => ({
-      file,
+    const newMedia = acceptedFiles.map(file => {
+    if(file.type.startsWith('video/')) checkPendingUpload(file) ;
+    
+    return {file,
       preview: URL.createObjectURL(file) ,
       type : file.type.startsWith('image/') ? 'image' : 'video',
-    }));
+    } });
     setMedia(prev => [...prev, ...newMedia]);
   };
 
@@ -148,11 +152,30 @@ export default function CreatePost() {
     videoUploaded.find(v => v.name == m.file.name) ? null : upload(m , true) ;
   }
 
+  const removePendingUpload = (e) => {
+    localStorage.removeItem(e.fingerprint) ;
+    setOldPendingUpload(prev => prev.filter(v => v.name !== e.name)) ;
+  }
+
+  const checkPendingUpload = (e) => {
+    let fingerprint = `activeUpload:${e.name}-${e.size}-${e.lastModified}` ;
+    if(localStorage.getItem(fingerprint)) setOldPendingUpload(prev => prev.filter(v => v.name !== e.name)) ; ;
+  }
+
   useEffect(() => {
-    if(localStorage.getItem('activeUpload')){
-      setShowDialog(true) ;
+    function run(){
+      let isAvailable = Object.keys(localStorage).filter(e => e.startsWith('activeUpload:'))
+      if(isAvailable.length > 0) {
+        setShowDialog(true) ;
+        let arr = [] ;
+        isAvailable.forEach(e => arr.push(JSON.parse(localStorage.getItem(e))  )) ;
+        setOldPendingUpload(arr) ;
+      }
     }
+    run()
   } , [])
+
+  
 
   return (
     <div {...getRootProps()} className="mt-2 w-full max-w-3xl mx-auto dark:bg-gradient-to-b dark:from-slate-950 dark:to-black rounded-2xl p-4 shadow-md shadow-slate-600/50  text-white duration-200">
@@ -262,6 +285,17 @@ export default function CreatePost() {
               Mentions: {mentions.join(', ')}
             </div>
           )}
+          {oldPendingUpload.length > 0 ? (
+            <div className="flex items-center gap-2 mt-4 text-sm text-gray-500 dark:text-gray-400">
+              <span className="font-semibold">Earlier Pending Uploads:</span>
+              {oldPendingUpload.map( e => 
+                <div key={e.fingerprint} className="px-2 py-1 border border-gray-300 dark:border-gray-700 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 flex">
+                  {e.name}
+                  <X size={20} onClick={() => removePendingUpload(e)}/>
+                </div>
+              )}
+            </div>
+          ) : null}
         </div>
       </div>
 
