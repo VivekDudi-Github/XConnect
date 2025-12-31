@@ -1,4 +1,4 @@
-import { TryCatch , ResError , ResSuccess, mergeChunks } from "../utils/extra.js";
+import { TryCatch , ResError , ResSuccess, mergeUploadAsync } from "../utils/extra.js";
 import { v4 as uuidv4 } from 'uuid';
 import { VideoUpload } from '../models/videoUpload.model.js';
 import fs from 'fs';
@@ -7,7 +7,7 @@ import { fileURLToPath } from "url";
 
 
 
-const CHUNK_SIZE = 1024*500 ; // for production - 1024*1024*2 ; 
+const CHUNK_SIZE = 1024*1024*2 ; // for production - 1024*1024*2 ; 
 const STORAGE_DIR = path.resolve("uploads/storage");
  
 
@@ -39,8 +39,9 @@ const InitVideoUpload = TryCatch(async(req , res) => {
     status : 'uploading' , // uploading > processing > completed
   })
 
-  return ResSuccess(res , 200 , {uploadId , _id : videoUpload._id  , CHUNK_SIZE , totalChunks}) ;
+  return ResSuccess(res , 200 , {uploadId , _id : videoUpload._id  , chunkSize : CHUNK_SIZE , totalChunks}) ;
 } , 'InitVideoUpload')
+
 
 const uploadVideoChunk = TryCatch(async( req , res) => {
   const {uploadId , chunkIdx} = req.body ;
@@ -64,9 +65,10 @@ const uploadVideoChunk = TryCatch(async( req , res) => {
     uploadDoc.uploadedChunks.push(chunkIdx);
     await uploadDoc.save();
   }
-
   return ResSuccess(res , 200 , null);
 } , 'uploadVideoChunk')
+
+
 
 const uploadStatusCheck = TryCatch(async(req , res) => {
   const {uploadId} = req.params ;
@@ -77,11 +79,20 @@ const uploadStatusCheck = TryCatch(async(req , res) => {
     return ResError(res , 404 , 'Upload Not Found');
   }
   
-  return ResSuccess(res , 200 , {status : uploadDoc.status , totalChunks : uploadDoc.totalChunks , chunks : uploadDoc.uploadedChunks});
+  return ResSuccess(res , 200 , {
+    status : uploadDoc.status , 
+    totalChunks : uploadDoc.totalChunks , 
+    chunks : uploadDoc.uploadedChunks ,
+    size : uploadDoc.fileSize ,
+  });
 } , 'uploadStatusCheck')
+
+
 
 const verifyUpload = TryCatch(async(req , res) => {
   const { uploadId } = req.params;
+  console.log('verifying..');
+  
 
   const uploadDoc = await VideoUpload.findOne({ uploadId });
   if (!uploadDoc) return ResError(res, 400, "Upload Not found");
@@ -108,6 +119,8 @@ const verifyUpload = TryCatch(async(req , res) => {
     const size = fs.statSync(chunkPath).size;
 
     if (i < totalChunks - 1 && size !== CHUNK_SIZE) {
+      console.log(i , size , CHUNK_SIZE);
+      
       missingChunks.add(i);
       uploadDoc.uploadedChunks.pull(i);
       fs.unlinkSync(chunkPath);
@@ -117,6 +130,8 @@ const verifyUpload = TryCatch(async(req , res) => {
     if (i === totalChunks - 1) {
       const expectedLastChunkSize =
         uploadDoc.fileSize - CHUNK_SIZE * (totalChunks - 1);
+      console.log(i , size , expectedLastChunkSize);
+      
 
       if (size !== expectedLastChunkSize) {
         missingChunks.add(i);
@@ -131,9 +146,9 @@ const verifyUpload = TryCatch(async(req , res) => {
     }
   }
   
-  if(missingChunks.length === 0) {
+  if(missingChunks.size === 0) {
     uploadDoc.status = 'processing' ;
-
+    mergeUploadAsync(uploadId) ;
     await uploadDoc.save();
     return ResSuccess(res , 200 , 'Video has been verified successfully.');
   }

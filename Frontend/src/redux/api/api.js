@@ -390,11 +390,24 @@ const api = createApi({
         credentials : 'include'
       })
     }) ,
+    uploadStatusCheck : builder.query({
+      query : ({uploadId}) => ({
+        url : `/videoUpload/status/${uploadId}` ,
+        credentials : 'include'
+      })
+    }) ,
     uploadVideoChunks : builder.mutation({
       query : ({form}) => ({
         url : '/videoUpload/chunk' ,
         method : 'POST' ,
         body : form ,
+        credentials : 'include'
+      })
+    }) ,
+    verifyUploadVideo : builder.mutation({
+      query : ({uploadId}) => ({
+        url : '/videoUpload/verify/'+uploadId ,
+        method : 'POST' ,
         credentials : 'include'
       })
     }) ,
@@ -483,5 +496,8 @@ export const {
 
   //upload 
   useIntializeVideoUploadMutation ,
+  useLazyUploadStatusCheckQuery ,
+
   useUploadVideoChunksMutation ,
+  useVerifyUploadVideoMutation ,
 } = api ;

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import {useIntializeVideoUploadMutation , useUploadVideoChunksMutation} from '../../redux/api/api'
+import {useIntializeVideoUploadMutation , useUploadVideoChunksMutation, useVerifyUploadVideoMutation , useLazyUploadStatusCheckQuery} from '../../redux/api/api'
 import {toast} from 'react-toastify'
 
 function UploadVideo() {
@@ -17,7 +17,10 @@ function UploadVideo() {
 
   const [inti] = useIntializeVideoUploadMutation();
   const [uploadChunk] = useUploadVideoChunksMutation();
+  const [verifyVideo] = useVerifyUploadVideoMutation();
 
+  const [uploadStatusCheck] = useLazyUploadStatusCheckQuery();
+ 
   const InitUpload = async(file) => {
     setUploading(true);
     console.log(file?.file);
@@ -28,22 +31,60 @@ function UploadVideo() {
       setFileName(file?.file?.name);
 
       if(localStorage.getItem(fingerprint)){
-        const {uploadId , size , _id , chunkSize} = JSON.parse(localStorage.getItem(fingerprint));
-        uploadIdRef.current = uploadId ;
-        totalChunks.current = Math.ceil(size/chunkSize) ;
+        const {uploadId , chunkSize} = JSON.parse(localStorage.getItem(fingerprint));
+        let uploadStatus = await uploadStatusCheck({uploadId : uploadId}).unwrap();
+        console.log(uploadStatus);
         
-        set_id(_id);
+        const {totalChunks : resTotalChunks , status , chunks} = uploadStatus?.data ;
+        console.log(status , resTotalChunks);
+        
+        totalChunks.current = resTotalChunks ;
+        uploadIdRef.current = uploadId ;
 
-        let arr = await createChunk(file.file , totalChunks.current , chunkSize) ;
-        if(arr.length > 0) await uploadChunks(arr , fingerprint);
 
+        let arr = await createChunk(file.file , totalChunks.current , chunkSize , chunks) ;
+        switch(status){
+          case 'completed' :
+            toast.success('Video has been uploaded successfully.');
+            localStorage.removeItem(fingerprint);
+            return {uploadId} ;
+          case 'failed' :
+            toast.error('Video upload failed. Please try again.');
+            localStorage.removeItem(fingerprint);
+            return ;
+          case 'processing' :
+            toast.info('Video is being uploaded. Please wait.');
+            localStorage.removeItem(fingerprint);
+            return {uploadId} ;
+          default :
+            break; ;
+        }
+
+
+        if( arr.length > 0) await uploadChunks(arr , fingerprint);
+        let res = await verifyVideo({uploadId : uploadIdRef.current}).unwrap();
+
+        if(res?.data?.missingChunks?.length > 0){  
+          toast.info('Some chunks are missing. Uploading the remaining chunks.');
+          arr = await createChunk(file.file , totalChunks.current , chunkSize , chunks , true) ;
+          
+          await uploadChunks(arr , fingerprint);
+          res = await verifyVideo({uploadId : uploadIdRef.current}).unwrap();
+          console.log(res);
+          
+          if(res?.data?.missingChunks?.length > 0) {
+            return toast.error('There was an error in uploading the video. Please try again.');
+          }
+        }
+
+        localStorage.removeItem(fingerprint);
         return {uploadId : uploadIdRef.current };
 
       }else {
-        const res = await inti({ fileSize : file.file.size , fileType : file.type }).unwrap();
+        let res = await inti({ fileSize : file.file.size , fileType : file.type }).unwrap();
         
         if(!res?.data) return toast.error('Couldn\'t initialize the video. Please try again.');
-        console.log(res);
+        let chunkSize = res.data.chunkSize ;
         
         set_id(res.data._id);
         uploadIdRef.current = res.data.uploadId ;
@@ -54,16 +95,28 @@ function UploadVideo() {
             fingerprint ,
             name : file.file.name , 
             uploadId : uploadIdRef.current ,
-            size : file.file.size ,
-            _id : res.data._id ,
             chunkSize : res.data.chunkSize ,
           })
         );
 
 
-        let arr = await createChunk(file.file , res.data.totalChunks , res.data.chunkSize) ;
+        let arr = await createChunk(file.file , res.data.totalChunks , chunkSize) ;
         if(arr.length > 0) await uploadChunks(arr , fingerprint);
         
+        res = await verifyVideo({uploadId : uploadIdRef.current}).unwrap();
+
+        if(res?.data?.missingChunks?.length > 0){  
+          toast.info('Some chunks are missing. Uploading the remaining chunks.');
+          arr = await createChunk(file.file , totalChunks.current , chunkSize , res.data.missingChunks , true) ;
+          
+          await uploadChunks(arr , fingerprint);
+          res = await verifyVideo({uploadId : uploadIdRef.current}).unwrap();
+          
+          if(res?.data?.missingChunks?.length > 0) {
+            return toast.error('Couldn\'t upload the video. Please try again.');
+          }
+        }
+        localStorage.removeItem(fingerprint);
         return {uploadId : uploadIdRef.current };
       }
 
@@ -75,21 +128,38 @@ function UploadVideo() {
      finally { setFileName('') ; setUploading(false); setProgress(0) ;}
   }
 
-  const createChunk = async(file , totalparts , size) => {
+  const createChunk = async(file , totalparts , chunkSize , ChunksIdxArr = [] , isMissingChunks = false) => { 
     const arr = [] ;
-    let pointer = 0 ;
+    
+    if(isMissingChunks){
+      for(let i = 0 ; i < totalparts ; i++){
+        if(ChunksIdxArr.includes(i)){
+          arr.push({
+            index : i,
+            blob : file.slice(
+              i * chunkSize , 
+              Math.min((i+1) * chunkSize , file.size)) 
+          });
+        }
+      }
 
-    for(let i = 0 ; i < totalparts ; i++){
-      arr.push({
-        index : i,
-        blob : file.slice(pointer , Math.min(pointer+size , file.size)) 
-      });
-      pointer += size ;
+    }else {
+      for(let i = 0 ; i < totalparts ; i++){
+        if(!ChunksIdxArr.includes(i)){
+          arr.push({
+            index : i,
+            blob : file.slice(
+              i * chunkSize , 
+              Math.min((i+1)*chunkSize , file.size)) 
+          });
+        }
+      }
     }
+    console.log(chunkSize ,arr);
     return arr ;
   }
 
-  const uploadChunks = async(chunks , fingerprint) => {
+  const uploadChunks = async(chunks ) => {
     if(!chunks.length) return ;
 
     for(const chunk of chunks){
@@ -107,8 +177,7 @@ function UploadVideo() {
         throw new Error(error.data?.message || "Couldn't upload the video. Please try again.");
       }
     }
-
-    localStorage.removeItem(fingerprint);
+    
   }
 
   

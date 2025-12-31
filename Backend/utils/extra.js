@@ -1,5 +1,7 @@
-import fs from 'fs/promises';
+import fs from 'fs';
 import path from 'path';
+import {VideoUpload} from "../models/videoUpload.model.js";
+
 
 const ResError = (res , statusCode , message) => {
   return res.status(statusCode).json({
@@ -32,28 +34,64 @@ const TryCatch = (func , funcName ) => {
   }
 }
 
-const mergeChunks = async(uploadId , totalChunks , STORAGE_DIR , type) => {
-  const outputPath = path.join(path.resolve('/uploads/processed') , `${uploadId}.${type}` )
+
+const STORAGE_DIR = path.resolve("uploads/storage");
+
+function mergeUploadAsync(uploadId) {
+  console.log('merge initalized');
   
-  // path.join(STORAGE_DIR, uploadId, `${uploadId}.mp4`);
-  const dir = path.join(STORAGE_DIR, uploadId);
+  setImmediate(async () => {
+    try {
+      console.log("merge started");
+      const uploadDoc = await VideoUpload.findOne({ uploadId });
+      if (!uploadDoc || uploadDoc.status !== "processing") return;
 
-  const writeStream = fs.createWriteStream(outputPath);
+      const uploadDir = path.join(STORAGE_DIR, uploadId);
+      const outputPath = path.join(uploadDir, "final.mp4");
 
-  for (let i = 0 ; i < totalChunks; i++) {
-    const chunkPath = path.join(dir, `part-${i}`);
-    const buffer = fs.readFileSync(chunkPath);
-    writeStream.write(buffer);
-  }
+      const writeStream = fs.createWriteStream(outputPath);
 
-  writeStream.end();
+      for (let i = 0; i < uploadDoc.totalChunks; i++) {
+        const chunkPath = path.join(uploadDir, `part-${i}`);
+        const buffer = fs.readFileSync(chunkPath);
+        writeStream.write(buffer);
+      }
+
+      writeStream.end();
+
+      await new Promise((resolve) => writeStream.on("finish", resolve));
+
+      // Integrity check
+      const finalSize = fs.statSync(outputPath).size;
+      if (finalSize !== uploadDoc.fileSize) {
+        throw new Error("Final file size mismatch");
+      }
+
+      uploadDoc.status = "completed";
+      uploadDoc.finalPath = outputPath;
+      await uploadDoc.save();
+
+      // Cleanup chunks
+      for (let i = 0; i < uploadDoc.totalChunks; i++) {
+        fs.unlinkSync(path.join(uploadDir, `part-${i}`));
+      }
+
+    } catch (err) {
+      console.error("Merge failed:", err);
+      await VideoUpload.updateOne(
+        { uploadId },
+        { status: "failed" ,}
+      );
+    }
+  });
 }
 
 
 
-export {
+
+export { 
   TryCatch ,
   ResError ,
   ResSuccess ,
-  mergeChunks ,
+  mergeUploadAsync ,
 }

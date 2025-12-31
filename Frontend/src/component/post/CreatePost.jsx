@@ -17,8 +17,7 @@ export default function CreatePost() {
   const [oldPendingUpload , setOldPendingUpload] = useState([]) ;
 
   const [loading, setLoading] = useState(false);
-  const [ openVisiblity ,setOpenVisiblity] = useState(false)
-console.log(oldPendingUpload);
+  const [ openVisiblity ,setOpenVisiblity] = useState(false) ;
 
 
   const [content, setContent] = useState('');
@@ -37,7 +36,7 @@ console.log(oldPendingUpload);
 
   const [createPostMutate] =  useCreatePostMutation();
   const {isUploading , progress , InitUpload , fileName} = UploadVideo() ; 
-  console.log(fileName , progress+'%');
+
   
   const onDrop = (acceptedFiles) => {
     const newMedia = acceptedFiles.map(file => {
