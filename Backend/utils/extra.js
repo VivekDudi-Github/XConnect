@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import {VideoUpload} from "../models/videoUpload.model.js";
+import { startFFmpegWorker } from './child process/ffmpeg.js';
 
 
 const ResError = (res , statusCode , message) => {
@@ -67,14 +68,15 @@ function mergeUploadAsync(uploadId) {
         throw new Error("Final file size mismatch");
       }
 
-      uploadDoc.status = "completed";
-      uploadDoc.finalPath = outputPath;
+      uploadDoc.finalPath = `${outputPath}`;
       await uploadDoc.save();
+      
 
       // Cleanup chunks
       for (let i = 0; i < uploadDoc.totalChunks; i++) {
         fs.unlinkSync(path.join(uploadDir, `part-${i}`));
       }
+      startFFmpegWorker(uploadId) ;
 
     } catch (err) {
       console.error("Merge failed:", err);

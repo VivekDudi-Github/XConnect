@@ -15,7 +15,8 @@ const videoUploadSchema = new mongoose.Schema({
   totalChunks : {type : Number , default : 0 } ,
   fileSize : {type : Number , required : true} ,
   fileType : {type : String , required : true} ,
-  
+  finalPath : {type : String } ,
+
   status : {
     type : String , 
     default : 'uploading' ,
