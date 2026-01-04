@@ -3,7 +3,7 @@ import io from "socket.io-client";
 import * as mediasoupClient from "mediasoup-client";
 import { useSocket } from "../socket";
 import Videojs from "video.js"
-import VideoPlayer from "../VideoPlayer";
+import VideoPlayer from "../videPlayer/LiveVideoPlayer";
 import { toast } from "react-toastify";
 import { ensureSocketReady } from "../../shared/SharedFun";
 

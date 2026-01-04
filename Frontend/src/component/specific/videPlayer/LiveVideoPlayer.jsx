@@ -93,7 +93,7 @@ useEffect(() => {
   let hiddenAudioEl;
 
   if (isChromium) {
-    // Chrome/Edge needs this trick
+    // Chrome/Edge needs this
     hiddenAudioEl = document.createElement("audio");
     hiddenAudioEl.srcObject = audioStream;
     hiddenAudioEl.autoplay = true;

@@ -9,6 +9,7 @@ import { useCreatePostMutation } from '../../redux/api/api';
 import { useSelector } from 'react-redux';
 import UploadVideo from '../shared/uploadVideo';
 import DialogBox from '../shared/DialogBox';
+import VideoPlayer from '../specific/videPlayer/VideoPlayer';
 
 
 export default function CreatePost() {
@@ -199,8 +200,14 @@ export default function CreatePost() {
               {media.map((m, i) => (
                 <div key={i} className="relative">
                   { m.type === 'image' ? (
-                    <img src={m.preview} className="rounded-xl max-h-52 object-cover w-full" /> )
-                  : ( <video src={m.preview} controls className="rounded-xl max-h-52 object-cover w-full" /> )}
+                    <img src={m.preview} className="rounded-xl max-h-52 object-cover w-full" /> 
+                  ) : (
+                    <div className=' max-h-52  w-full'> 
+                      <VideoPlayer src={m.preview} />
+                    </div>
+                    // <video src={m.preview} controls className="rounded-xl max-h-52  w-full" /> 
+                  )} 
+                  
                   <button
                     onClick={() => removeMedia(i)}
                     className="absolute top-1 right-1 bg-black/60 text-white p-1 rounded-full"
@@ -221,7 +228,11 @@ export default function CreatePost() {
               ))}
             </div>
           )}
-
+          
+          <div className="grid grid-cols-2 gap-2 mt-3">
+            <VideoPlayer src={'http://localhost:3000/serve/hsl/ca3e4df5-14a8-48f7-8f65-a9bdab5145f4/hsl/master.m3u8'} />
+          </div>
+          
           <div className="flex justify-between items-center mt-3">
             <div className="flex items-center gap-3">
               <div className="cursor-pointer dark:text-zinc-400  dark:hover:text-white hover:text-cyan-500 text-cyan-400 transition"

@@ -5,7 +5,7 @@ import { useGetLiveStreamQuery, useGetProfileQuery } from "../../redux/api/api";
 import { useSocket } from "../specific/socket";
 import { useMediasoupConsumers } from "../specific/broadcast/RecieveBroadcast";
 import { NavLink, useParams } from "react-router-dom";
-import VideoPlayer from "../specific/VideoPlayer";
+import VideoPlayer from "../specific/videPlayer/LiveVideoPlayer";
 import { StopCircle , UserPlus2Icon , UserRoundCheckIcon , BookmarkCheckIcon , BookmarkIcon , Share2Icon, SidebarOpenIcon } from "lucide-react";
 import { ensureSocketReady } from "../shared/SharedFun";
 import LastRefFunc from '../specific/LastRefFunc'

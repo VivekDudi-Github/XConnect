@@ -36,6 +36,7 @@ import { Following } from "./models/following.model.js";
 import bodyParser from "body-parser";
 import Stream from "stream";
 import { LiveStreamCleanup, StreamListener } from "./utils/listners/liveStream.listeners.js";
+import path from "path";
 
 dotenv.config() ;
 
@@ -87,6 +88,7 @@ app.use(cors({
   origin: 'http://localhost:5173', 
   credentials: true, 
 }));
+app.use('/serve/hsl' , express.static(path.resolve("uploads/storage")))
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser()) ;

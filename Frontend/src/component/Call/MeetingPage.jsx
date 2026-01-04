@@ -3,7 +3,7 @@ import { MessageCircle, Phone, Mic, Video as VideoIcon, Share2, Settings, X, Mic
 import '../../assets/styles.css'
 import { useSocket } from '../specific/socket';
 import { useMediasoupConsumers } from '../specific/broadcast/RecieveBroadcast';
-import VideoPlayer from '../specific/VideoPlayer';
+import VideoPlayer from '../specific/videPlayer/LiveVideoPlayer';
 import { toast } from 'react-toastify';
 import moment from 'moment' ;
 import {useSelector} from 'react-redux'

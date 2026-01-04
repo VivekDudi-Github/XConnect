@@ -1,3 +1,4 @@
+
 import {spawn} from 'child_process' ;
 import path from 'path';
 import fs from 'fs';
@@ -15,13 +16,20 @@ function startFFmpegWorker(uploadId ){
   fs.mkdirSync(hlsDir , {recursive: true}) ;
 
   const args = [
+      "-y",
     "-i", inputPath,
 
     "-filter_complex",
-    "[0:v]split=3[v360][v480][v720];" +
-    "[v360]scale=640:360[v360out];" +
-    "[v480]scale=854:480[v480out];" +
-    "[v720]scale=1280:720[v720out]",
+    `[0:v]split=3[v360][v480][v720];
+      [v360]scale=w=640:h=360:force_original_aspect_ratio=decrease,
+            pad=ceil(iw/2)*2:ceil(ih/2)*2[v360out];
+      [v480]scale=w=854:h=480:force_original_aspect_ratio=decrease,
+            pad=ceil(iw/2)*2:ceil(ih/2)*2[v480out];
+      [v720]scale=w=1280:h=720:force_original_aspect_ratio=decrease,
+            pad=ceil(iw/2)*2:ceil(ih/2)*2[v720out]
+          `
+    .replace(/\n/g, ""),
+
 
     "-map", "[v360out]", "-map", "0:a:0",
     "-map", "[v480out]", "-map", "0:a:0",
@@ -97,13 +105,13 @@ function createMasterPlaylist(hlsDir) {
   #EXT-X-VERSION:3
 
   #EXT-X-STREAM-INF:BANDWIDTH=800000,RESOLUTION=640x360
-  360p/index.m3u8
+  v0/index.m3u8
 
   #EXT-X-STREAM-INF:BANDWIDTH=1400000,RESOLUTION=854x480
-  480p/index.m3u8
+  v1/index.m3u8
 
   #EXT-X-STREAM-INF:BANDWIDTH=2800000,RESOLUTION=1280x720
-  720p/index.m3u8
+  v2/index.m3u8
   `;
 
     fs.writeFileSync(path.join(hlsDir, "master.m3u8"), content);
