@@ -155,7 +155,6 @@ function UploadVideo() {
         }
       }
     }
-    console.log(chunkSize ,arr);
     return arr ;
   }
 
@@ -171,6 +170,7 @@ function UploadVideo() {
         await uploadChunk({form}).unwrap();
         
         setChunkIdx(chunk.index);
+        
         setProgress((chunk.index/(totalChunks.current-1))*100);
       } catch (error) {
         console.log('error in uploading the video' ,error , );

@@ -11,7 +11,7 @@ function startFFmpegWorker(uploadId ){
   
   const uploadDir = path.join(STORAGE_DIR, uploadId);
   const inputPath = path.join(uploadDir, "final.mp4");
-  const hlsDir = path.join(uploadDir, "hls");
+  const hlsDir = path.join(uploadDir, "hsl");
 
   fs.mkdirSync(hlsDir , {recursive: true}) ;
 

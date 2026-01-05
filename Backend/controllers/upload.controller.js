@@ -7,7 +7,7 @@ import { fileURLToPath } from "url";
 
 
 
-const CHUNK_SIZE = 1024*1024*2 ; // for production - 1024*1024*2 ; 
+const CHUNK_SIZE = 1024*1024*1 ; // for production - 1024*1024*2 ; 
 const STORAGE_DIR = path.resolve("uploads/storage");
  
 

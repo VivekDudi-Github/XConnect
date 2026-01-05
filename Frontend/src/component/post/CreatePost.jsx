@@ -117,8 +117,8 @@ export default function CreatePost() {
     setContent(prev => prev + emoji.native);
   };
 
-  const removeMedia = (index) => {
-    setMedia(prev => prev.filter((_, i) => i !== index));
+  const removeMedia = (m) => {
+    setMedia(prev => prev.filter((j) => j.file.name !== m.file.name)); 
   };
 
   useEffect(() => {
@@ -197,8 +197,8 @@ export default function CreatePost() {
 
           {media.length > 0 && (
             <div className="grid grid-cols-2 gap-2 mt-3">
-              {media.map((m, i) => (
-                <div key={i} className="relative">
+              {media.map((m) => (
+                <div key={m.file.name+m.file.size} className="relative">
                   { m.type === 'image' ? (
                     <img src={m.preview} className="rounded-xl max-h-52 object-cover w-full" /> 
                   ) : (
@@ -209,7 +209,7 @@ export default function CreatePost() {
                   )} 
                   
                   <button
-                    onClick={() => removeMedia(i)}
+                    onClick={() => removeMedia(m)}
                     className="absolute top-1 right-1 bg-black/60 text-white p-1 rounded-full"
                   >
                     <X size={16} />
@@ -230,7 +230,7 @@ export default function CreatePost() {
           )}
           
           <div className="grid grid-cols-2 gap-2 mt-3">
-            <VideoPlayer src={'http://localhost:3000/serve/hsl/ca3e4df5-14a8-48f7-8f65-a9bdab5145f4/hsl/master.m3u8'} />
+            <VideoPlayer src={'http://localhost:3000/serve/hsl/22dd4b87-539d-4c6c-9fa6-e64193d48e0a/hsl/master.m3u8'} />
           </div>
           
           <div className="flex justify-between items-center mt-3">
