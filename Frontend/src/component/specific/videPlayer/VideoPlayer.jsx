@@ -32,8 +32,8 @@ export default function VideoPlayer({ src }) {
         breakpoints: {
           tiny: 0,
           xsmall: 0,
-          small: 200,
-          medium: 300,
+          small: 294,
+          medium: 600,
           large: 600,
         },
       });
@@ -161,6 +161,7 @@ class SeekBackwardButton extends Button {
     super(player, options);
     this.controlText("Backward 10 seconds");
     this.addClass("vjs-seek-backward-10");
+    this.addClass("vjs-extra-button");
   }
 
   handleClick() {
@@ -176,6 +177,7 @@ class SeekForwardButton extends Button {
     super(player, options);
     this.controlText("Forward 10 seconds");
     this.addClass("vjs-seek-forward-10");
+    this.addClass("vjs-extra-button");
   }
 
   handleClick() {

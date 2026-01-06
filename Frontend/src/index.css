@@ -1,3 +1,58 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.video-js .vjs-tech {
+  object-fit: contain !important;
+  width: 100% !important;
+  height: 100% !important;
+  /* position: static !important; removes absolute positioning */
+  object-fit: contain !important;
+}
+.video-js .vjs-control-bar {
+  background-color: rgba(0,0,0, 0.3) !important;
+  display: flex !important;
+  justify-content: space-between !important;
+}
+
+.video-js .vjs-load-progress {
+  background: rgba(129, 2, 255, 1) !important;
+}
+
+.video-js .vjs-play-progress {
+  background: rgba(119, 25, 25, 0.9) !important;
+}
+.vjs-quality-menu-button .vjs-icon-placeholder::before {
+  content: "\f114"; /* gear icon */
+  font-family: VideoJS;
+}
+
+.vjs-seek-backward-10 .vjs-icon-placeholder::before {
+  content: "\f11d"; /* replay icon */
+  font-family: VideoJS;
+   margin: 0 0px;
+}
+.video-js.vjs-layout-tiny .vjs-extra-button,
+.video-js.vjs-layout-small .vjs-extra-button {
+  display: none !important;
+}
+.video-js .vjs-remaining-time{
+  display: block !important;
+  visibility:  visible !;
+}
+
+
+.vjs-seek-forward-10 .vjs-icon-placeholder::before {
+  content: "\f120"; /* forward icon */
+  font-family: VideoJS;
+  padding : 0 0px ;
+}
+
+.video-js .vjs-progress-control {
+  position: absolute !important;
+  top: -8px;            
+  left: 0;
+  width: 100% !important;
+  height: 12px !important;
+  flex: none !important;
+}
