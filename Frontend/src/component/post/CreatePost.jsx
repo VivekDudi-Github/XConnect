@@ -49,6 +49,7 @@ export default function CreatePost() {
     } });
     setMedia(prev => [...prev, ...newMedia]);
   };
+console.log(media);
 
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
@@ -203,7 +204,7 @@ export default function CreatePost() {
                     <img src={m.preview} className="rounded-xl max-h-52 object-cover w-full" /> 
                   ) : (
                     <div className=' max-h-52  w-full'> 
-                      <VideoPlayer src={m.preview} />
+                      <VideoPlayer src={m.preview} type={m.file.type} />
                     </div>
                     // <video src={m.preview} controls className="rounded-xl max-h-52  w-full" /> 
                   )} 
@@ -230,7 +231,7 @@ export default function CreatePost() {
           )}
           
           <div className="grid grid-cols-2 gap-2 mt-3">
-            <VideoPlayer src={'http://localhost:3000/serve/hsl/22dd4b87-539d-4c6c-9fa6-e64193d48e0a/hsl/master.m3u8'} />
+            <VideoPlayer src={'http://localhost:3000/serve/hsl/087e813a-59e1-42bc-864e-e2e6130f56da/hsl/master.m3u8'} />
           </div>
           
           <div className="flex justify-between items-center mt-3">

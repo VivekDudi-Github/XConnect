@@ -63,10 +63,12 @@ function mergeUploadAsync(uploadId) {
       await new Promise((resolve) => writeStream.on("finish", resolve));
 
       // Integrity check
-      const finalSize = fs.statSync(outputPath).size;
+      const finalSize = fs.statSync(outputPath).size;      
       if (finalSize !== uploadDoc.fileSize) {
         throw new Error("Final file size mismatch");
       }
+      console.log(fs.statSync(outputPath) , 'output stats');
+      
 
       uploadDoc.finalPath = `${outputPath}`;
       await uploadDoc.save();

@@ -41,6 +41,9 @@
   visibility:  visible !;
 }
 
+.video-js .vjs-fullscreen-control {
+  order: 1 !important;
+}
 
 .vjs-seek-forward-10 .vjs-icon-placeholder::before {
   content: "\f120"; /* forward icon */

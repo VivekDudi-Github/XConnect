@@ -9,7 +9,7 @@ const MenuButton = videojs.getComponent("MenuButton");
 const MenuItem = videojs.getComponent("MenuItem");
 const Button = videojs.getComponent("Button");
 
-export default function VideoPlayer({ src }) {
+export default function VideoPlayer({ src , type }) {
   const videoRef = useRef(null);
   const playerRef = useRef(null);
 
@@ -27,7 +27,7 @@ export default function VideoPlayer({ src }) {
         responsive: true,
         sources: [{
           src,
-          type: "application/x-mpegURL",
+          type: type || "application/x-mpegURL",
         }],
         breakpoints: {
           tiny: 0,
