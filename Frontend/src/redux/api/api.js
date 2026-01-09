@@ -391,8 +391,8 @@ const api = createApi({
       })
     }) ,
     uploadStatusCheck : builder.query({
-      query : ({uploadId}) => ({
-        url : `/videoUpload/status/${uploadId}` ,
+      query : ({public_id}) => ({
+        url : `/videoUpload/status/${public_id}` ,
         credentials : 'include'
       })
     }) ,
@@ -405,8 +405,8 @@ const api = createApi({
       })
     }) ,
     verifyUploadVideo : builder.mutation({
-      query : ({uploadId}) => ({
-        url : '/videoUpload/verify/'+uploadId ,
+      query : ({public_id}) => ({
+        url : '/videoUpload/verify/'+public_id ,
         method : 'POST' ,
         credentials : 'include'
       })

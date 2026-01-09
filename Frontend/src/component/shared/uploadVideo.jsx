@@ -9,7 +9,7 @@ function UploadVideo() {
 
   const [_id , set_id] = useState(null) ;
   
-  const uploadIdRef = useRef(null) ;
+  const public_idRef = useRef(null) ;
   const totalChunks = useRef(null) ;
   
   const [chunkIdx , setChunkIdx] = useState(null) ;
@@ -31,15 +31,15 @@ function UploadVideo() {
       setFileName(file?.file?.name);
 
       if(localStorage.getItem(fingerprint)){
-        const {uploadId , chunkSize} = JSON.parse(localStorage.getItem(fingerprint));
-        let uploadStatus = await uploadStatusCheck({uploadId : uploadId}).unwrap();
+        const {public_id , chunkSize} = JSON.parse(localStorage.getItem(fingerprint));
+        let uploadStatus = await uploadStatusCheck({public_id : public_id}).unwrap();
         console.log(uploadStatus);
         
         const {totalChunks : resTotalChunks , status , chunks} = uploadStatus?.data ;
         console.log(status , resTotalChunks);
         
         totalChunks.current = resTotalChunks ;
-        uploadIdRef.current = uploadId ;
+        public_idRef.current = public_id ;
 
 
         let arr = await createChunk(file.file , totalChunks.current , chunkSize , chunks) ;
@@ -47,7 +47,7 @@ function UploadVideo() {
           case 'completed' :
             toast.success('Video has been uploaded successfully.');
             localStorage.removeItem(fingerprint);
-            return {uploadId} ;
+            return {public_id} ;
           case 'failed' :
             toast.error('Video upload failed. Please try again.');
             localStorage.removeItem(fingerprint);
@@ -55,21 +55,21 @@ function UploadVideo() {
           case 'processing' :
             toast.info('Video is being uploaded. Please wait.');
             localStorage.removeItem(fingerprint);
-            return {uploadId} ;
+            return {public_id} ;
           default :
             break; ;
         }
 
 
         if( arr.length > 0) await uploadChunks(arr , fingerprint);
-        let res = await verifyVideo({uploadId : uploadIdRef.current}).unwrap();
+        let res = await verifyVideo({public_id : public_idRef.current}).unwrap();
 
         if(res?.data?.missingChunks?.length > 0){  
           toast.info('Some chunks are missing. Uploading the remaining chunks.');
           arr = await createChunk(file.file , totalChunks.current , chunkSize , chunks , true) ;
           
           await uploadChunks(arr , fingerprint);
-          res = await verifyVideo({uploadId : uploadIdRef.current}).unwrap();
+          res = await verifyVideo({public_id : public_idRef.current}).unwrap();
           console.log(res);
           
           if(res?.data?.missingChunks?.length > 0) {
@@ -78,7 +78,7 @@ function UploadVideo() {
         }
 
         localStorage.removeItem(fingerprint);
-        return {uploadId : uploadIdRef.current };
+        return {public_id : public_idRef.current };
 
       }else {
         let res = await inti({ fileSize : file.file.size , fileType : file.type }).unwrap();
@@ -87,14 +87,14 @@ function UploadVideo() {
         let chunkSize = res.data.chunkSize ;
         
         set_id(res.data._id);
-        uploadIdRef.current = res.data.uploadId ;
+        public_idRef.current = res.data.public_id ;
         totalChunks.current = res.data.totalChunks ;
 
         localStorage.setItem(fingerprint , 
             JSON.stringify({
             fingerprint ,
             name : file.file.name , 
-            uploadId : uploadIdRef.current ,
+            public_id : public_idRef.current ,
             chunkSize : res.data.chunkSize ,
           })
         );
@@ -103,21 +103,21 @@ function UploadVideo() {
         let arr = await createChunk(file.file , res.data.totalChunks , chunkSize) ;
         if(arr.length > 0) await uploadChunks(arr , fingerprint);
         
-        res = await verifyVideo({uploadId : uploadIdRef.current}).unwrap();
+        res = await verifyVideo({public_id : public_idRef.current}).unwrap();
 
         if(res?.data?.missingChunks?.length > 0){  
           toast.info('Some chunks are missing. Uploading the remaining chunks.');
           arr = await createChunk(file.file , totalChunks.current , chunkSize , res.data.missingChunks , true) ;
           
           await uploadChunks(arr , fingerprint);
-          res = await verifyVideo({uploadId : uploadIdRef.current}).unwrap();
+          res = await verifyVideo({public_id : public_idRef.current}).unwrap();
           
           if(res?.data?.missingChunks?.length > 0) {
             return toast.error('Couldn\'t upload the video. Please try again.');
           }
         }
         localStorage.removeItem(fingerprint);
-        return {uploadId : uploadIdRef.current };
+        return {public_id : public_idRef.current };
       }
 
     } catch (error) {
@@ -164,7 +164,7 @@ function UploadVideo() {
     for(const chunk of chunks){
       const form  = new FormData();
       form.append('chunk' , chunk.blob);
-      form.append('uploadId' , uploadIdRef.current);
+      form.append('public_id' , public_idRef.current);
       form.append('chunkIdx' , chunk.index);
       try {
         await uploadChunk({form}).unwrap();

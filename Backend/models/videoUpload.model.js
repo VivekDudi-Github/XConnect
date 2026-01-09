@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const videoUploadSchema = new mongoose.Schema({
-  uploadId : {
+  public_id : {
     type : String ,
     required : true ,
   } ,

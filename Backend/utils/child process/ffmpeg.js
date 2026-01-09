@@ -121,10 +121,10 @@ function buildFfmpegArgs(inputPath, hlsDir, probe) {
   return args;
 }
 
-async function startFFmpegWorker(uploadId ){
-  console.log('FFmpeg worker started for uploadId:', uploadId);
+async function startFFmpegWorker(public_id ){
+  console.log('FFmpeg worker started for public_id:', public_id);
   
-  const uploadDir = path.join(STORAGE_DIR, uploadId);
+  const uploadDir = path.join(STORAGE_DIR, public_id);
   const inputPath = path.join(uploadDir, "final.mp4");
   const hlsDir = path.join(uploadDir, "hsl");
   
@@ -142,9 +142,9 @@ async function startFFmpegWorker(uploadId ){
   });
 
   ffmpeg.on('error' , (err) => {
-    console.log(`FFMPEG error for uploadId ${uploadId}:`, err);
+    console.log(`FFMPEG error for public_id ${public_id}:`, err);
     // VideoUpload.updateOne(
-    //   { uploadId },
+    //   { public_id },
     //   { status: "failed" } ,
     // ) ;
   })
@@ -157,14 +157,14 @@ async function startFFmpegWorker(uploadId ){
       createMasterPlaylist(hlsDir , probe);
 
       await VideoUpload.updateOne(
-        { uploadId },
-        { status: "completed", finalPath: `/uploads/storage/${uploadId}/hls/master.m3u8` }
+        { public_id },
+        { status: "completed", finalPath: `/uploads/storage/${public_id}/hls/master.m3u8` }
       );
     } else {
       console.log('ffmpeg error:' , code);
       
       await VideoUpload.updateOne(
-        { uploadId },
+        { public_id },
         { status: "failed" }
       );
     }

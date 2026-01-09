@@ -108,7 +108,7 @@ console.log(media);
     
     for(const v of videos){
       const res = await InitUpload(v) ;
-      if(!res?.uploadId) continue ;
+      if(!res?.public_id) continue ;
       console.log('VideoUpload updated' , res)
       setVideoUploaded(prev => [...prev , v.file]);
     }

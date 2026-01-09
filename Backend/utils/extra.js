@@ -38,16 +38,16 @@ const TryCatch = (func , funcName ) => {
 
 const STORAGE_DIR = path.resolve("uploads/storage");
 
-function mergeUploadAsync(uploadId) {
+function mergeUploadAsync(public_id) {
   console.log('merge initalized');
   
   setImmediate(async () => {
     try {
       console.log("merge started");
-      const uploadDoc = await VideoUpload.findOne({ uploadId });
+      const uploadDoc = await VideoUpload.findOne({ public_id });
       if (!uploadDoc || uploadDoc.status !== "processing") return;
 
-      const uploadDir = path.join(STORAGE_DIR, uploadId);
+      const uploadDir = path.join(STORAGE_DIR, public_id);
       const outputPath = path.join(uploadDir, "final.mp4");
 
       const writeStream = fs.createWriteStream(outputPath);
@@ -78,12 +78,12 @@ function mergeUploadAsync(uploadId) {
       for (let i = 0; i < uploadDoc.totalChunks; i++) {
         fs.unlinkSync(path.join(uploadDir, `part-${i}`));
       }
-      startFFmpegWorker(uploadId) ;
+      startFFmpegWorker(public_id) ;
 
     } catch (err) {
       console.error("Merge failed:", err);
       await VideoUpload.updateOne(
-        { uploadId },
+        { public_id },
         { status: "failed" ,}
       );
     }

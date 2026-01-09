@@ -18,7 +18,7 @@ import { LikesCount } from '../models/likesCount.model.js';
 
 const ObjectId = mongoose.Types.ObjectId ;
 
-
+//add videoId in the media
 const createPost = TryCatch( async(req , res) => {
   req.CreateMediaForDelete = [] ;
   const {content , hashtags = [] , title , community  , isCommunityPost = false,  repost , mentions= [] , scheduledAt , category ,isAnonymous } = req.body ;

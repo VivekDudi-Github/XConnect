@@ -18,9 +18,8 @@ const postSchema = new mongoose.Schema({
       } ,
       type : {
         type : String , 
-        enum : ['image' , 'video'] ,
         required : true
-      } 
+      }
     }
   ] ,
   hashtags : [
