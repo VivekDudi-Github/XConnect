@@ -29,6 +29,7 @@ export default function CreatePost() {
   const [mentions , setMentions] = useState([]) ;
   const [repost, setRepost] = useState(null);
 
+  const VideosIds = useRef([]) ;
   const [videoUploaded , setVideoUploaded] = useState([]) ;
 
 
@@ -49,7 +50,6 @@ export default function CreatePost() {
     } });
     setMedia(prev => [...prev, ...newMedia]);
   };
-console.log(media);
 
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
@@ -61,10 +61,12 @@ console.log(media);
     multiple: true,
     maxFiles: 5,
   });
+console.log(VideosIds.current);
 
   const submitPost = async () => {
-    if (!content.trim() && media.length === 0) return;
-
+    if (!content.trim() && media.length === 0) return toast.error('Post cannot be empty.');
+    console.log(VideosIds.current);
+    
     setLoading(true);
     
     const form = new FormData();
@@ -80,37 +82,58 @@ console.log(media);
     
     media.length > 0 && 
     media.forEach((m) => {
-      form.append('media' , m.file )
+      if(m.type === 'image') form.append('media' , m.file )
     }) 
-    
+    VideosIds.current.forEach((id) => {
+      form.append('videoIds[]' , id)
+    }) ;
     if(repost){
       form.append('repost', repost);
     }
 
     try {
+      console.log(form.get('videoIds') );
      const data = await createPostMutate(form).unwrap();
       if (data) {
-        toast.success('Post created successfully!');        
+        toast.success('Post created successfully!'); 
         setContent('');
         setMedia([]);
+        VideosIds.current = [] ;
+        setVideoUploaded([]) ;
       }
     } catch (error) {
       console.log(error);
       toast.error(error.data?.message || "Couldn't create the post. Please try again.");
-    }finally{
+    } finally{
     setLoading(false);
     setShowEmojiPicker(false);
   }
   };
+
   const upload = async(file , isSingleUp = false) => {
     const videos = isSingleUp ? [file] : media.filter(m => m.type === 'video') ;
     console.log(videos);
     
     for(const v of videos){
+      if(videoUploaded.find(vid => vid.name === v.file.name)) continue ;
       const res = await InitUpload(v) ;
       if(!res?.public_id) continue ;
-      console.log('VideoUpload updated' , res)
+      console.log(res.public_id , 'line:118');
+      
+      VideosIds.current.push( res.public_id ) ; 
+      console.log('VideoUpload updated' , res , VideosIds.current) ;
       setVideoUploaded(prev => [...prev , v.file]);
+    }
+  }
+
+  const finalSubmit = async() => {
+    setLoading(true) ;
+    try {
+      await upload() ;
+      await submitPost() ;
+    } catch (error) {
+      console.log(error);
+      setLoading(false) ;
     }
   }
 
@@ -197,16 +220,15 @@ console.log(media);
           />
 
           {media.length > 0 && (
-            <div className="grid grid-cols-2 gap-2 mt-3">
+            <div className="grid sm:grid-cols-2 grid-cols-1 gap-2 mt-3">
               {media.map((m) => (
                 <div key={m.file.name+m.file.size} className="relative">
                   { m.type === 'image' ? (
                     <img src={m.preview} className="rounded-xl max-h-52 object-cover w-full" /> 
                   ) : (
-                    <div className=' max-h-52  w-full'> 
+                    <div className=' max-h-60  w-full'> 
                       <VideoPlayer src={m.preview} type={m.file.type} />
                     </div>
-                    // <video src={m.preview} controls className="rounded-xl max-h-52  w-full" /> 
                   )} 
                   
                   <button
@@ -215,7 +237,7 @@ console.log(media);
                   >
                     <X size={16} />
                   </button>
-                  <button
+                  <button hidden={m.type === 'image'}
                     onClick={() => uploadButtonHandler(m)}
                     className="absolute top-1 right-8 bg-black/60 text-white p-1 rounded-full hover:bg-black duration-200"  
                   >
@@ -230,11 +252,9 @@ console.log(media);
             </div>
           )}
           
-          <div className="grid grid-cols-2 gap-2 mt-3">
-            <VideoPlayer src={'http://localhost:3000/serve/hsl/087e813a-59e1-42bc-864e-e2e6130f56da/hsl/master.m3u8'} />
-          </div>
           
-          <div className="flex justify-between items-center mt-3">
+          
+          <div className="flex flex-wrap justify-between items-center mt-3">
             <div className="flex items-center gap-3">
               <div className="cursor-pointer dark:text-zinc-400  dark:hover:text-white hover:text-cyan-500 text-cyan-400 transition"
               onClick={() => imageInputRef.current.click()}
@@ -267,7 +287,7 @@ console.log(media);
               You can drag  & drop media.
             </div>
             <button
-              onClick={upload}
+              onClick={finalSubmit}
               disabled={loading || (!content.trim() && media.length === 0)}
               className="bg-gradient-to-r from-indigo-500 to-purple-600 px-4 py-1.5 rounded-full text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed duration-200"
             >
@@ -321,3 +341,8 @@ console.log(media);
     </div>
   );
 }
+
+
+{/* <div className="grid grid-cols-2 gap-2 mt-3">
+  <VideoPlayer src={'http://localhost:3000/serve/hsl/087e813a-59e1-42bc-864e-e2e6130f56da/hsl/master.m3u8'} />
+</div> */}

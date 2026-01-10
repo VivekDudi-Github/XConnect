@@ -1,19 +1,18 @@
 import React from 'react'
+import VideoPlayer from '../specific/videPlayer/VideoPlayer';
 
 function InPostImages({imagesArray}) {
   const length = imagesArray.length ;
+     console.log(import.meta.env.VITE_SERVE_HSL_URL);
      
   return (
       <div className={`w-full sm:max-h-96 max-h-48 grid gap-2 mx-auto 
         ${length > 1 && ' grid-cols-2 grid-flow-col grid-rows-2'}`}>
         {length >0 && length <5 && imagesArray.map(({url , type}, index) => 
              type === 'video' ? (
-              <video controls
-              key={index}
-              src={url}
-              alt={'post'+index}
-              className='w-full h-full rounded-lg mb-2 object-cover '
-              /> 
+              <div className='w-full h-full rounded-lg mb-2 object-cover '>
+                <VideoPlayer src={import.meta.env.VITE_SERVE_HSL_URL+url} />
+              </div>
             ) : (
               <img
               key={index}

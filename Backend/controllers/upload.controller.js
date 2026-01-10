@@ -14,8 +14,8 @@ const InitVideoUpload = TryCatch(async(req , res) => {
   const userId = req.user._id ;
   console.log(fileSize , fileType);
   
-  if(!fileSize || !fileType ) return ResError(res , 400 , 'Invalid request body.')
-  if(isNaN(fileSize)) return ResError(res , 400 , 'invalid filesize type')
+  if(!fileSize || !fileType ) return ResError(res , 400 , 'Invalid request body.') ;
+  if(isNaN(fileSize)) return ResError(res , 400 , 'invalid filesize type') ;
 
   if(!['video'].includes(fileType)) return ResError(res , 400 , 'Invalid File type') ; 
 
@@ -34,7 +34,7 @@ const InitVideoUpload = TryCatch(async(req , res) => {
     fileType ,
     uploadedChunks : [] ,
     totalChunks ,
-    status : 'uploading' , // uploading > processing > completed
+    status : 'uploading' , // uploading > processing > transcoding > completed
   })
 
   return ResSuccess(res , 200 , {public_id , _id : videoUpload._id  , chunkSize : CHUNK_SIZE , totalChunks}) ;
@@ -90,8 +90,9 @@ const uploadStatusCheck = TryCatch(async(req , res) => {
 const verifyUpload = TryCatch(async(req , res) => {
   const { public_id } = req.params;
   console.log('verifying..');
-  
+  if(!public_id) return ResError(res , 400 , 'Invalid request body.');
 
+  
   const uploadDoc = await VideoUpload.findOne({ public_id });
   if (!uploadDoc) return ResError(res, 400, "Upload Not found");
 

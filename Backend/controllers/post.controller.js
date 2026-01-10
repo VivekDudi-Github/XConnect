@@ -15,25 +15,26 @@ import { Community } from '../models/community.model.js';
 import { Hashtag } from '../models/hastags.model.js';
 import moment from 'moment';
 import { LikesCount } from '../models/likesCount.model.js';
+import { VideoUpload } from '../models/videoUpload.model.js';
 
 const ObjectId = mongoose.Types.ObjectId ;
 
 //add videoId in the media
 const createPost = TryCatch( async(req , res) => {
   req.CreateMediaForDelete = [] ;
-  const {content , hashtags = [] , title , community  , isCommunityPost = false,  repost , mentions= [] , scheduledAt , category ,isAnonymous } = req.body ;
+  const {content , hashtags = [] , title , community  , isCommunityPost = false,  repost , mentions= [] , scheduledAt , category ,isAnonymous , videoIds } = req.body ;
   
   const {media} = req.files ;
   if(media) media.forEach(file => req.CreateMediaForDelete.push(file)) ;
   
-  if(!content || typeof content !== 'string' ) return ResError(res , 400 , 'There should be some text for context.')
+  if(content && typeof content !== 'string' ) return ResError(res , 400 , 'There should be some text for context.') ;  
 
-  if( media && !Array.isArray(media)) return ResError(res , 400 , "Media's data is invalid.")
-  if(!Array.isArray(hashtags)) return ResError(res , 400 , "Hastags' data is invalid.")
-  if(!Array.isArray(mentions)) return ResError(res , 400 , "Mentions' data is invalid.")
+  if( media && !Array.isArray(media)) return ResError(res , 400 , "Media's data is invalid.") ;
+  if(!Array.isArray(hashtags)) return ResError(res , 400 , "Hastags' data is invalid.") ;
+  if(!Array.isArray(mentions)) return ResError(res , 400 , "Mentions' data is invalid.") ;
 
-  if(scheduledAt && !moment(scheduledAt).isValid()) return ResError(res , 400 , 'Invalid scheduled date.')
-  if(new Date(scheduledAt).getTime() < new Date().getTime()) return ResError(res , 400 , 'Past dates are not allowed.')
+  if(scheduledAt && !moment(scheduledAt).isValid()) return ResError(res , 400 , 'Invalid scheduled date.') ;
+  if(new Date(scheduledAt).getTime() < new Date().getTime()) return ResError(res , 400 , 'Past dates are not allowed.') ;
 
   if(repost && !ObjectId.isValid(repost)) return ResError(res , 400 , "Repost's data is invalid.") ;  
 
@@ -49,13 +50,28 @@ const createPost = TryCatch( async(req , res) => {
 
   let cloudinaryResults = [] ;  
   if(media && media.length > 0) {
-    cloudinaryResults = await uploadFilesTOCloudinary(media)
+    cloudinaryResults = await uploadFilesTOCloudinary(media) ;
   }
-  
+
+  let videos = [] ;
+  if(videoIds && videoIds?.length > 0){
+    for(let i = 0 ; i < videoIds.length ; i++){
+      const videoUpload = await VideoUpload.exists({public_id : videoIds[i] , user : req.user._id});
+      if(!videoUpload) continue ;
+      videos.push({
+        type : 'video' , 
+        url : `/${videoIds[i]}/hsl/master.m3u8` ,
+        public_id : videoIds[i] ,
+      })
+    }
+  }
+console.log(videoIds , videos , 'line:67');
+
+ 
   const post = await Post.create({
     author : req.user._id ,
     content : content ,
-    media : cloudinaryResults || [] ,
+    media : [...cloudinaryResults , ...videos] || [] ,
     hashtags : hashtags || [] ,
     repost : repost || null ,
     scheduledAt : scheduledAt ||  null ,
@@ -136,7 +152,7 @@ const deletePost = TryCatch(async(req , res) => {
   if(!post) return ResError(res , 404 , 'Post not found.')
   if(!post.author.equals( req.user._id)) return ResError(res , 403 , 'You are not authorized to delete this post.')
 
-  await deleteFilesFromCloudinary(post.media)
+  await deleteFilesFromCloudinary(post.media) ;
   
   post.isDeleted = true;
   await post.save();

@@ -1,8 +1,9 @@
+import fsAsync from 'fs/promises';
 import fs from 'fs';
 import path from 'path';
 import {VideoUpload} from "../models/videoUpload.model.js";
 import { startFFmpegWorker } from './child process/ffmpeg.js';
-
+import { fileTypeFromFile } from 'file-type';
 
 const ResError = (res , statusCode , message) => {
   return res.status(statusCode).json({
@@ -28,7 +29,10 @@ const TryCatch = (func , funcName ) => {
         
         if(Array.isArray( req.CreateMediaForDelete) && req.CreateMediaForDelete.length > 0){
           await Promise.allSettled(
-            req.CreateMediaForDelete.map(f => fs.unlink(f.path).catch(err => console.error('Cleanup error:', err)))
+            req.CreateMediaForDelete.map(async(f , i) => {
+              console.log(f.path , i);
+              if(fs.existsSync(f?.path)) return fsAsync.unlink(f.path).catch(err => console.error('Cleanup error:', err))
+            })
           )
         }
       }
@@ -62,7 +66,15 @@ function mergeUploadAsync(public_id) {
 
       await new Promise((resolve) => writeStream.on("finish", resolve));
 
+      
+      // type  check 
+      let type = await fileTypeFromFile(outputPath);
+      if(type.mime.startsWith('video/') === false){
+        throw new Error("Merged file is not a valid video");
+      }
+
       // Integrity check
+      
       const finalSize = fs.statSync(outputPath).size;      
       if (finalSize !== uploadDoc.fileSize) {
         throw new Error("Final file size mismatch");
@@ -89,8 +101,6 @@ function mergeUploadAsync(public_id) {
     }
   });
 }
-
-
 
 
 export { 

@@ -52,6 +52,7 @@ export const uploadFilesTOCloudinary = async(files =[]) => {
 
 export const deleteFilesFromCloudinary = async(files =[]) => {
   const promise =  files.map((f) => {
+    if(f.type === 'video') return ;
     return cloudinary.uploader.destroy(f.public_id )
   })
 

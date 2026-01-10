@@ -8,7 +8,7 @@ const videoUploadSchema = new mongoose.Schema({
   user : {
     type : mongoose.Schema.Types.ObjectId ,
     ref : 'users' ,
-    required : true ,
+    required : true , 
   } ,
   
   uploadedChunks : {type : [Number] , default : []} ,

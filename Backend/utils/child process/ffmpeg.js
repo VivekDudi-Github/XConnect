@@ -138,7 +138,7 @@ async function startFFmpegWorker(public_id ){
 
 
   ffmpeg.stderr.on("data", data => {
-    console.log('::' , data.toString());
+    // console.log('::' , data.toString());
   });
 
   ffmpeg.on('error' , (err) => {
@@ -158,7 +158,7 @@ async function startFFmpegWorker(public_id ){
 
       await VideoUpload.updateOne(
         { public_id },
-        { status: "completed", finalPath: `/uploads/storage/${public_id}/hls/master.m3u8` }
+        { status: "completed", finalPath: `/${public_id}/hsl/master.m3u8` }
       );
     } else {
       console.log('ffmpeg error:' , code);
