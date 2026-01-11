@@ -172,23 +172,34 @@ async function startFFmpegWorker(public_id ){
 }
 
 
-function createMasterPlaylist(hlsDir , probe) {
-  const {height , width} = probe ;
-    const content = `#EXTM3U
-  #EXT-X-VERSION:3
+function createMasterPlaylist(hlsDir, probe) {
+  const { height, width } = probe;
 
-  #EXT-X-STREAM-INF:BANDWIDTH=800000,RESOLUTION=640x360
-  v0/index.m3u8
+  let content = `#EXTM3U
+    #EXT-X-VERSION:3
 
-  ${width >= RENDITIONS[1].maxW || height >= RENDITIONS[1].maxH ? `#EXT-X-STREAM-INF:BANDWIDTH=1400000,RESOLUTION=854x480 v1/index.m3u8` : '' }
+    #EXT-X-STREAM-INF:BANDWIDTH=800000,RESOLUTION=640x360
+    v0/index.m3u8
+    `;
 
-  ${width >= RENDITIONS[1].maxW || height >= RENDITIONS[1].maxH ? `#EXT-X-STREAM-INF:BANDWIDTH=2800000,RESOLUTION=1280x720  v2/index.m3u8` : '' }
+      if (width >= RENDITIONS[1].maxW || height >= RENDITIONS[1].maxH) {
+        content += `
+    #EXT-X-STREAM-INF:BANDWIDTH=1400000,RESOLUTION=854x480
+    v1/index.m3u8
+    `;
+      }
 
-  `;
+      if (width >= RENDITIONS[2].maxW || height >= RENDITIONS[2].maxH) {
+        content += `
+    #EXT-X-STREAM-INF:BANDWIDTH=2800000,RESOLUTION=1280x720
+    v2/index.m3u8
+    `;
+      }
 
-  fs.writeFileSync(path.join(hlsDir, "master.m3u8"), content);
-  }
+      fs.writeFileSync(path.join(hlsDir, "master.m3u8"), content.trim());
+}
 
+  
 
 export {
   startFFmpegWorker

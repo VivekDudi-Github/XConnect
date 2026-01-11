@@ -105,9 +105,9 @@ console.log(VideosIds.current);
       console.log(error);
       toast.error(error.data?.message || "Couldn't create the post. Please try again.");
     } finally{
-    setLoading(false);
-    setShowEmojiPicker(false);
-  }
+      setLoading(false);
+      setShowEmojiPicker(false);
+    }
   };
 
   const upload = async(file , isSingleUp = false) => {
@@ -118,10 +118,8 @@ console.log(VideosIds.current);
       if(videoUploaded.find(vid => vid.name === v.file.name)) continue ;
       const res = await InitUpload(v) ;
       if(!res?.public_id) continue ;
-      console.log(res.public_id , 'line:118');
       
       VideosIds.current.push( res.public_id ) ; 
-      console.log('VideoUpload updated' , res , VideosIds.current) ;
       setVideoUploaded(prev => [...prev , v.file]);
     }
   }
@@ -252,8 +250,7 @@ console.log(VideosIds.current);
             </div>
           )}
           
-          
-          
+      
           <div className="flex flex-wrap justify-between items-center mt-3">
             <div className="flex items-center gap-3">
               <div className="cursor-pointer dark:text-zinc-400  dark:hover:text-white hover:text-cyan-500 text-cyan-400 transition"
@@ -342,7 +339,3 @@ console.log(VideosIds.current);
   );
 }
 
-
-{/* <div className="grid grid-cols-2 gap-2 mt-3">
-  <VideoPlayer src={'http://localhost:3000/serve/hsl/087e813a-59e1-42bc-864e-e2e6130f56da/hsl/master.m3u8'} />
-</div> */}

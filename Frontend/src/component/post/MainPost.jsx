@@ -13,7 +13,6 @@ import {
   BarChart3Icon,
   BarChart2,
 } from 'lucide-react';
-import InPostImages from './InPostImages';
 import {  useEffect, useState  } from 'react';
 import { useSelector } from 'react-redux';
 import {useParams} from 'react-router-dom' ;
@@ -22,6 +21,7 @@ import MainPostSkeleton from '../shared/MainPostSkeleton';
 import moment from 'moment'
 import RenderPostContent from '../specific/RenderPostContent';
 import { toast } from 'react-toastify';
+import ImageSlider from '../ui/ImagesSlider';
 
 export default function PostViewPage() {
   const {user} = useSelector(state => state.auth) ;
@@ -120,7 +120,7 @@ export default function PostViewPage() {
         <div className="relative flex gap-1">
           <span className="text-xs font-semibold -translate-y-52 sm:translate-y-0 duration-200 text-cyan-900 dark:text-white bg-slate-800/50  rounded-lg px-2 py-[2px] flex">  
             <BarChart2 size={16} className=' text-cyan-600' />
-            500 views
+            {post.views} views
           </span>   
           {post?.IsEdited ? <div className=' text-xs text-cyan-400 bg-slate-800 rounded-xl px-2 py-[2px] '>Edited</div> : null}
           <button
@@ -160,8 +160,8 @@ export default function PostViewPage() {
 
       {/* Media */}
       {post?.media && post?.media.length > 0 && (
-        <div className="mt-4">
-          <InPostImages imagesArray={post.media} />
+        <div className="mt-4 max-h-[500px] overflow-y-auto">
+          <ImageSlider images={post?.media} />
         </div>
       )}
 
@@ -197,7 +197,7 @@ export default function PostViewPage() {
           </div>
           <div className='  sm:translate-x-full sm:hidden sm:mt-0 mt-3 text-gray-400 font-semibold duration-200 my-1 flex items-center justify-end text-sm'>
             <BarChart2 size={16} className=' text-cyan-600' /> 
-            500 views
+            {post.views} views
           </div>
       </div>
   );

@@ -10,9 +10,7 @@ function InPostImages({imagesArray}) {
         ${length > 1 && ' grid-cols-2 grid-flow-col grid-rows-2'}`}>
         {length >0 && length <5 && imagesArray.map(({url , type}, index) => 
              type === 'video' ? (
-              <div className='w-full h-full rounded-lg mb-2 object-cover '>
                 <VideoPlayer src={import.meta.env.VITE_SERVE_HSL_URL+url} />
-              </div>
             ) : (
               <img
               key={index}
@@ -32,12 +30,9 @@ function InPostImages({imagesArray}) {
           <>
           { imagesArray.slice(0 ,3).map(({url , type} ,index) => {
             return type === 'video' ? (
-                <video controls
-                key={index}
-                src={url}
-                alt={'post'+index}
-                className='w-full h-full rounded-lg mb-2 object-cover '
-              />
+                // <div className='w-full h-full rounded-lg mb-2 object-cover '>
+                  <VideoPlayer src={import.meta.env.VITE_SERVE_HSL_URL+url} />
+                // </div>
               ) : (
                 <img 
                 key={index}
@@ -49,13 +44,12 @@ function InPostImages({imagesArray}) {
           )}
           <div className='relative'>
             <div 
-            className='absolute w-full h-full bg-black/50 text-white rounded-lg z10 flex justify-center items-center'
+            className='absolute w-full h-full bg-black/60 text-white rounded-lg z10 flex justify-center items-center z-20'
               >See more+
             </div>
             {imagesArray[3].type === 'video' ? (
-              <video controls
+              <VideoPlayer
               src={imagesArray[3].url}  
-              className='w-full h-full rounded-lg mb-2 object-cover z-0'
               />
             ) : (
               <img 

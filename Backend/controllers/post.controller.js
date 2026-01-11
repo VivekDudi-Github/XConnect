@@ -67,7 +67,7 @@ const createPost = TryCatch( async(req , res) => {
   }
 console.log(videoIds , videos , 'line:67');
 
- 
+ console.log('posting')
   const post = await Post.create({
     author : req.user._id ,
     content : content ,

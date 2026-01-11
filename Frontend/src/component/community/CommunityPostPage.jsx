@@ -155,7 +155,7 @@ function CommunityPostPage({community}) {
         <div className="col-span-4 lg:col-span-3"> 
           {/* Post Header */}
           
-          <div className="max-w-3xl mx-auto dark:bg-black p-6 rounded-xl border border-gray-200  custom-box ">
+          <div className="max-w-3xl mx-auto dark:bg-black p-6 rounded-xl border border-gray-200 custom-box ">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-400">
@@ -215,7 +215,6 @@ function CommunityPostPage({community}) {
                 {post?.views ?? 0} views
               </div>
             </div>
-              
           </div>
 
 
