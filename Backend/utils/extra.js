@@ -1,5 +1,6 @@
 import fsAsync from 'fs/promises';
 import fs from 'fs';
+import { pipeline } from 'stream/promises';
 import path from 'path';
 import {VideoUpload} from "../models/videoUpload.model.js";
 import { startFFmpegWorker } from './child process/ffmpeg.js';
@@ -58,8 +59,8 @@ function mergeUploadAsync(public_id) {
 
       for (let i = 0; i < uploadDoc.totalChunks; i++) {
         const chunkPath = path.join(uploadDir, `part-${i}`);
-        const buffer = fs.readFileSync(chunkPath);
-        writeStream.write(buffer);
+        const readStream = fs.createReadStream(chunkPath);
+        await pipeline(readStream, writeStream, { end: false });
       }
 
       writeStream.end();
