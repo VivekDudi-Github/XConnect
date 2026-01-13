@@ -1230,7 +1230,7 @@ const LikePost = async(req , res , postId , ) => {
   
   if(IsAlreadyLiked){
     await Likes.deleteOne({_id : IsAlreadyLiked._id}) ;
-    ResSuccess(res , 200 ,{operation : false} )
+    ResSuccess(res , 200 ,{operation : false} ) ;
     
     const DeletedNotifcation = await Notification.findOneAndDelete({
       type : 'like' ,
@@ -1243,12 +1243,12 @@ const LikePost = async(req , res , postId , ) => {
     emitEvent('notification:retract' , `user` , [`${IsPostExist.author._id.toString()}`] , {
       type : 'like' ,
       _id : DeletedNotifcation._id.toString() ,
-      } )
+      })
     }
 
     await LikesCount.findOneAndUpdate({
       user : IsPostExist.author._id ,
-      createdAt : IsPostExist.createdAt ,
+      createdAt : IsAlreadyLiked.createdAt ,
     } , {
       $inc : {count : -1}
     })

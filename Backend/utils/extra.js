@@ -60,7 +60,12 @@ function mergeUploadAsync(public_id) {
       for (let i = 0; i < uploadDoc.totalChunks; i++) {
         const chunkPath = path.join(uploadDir, `part-${i}`);
         const readStream = fs.createReadStream(chunkPath);
-        await pipeline(readStream, writeStream, { end: false });
+        readStream.pipe(writeStream, { end: false });
+        await new Promise((resolve, reject) => {
+          readStream.on("end", resolve);
+          readStream.on("error", reject);
+        });
+        
       }
 
       writeStream.end();
@@ -99,6 +104,7 @@ function mergeUploadAsync(public_id) {
         { public_id },
         { status: "failed" ,}
       );
+      fs.unlinkSync(path.join(STORAGE_DIR, public_id, "final.mp4")); ;
     }
   });
 }
