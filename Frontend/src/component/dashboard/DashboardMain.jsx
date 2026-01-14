@@ -309,8 +309,12 @@ function DashboardMain() {
               <div className="space-y-2">
                 {scheduled.map((p) => (
                   <div key={p?._id} className="flex items-center justify-between p-2 bg-slate-50 rounded-md">
-                    <div className="text-sm  truncate ">{moment(p?.scheduledAt).fromNow()} —{p?.title ?? p?.content }</div>  
-                    <div className="text-xs text-slate-400">{p?.host ? 'Live' : 'Post'}</div>
+                    <div className="text-sm  truncate ">{p?.title ?? p?.content } -,{moment(p?.startedAt).format('DD-mm-yyyy hh:mm')}</div>   
+                    {p.isLive ? (
+                      <div className="text-xs text-red-600">●Live</div>
+                    ) : (
+                      <div className="text-xs text-slate-400">{p?.host ? 'Live' : 'Post'}</div>
+                    )}
                   </div>  
                 ))}
 {/*                 

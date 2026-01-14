@@ -1,10 +1,5 @@
 import fsAsync from 'fs/promises';
 import fs from 'fs';
-import { pipeline } from 'stream/promises';
-import path from 'path';
-import {VideoUpload} from "../models/videoUpload.model.js";
-import { startFFmpegWorker } from './child process/ffmpeg.js';
-import { fileTypeFromFile } from 'file-type';
 
 const ResError = (res , statusCode , message) => {
   return res.status(statusCode).json({
@@ -41,78 +36,11 @@ const TryCatch = (func , funcName ) => {
 }
 
 
-const STORAGE_DIR = path.resolve("uploads/storage");
 
-function mergeUploadAsync(public_id) {
-  console.log('merge initalized');
-  
-  setImmediate(async () => {
-    try {
-      console.log("merge started");
-      const uploadDoc = await VideoUpload.findOne({ public_id });
-      if (!uploadDoc || uploadDoc.status !== "processing") return;
-
-      const uploadDir = path.join(STORAGE_DIR, public_id);
-      const outputPath = path.join(uploadDir, "final.mp4");
-
-      const writeStream = fs.createWriteStream(outputPath);
-
-      for (let i = 0; i < uploadDoc.totalChunks; i++) {
-        const chunkPath = path.join(uploadDir, `part-${i}`);
-        const readStream = fs.createReadStream(chunkPath);
-        readStream.pipe(writeStream, { end: false });
-        await new Promise((resolve, reject) => {
-          readStream.on("end", resolve);
-          readStream.on("error", reject);
-        });
-        
-      }
-
-      writeStream.end();
-
-      await new Promise((resolve) => writeStream.on("finish", resolve));
-
-      
-      // type  check 
-      let type = await fileTypeFromFile(outputPath);
-      if(type.mime.startsWith('video/') === false){
-        throw new Error("Merged file is not a valid video");
-      }
-
-      // Integrity check
-      
-      const finalSize = fs.statSync(outputPath).size;      
-      if (finalSize !== uploadDoc.fileSize) {
-        throw new Error("Final file size mismatch");
-      }
-      console.log(fs.statSync(outputPath) , 'output stats');
-      
-
-      uploadDoc.finalPath = `${outputPath}`;
-      await uploadDoc.save();
-      
-
-      // Cleanup chunks
-      for (let i = 0; i < uploadDoc.totalChunks; i++) {
-        fs.unlinkSync(path.join(uploadDir, `part-${i}`));
-      }
-      startFFmpegWorker(public_id) ;
-
-    } catch (err) {
-      console.error("Merge failed:", err);
-      await VideoUpload.updateOne(
-        { public_id },
-        { status: "failed" ,}
-      );
-      fs.unlinkSync(path.join(STORAGE_DIR, public_id, "final.mp4")); ;
-    }
-  });
-}
 
 
 export { 
   TryCatch ,
   ResError ,
   ResSuccess ,
-  mergeUploadAsync ,
 }

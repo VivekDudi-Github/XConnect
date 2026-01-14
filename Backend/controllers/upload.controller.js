@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { VideoUpload } from '../models/videoUpload.model.js';
 import fs from 'fs';
 import path from 'path';
+import { enqueueMerge } from "../utils/mergeQueue.js";
 
 
 const CHUNK_SIZE = 1024*1024*1 ; // for production - 1024*1024*2 ; 
@@ -147,7 +148,7 @@ const verifyUpload = TryCatch(async(req , res) => {
   
   if(missingChunks.size === 0) {
     uploadDoc.status = 'processing' ;
-    mergeUploadAsync(public_id) ;
+    enqueueMerge({public_id } ) ;
     await uploadDoc.save();
     return ResSuccess(res , 200 , 'Video has been verified successfully.');
   }
