@@ -1,10 +1,12 @@
-import {BarChart2Icon , MessageCircleIcon , EllipsisVerticalIcon , Share2Icon , BookmarkIcon, } from 'lucide-react';
+import {BarChart2Icon , MessageCircleIcon , EllipsisVerticalIcon , Share2Icon , BookmarkIcon, BookmarkCheckIcon, PinIcon, PinOffIcon, Trash2Icon, } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import InPostImages from '../post/InPostImages';
 import moment from 'moment';
 import { useOnScreen } from '../specific/useOnScreen';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useIncreasePostViewsMutation } from '../../redux/api/api';
+import { setisDeleteDialog } from '../../redux/reducer/miscSlice';
+import { useSelector } from 'react-redux';
 
 const CommunityPostCard = ({ post , heading }) => {
   const {
@@ -17,9 +19,45 @@ const CommunityPostCard = ({ post , heading }) => {
     isAnonymous = false ,
   } = post;
 
+  const {user} = useSelector(state => state.auth) ;
+
   const [increaseView] = useIncreasePostViewsMutation() ;
 
   const [ref , isVisible] = useOnScreen({threshold : 0.5 }) ;
+  const [isOpenOptions , setOpenOptions] = useState(false) ;
+
+  const [pinStatus , setPinStatus] = useState(post.isPinned) ;
+  const [bookmarkStatus , setBookmarkStatus] = useState(post.isBookmarked) ;
+  
+  const openOptionsHandler = (postId) => {
+    setOpenOptions(prev => !prev);
+  }
+
+  const togglePostFunc = async(option) => {
+    try {
+      const data  = await toggleMutation({id :post._id , option : option }).unwrap() ;
+      if(data.data.operation){
+        if(option === 'pin'){
+          setPinStatus(true)
+        }else if(option === 'bookmark'){
+          setBookmarkStatus(true)
+        }
+        toast.success(`Post ${option === 'pin' ? 'Pinned' : 'bookmarked'} successfully!` )
+        setOpenOptions(false)
+      }else {
+        if(option === 'pin'){
+          setPinStatus(false)
+        }else if(option === 'bookmark'){
+          setBookmarkStatus(false)
+        }
+        toast.success(`Post ${option === 'pin' ? 'Unpinned' : 'removed from bookmarks'} successfully!` )
+        setOpenOptions(false)
+      }
+    } catch (error) {
+      console.log('error in doing toggle post operation', error);
+    }
+  }
+
 
   useEffect(() => {
     if(isVisible){
@@ -57,9 +95,6 @@ const CommunityPostCard = ({ post , heading }) => {
             </span>
           )}
            &nbsp; • <span>{moment(createdAt).fromNow()}</span>
-           <span className='absolute right-0 top-0 text-xs text-gray-500 '>
-            <EllipsisVerticalIcon size={17}/>
-          </span>
         </div>
 
         {/* Title */}
@@ -93,6 +128,44 @@ const CommunityPostCard = ({ post , heading }) => {
           <button className="dark:hover:text-white hover:text-gray-800 flex items-center gap-1 duration-200">
             <BarChart2Icon size={17} className=' text-cyan-500 '/><span>{post?.views ?? 0} Views</span> 
           </button>
+        </div>
+
+        <div 
+        onClick={() => openOptionsHandler(post._id)}
+        className=' absolute top-8 right-2 dark:hover:bg-slate-700 hover:bg-gray-300 rounded-full p-2 duration-200'>
+        
+          {/* Options */}
+          <EllipsisVerticalIcon size={17}/>
+          <div className={`absolute z-10 w-40 top-4 right-6 duration-200 bg-white dark:bg-slate-800 shadow-md shadow-black/60 rounded-lg ${isOpenOptions ? '' : 'scale-0 translate-x-14 -translate-y-14 ' }  `}> 
+            <div 
+            onClick={() => togglePostFunc('pin')}
+            className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-300 dark:hover:bg-slate-900 cursor-pointer"
+            >
+              {pinStatus ? (<PinOffIcon size={17} />) : (<PinIcon size={17} />)}
+              <span>{pinStatus ? 'Unpin' : 'Pin'}</span>
+            </div>
+            
+            <div
+            onClick={() => togglePostFunc('bookmark')}
+            className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-300 dark:hover:bg-slate-900 cursor-pointer"
+            >
+              {bookmarkStatus ?  <BookmarkCheckIcon size={17} />  : <BookmarkIcon size={17} />}
+              <span>{  bookmarkStatus ? 'Bookmarked' : 'Bookmark' }</span>
+            </div>
+            
+            {user?._id === post?.author?._id && 
+            <div 
+            onClick={() => dispatch(setisDeleteDialog({
+              isOpen : true ,
+              postId : post._id
+            }))}
+            className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-300 dark:hover:bg-slate-900 cursor-pointer"
+            >
+              <Trash2Icon size={17} />
+              <span>Delete Post</span>
+            </div>
+            }
+          </div>
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { Bell, Settings, RocketIcon, SearchIcon, User2Icon, HomeIcon, LucideMessagesSquare, Users2, BookmarkIcon, CameraOff, VideoIcon, Ellipsis, PlayIcon, PlaySquareIcon, IndianRupeeIcon, LayoutDashboardIcon } from 'lucide-react';
+import { Bell, Settings, RocketIcon, SearchIcon, User2Icon, HomeIcon, LucideMessagesSquare, Users2, BookmarkIcon, CameraOff, VideoIcon, Ellipsis, PlayIcon, PlaySquareIcon, IndianRupeeIcon, LayoutDashboardIcon, ChevronsRightIcon } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { useSocket } from '../component/specific/socket';
 import { useEffect, useState } from 'react';
@@ -23,15 +23,18 @@ const navItems = [
 export default function Sidebar({collapseFunc}) {
   const {unreadCount} = useSelector(state => state.notification) ;
   const [collapse , setCollapse] = useState(false);
-  
+  const [hidden , setHide] = useState(true) ;
+
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 768) {
         setCollapse(true);
         collapseFunc(true);
+        setHide(true) ;
       } else {
         setCollapse(false);
         collapseFunc(false);
+        setHide(false) ;
       }
     };
     handleResize();
@@ -46,8 +49,17 @@ export default function Sidebar({collapseFunc}) {
     setCollapse(!collapse) ;
     collapseFunc(!collapse);
   }
+  const hide = () => {
+    if(hidden){
+      setCollapse(true) ;
+      setHide(!hidden) ;
+    }else {
+      setCollapse(true) ;
+      setHide(!hidden) ;
+    }
+  }
   return (
-    <nav className={`p-4 dark:bg-black  dark:text-gray-200 shadow-lg h-full shadow-black flex flex-col justify-between duration-200 ${collapse ? "w-[72px]" : "w-56"}`}>  
+    <nav className={`p-4 sm:pb-4 pb-16 dark:bg-black bg-white dark:text-gray-200 shadow-lg h-full shadow-black flex flex-col justify-between duration-200 ${collapse ? "w-[72px]" : "w-56"} ${!hidden ? '' : 'sm:translate-0 -translate-x-[74px] shadow-sm'} `}>  
       <span className='space-y-3 flex flex-col overflow-y-auto'>
         {navItems.map(item => (
           <NavLink
@@ -69,6 +81,13 @@ export default function Sidebar({collapseFunc}) {
       <span  onClick={() => handleResize()} className='flex items-center justify-center gap-2 p-2 rounded-lg dark:hover:bg-gray-100  dark:hover:text-gray-700 dark:text-gray-300 hover:bg-gray-300 text-gray-700 duration-200'>
         <Ellipsis className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 duration-200 cursor-pointer" />
       </span>
+      <span  onClick={() => hide()} 
+      className={`flex sm:hidden bottom-16 fixed items-center justify-center gap-2 p-2 rounded-full dark:bg-black bg-white dark:hover:bg-gray-100  dark:hover:text-gray-700 dark:text-gray-300 hover:bg-gray-300 text-gray-700 duration-200 ${!hidden ? 'rotate-180' : "" } ${collapse ? "left-14" : "left-52"} shadow-sm shadow-black/50 duration-200`}> 
+        <ChevronsRightIcon className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 duration-200 cursor-pointer" />
+      </span>
     </nav>
   );
 }
+
+
+// ${!hidden ? 'sm:translate-x-0 -translate-x-' : '-translate-x-20'}

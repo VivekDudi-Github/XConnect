@@ -61,7 +61,6 @@ export default function CreatePost() {
     multiple: true,
     maxFiles: 5,
   });
-console.log(VideosIds.current);
 
   const submitPost = async () => {
     if (!content.trim() && media.length === 0) return toast.error('Post cannot be empty.');
@@ -117,7 +116,9 @@ console.log(VideosIds.current);
     for(const v of videos){
       if(videoUploaded.find(vid => vid.name === v.file.name)) continue ;
       const res = await InitUpload(v) ;
-      if(!res?.public_id) continue ;
+      if(!res?.public_id) {
+        throw new Error('Video upload failed') ;
+      } ;
       
       VideosIds.current.push( res.public_id ) ; 
       setVideoUploaded(prev => [...prev , v.file]);
@@ -125,7 +126,7 @@ console.log(VideosIds.current);
   }
 
   const finalSubmit = async() => {
-    setLoading(true) ;
+    setLoading(true) ;  
     try {
       await upload() ;
       await submitPost() ;
@@ -182,6 +183,13 @@ console.log(VideosIds.current);
   const checkPendingUpload = (e) => {
     let fingerprint = `activeUpload:${e.name}-${e.size}-${e.lastModified}` ;
     if(localStorage.getItem(fingerprint)) setOldPendingUpload(prev => prev.filter(v => v.name !== e.name)) ; ;
+  }
+  const removeAllPendingUpload = () => {
+    setOldPendingUpload([]) ;
+    for(let i = 0 ; i < localStorage.length ; i++){
+      localStorage.key(i).startsWith('activeUpload:') && localStorage.removeItem( localStorage.key(i) ) ;
+    }
+    setShowDialog(false) ;
   }
 
   useEffect(() => {
@@ -330,7 +338,7 @@ console.log(VideosIds.current);
       {showDialog && (
         <DialogBox 
           message={'You have an unfinished video upload. Please re-select the file to resume. '}
-          onClose={() => setShowDialog(false)}
+          onClose={() => removeAllPendingUpload()}
           mainFuction={() => setShowDialog(false)}
         />
       )}

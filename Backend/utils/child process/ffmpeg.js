@@ -2,7 +2,6 @@ import {spawn , execFile} from 'child_process' ;
 import path from 'path';
 import fs from 'fs';
 import {VideoUpload} from '../../models/videoUpload.model.js' ;
-import { pipeline } from 'stream/promises';
 import { fileTypeFromFile } from 'file-type';
 
 
@@ -85,8 +84,9 @@ async function mergeUploadAsync(public_id) {
       for (let i = 0; i < uploadDoc.totalChunks; i++) {
         fs.unlinkSync(path.join(uploadDir, `part-${i}`));
       }
+      console.time(':: ffmpeg worker time') ;
       await startFFmpegWorker(public_id) ;
-
+      console.timeEnd(':: ffmpeg worker time') ;
     } catch (err) {
       console.error("Merge failed:", err);
       await VideoUpload.updateOne(
@@ -198,7 +198,6 @@ async function startFFmpegWorker(public_id ){
   const inputPath = path.join(uploadDir, "final.mp4");
   const hlsDir = path.join(uploadDir, "hsl");
   
-  // console.log(fs.statSync(inputPath));
   
   fs.mkdirSync(hlsDir , {recursive: true}) ;
   
@@ -208,15 +207,15 @@ async function startFFmpegWorker(public_id ){
 
 
   ffmpeg.stderr.on("data", data => {
-    // console.log('::' , data.toString());
+    console.log('::' , data.toString());
   });
 
   ffmpeg.on('error' , (err) => {
     console.log(`FFMPEG error for public_id ${public_id}:`, err);
-    // VideoUpload.updateOne(
-    //   { public_id },
-    //   { status: "failed" } ,
-    // ) ;
+    VideoUpload.updateOne(
+      { public_id },
+      { status: "failed" } ,
+    ) ; 
   })
 
   ffmpeg.on("close", async (code) => {

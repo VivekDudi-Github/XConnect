@@ -78,7 +78,7 @@ export default function VideoPlayer({ src , type }) {
   }, [src]);
 
   return (
-    <div className="w-full h-fit bg-black overflow-hidden">
+    <div className="w-full h-fit bg-black overflow-hidden rounded-md">
       <video
         ref={videoRef}
         className="video-js vjs-big-play-centered w-full h-full rounded-lg"
