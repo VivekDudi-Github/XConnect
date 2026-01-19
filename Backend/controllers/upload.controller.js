@@ -148,8 +148,8 @@ const verifyUpload = TryCatch(async(req , res) => {
   
   if(missingChunks.size === 0) {
     uploadDoc.status = 'processing' ;
-    enqueueMerge({public_id } ) ;
     await uploadDoc.save();
+    enqueueMerge({public_id } ) ;
     return ResSuccess(res , 200 , 'Video has been verified successfully.');
   }
 

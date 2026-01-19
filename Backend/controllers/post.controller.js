@@ -419,6 +419,9 @@ const getUserPosts = TryCatch(async(req , res) => {
     case 'History':
       data = await fetchHistory(req , res , id , limit , skip) ;
       break;
+    case 'BookMarks':
+      data = await fetchBookmarkedPosts(req , res , id , limit , skip) ;
+      break;
     default:
       return ResError(res , 400 , 'Invalid tab option provided.') ;
       break;
@@ -1174,7 +1177,164 @@ const fetchLikes = async(req , res , id , limit , skip) => {
 
   return { posts ,totalPages} ;
 }
+const fetchBookmarkedPosts = async(req , res , id , limit , skip) => {
+  const totalPost  = await Bookmark.countDocuments({ user : id}) ;
+  const totalPages = Math.ceil(totalPost/limit) ;
+  
+  const posts = await Bookmark.aggregate([
+    {$match : {
+      user : new ObjectId(`${id}`) ,
+    }} ,
+    {$sort : {
+      createdAt : -1 
+    }} ,
+    { $skip : skip} ,
+    { $limit : limit} ,
 
+    //main-post
+    {$lookup : {
+      from : 'posts' ,
+      let : { postId : '$post'} ,
+      pipeline : [
+        {$match : {
+          $expr : {
+            $eq : [ '$_id' , '$$postId']
+          }
+        }} ,
+        //author
+        {$lookup : {
+          from : 'users' , 
+          let : {userId : '$author'} ,
+          pipeline : [
+            {$match : {
+              $expr : {
+                $eq : ['$_id' , '$$userId']
+              }
+            }} , 
+            {$project : {
+              avatar : 1 ,
+              username : 1 ,
+              fullname : 1
+            }}
+          ] , 
+          as : 'authorDetails'
+        }} , 
+        //repost
+        {$lookup : {
+          from : 'posts' ,
+          let : {postId : '$repost'} ,
+          pipeline : [
+            {$match : {
+              $expr : {
+                $eq : ['$_id' , '$$postId']
+              }
+            }} , 
+            //repost author
+            {$lookup : {
+              from : 'users' , 
+              let : {userId : '$author'} ,
+              pipeline : [
+                {$match : {
+                  $expr : {
+                    $eq : ['$_id' , '$$userId']
+                  }
+                }} , 
+                {$project : {
+                  avatar : 1 ,
+                  username : 1 ,
+                  fullname : 1
+                }}
+              ] , 
+              as : 'repostAuthorDetails'
+            }} , 
+            {$addFields : {
+              author : { $arrayElemAt: ['$repostAuthorDetails' , 0]} ,
+            }} ,
+          ] ,
+          as : 'repostDetails'
+        }} ,
+        //user like
+        {$lookup : {
+          from : 'likes' ,
+          let : {'postId' : '$_id'} ,
+          pipeline : [
+            {$match : {
+              $expr : {
+                $and : [
+                  {$eq : ['$post' , '$$postId']} ,
+                  {$eq : ['$user' , new ObjectId(`${id}`)]}
+                ]
+              }
+            }}
+          ] ,
+          as : 'userLike'
+        }} ,
+        //userBookmark
+        {$lookup : {
+          from : 'bookmarks' ,
+          let : {'postId' : '$_id'} ,
+          pipeline : [
+            {
+              $match : {
+                $expr : {
+                  $and : [
+                    {$eq : ['$post' , '$$postId']} ,
+                    {$eq : ['$user' , new ObjectId(`${id}`)]}
+                  ]
+                }
+              }
+            }
+          ] , 
+          as : 'userBookmark'
+        }} ,
+        //totalLike
+        {$lookup : {
+          from : 'likes' ,
+          localField : '_id' ,
+          foreignField : 'post' ,
+          as : 'likesArray' ,
+        }} ,
+        //totalComments
+        {$lookup : {
+          from : 'comments' ,
+          localField : '_id' ,
+          foreignField : 'post' ,
+          as : 'totalComments' ,
+        }} ,
+        {$addFields : {
+          author : { $arrayElemAt: ['$authorDetails' , 0]} ,
+          repost : { $arrayElemAt: ['$repostDetails' , 0]} ,
+          isBookmarked : { $gt : [{ $size : '$userBookmark'} , 0 ]} ,
+          likeStatus : { $gt : [{ $size : '$userLike'} , 0 ]} ,
+          likeCount :{ $size : '$likesArray'} , 
+          commentCount : {$size : '$totalComments'} ,
+        }}
+      ] ,
+      as : 'postDetails' ,
+    }} ,
+
+    {$unwind: { path: "$postDetails", preserveNullAndEmptyArrays: true } },
+
+    {$replaceRoot : {
+      newRoot : {
+        $mergeObjects: ['$$ROOT' , '$postDetails']
+      }
+    }},
+    {$unset : 'postDetails'},
+
+    {$project : { 
+      userLike : 0 ,
+      isDeleted : 0 ,
+      likesArray : 0 ,
+      userBookmark : 0 ,
+      authorDetails : 0 ,
+      repostDetails : 0 ,
+      totalComments : 0 ,
+    }}
+  ])
+
+  return {posts , totalPages} ;
+}
 
 const toggleOnPost = TryCatch(async(req , res) => {
   const {id} = req.params ;

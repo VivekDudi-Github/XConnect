@@ -1,4 +1,4 @@
-import {BarChart2Icon , MessageCircleIcon , EllipsisVerticalIcon , Share2Icon , BookmarkIcon, BookmarkCheckIcon, PinIcon, PinOffIcon, Trash2Icon, } from 'lucide-react';
+import {BarChart2Icon , MessageCircleIcon , EllipsisVerticalIcon , BookmarkIcon, BookmarkCheckIcon, PinIcon, PinOffIcon, Trash2Icon, } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import InPostImages from '../post/InPostImages';
 import moment from 'moment';

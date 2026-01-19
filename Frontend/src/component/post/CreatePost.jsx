@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect, lazy } from 'react';
-import { Smile, ImagePlus, Loader2Icon, X,  GlobeIcon, Users2Icon, UserPlus2Icon, UserCheck2, CalendarClockIcon, UploadIcon, LoaderCircleIcon, CheckCircleIcon } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Smile, ImagePlus, Loader2Icon, X,  CalendarClockIcon, UploadIcon, CheckCircleIcon } from 'lucide-react';
 import data from '@emoji-mart/data';
 import  Picker  from '@emoji-mart/react';
 import { toast } from 'react-toastify';

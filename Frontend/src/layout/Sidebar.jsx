@@ -1,6 +1,5 @@
-import { Bell, Settings, RocketIcon, SearchIcon, User2Icon, HomeIcon, LucideMessagesSquare, Users2, BookmarkIcon, CameraOff, VideoIcon, Ellipsis, PlayIcon, PlaySquareIcon, IndianRupeeIcon, LayoutDashboardIcon, ChevronsRightIcon } from 'lucide-react';
+import { Bell, Settings, RocketIcon, User2Icon, HomeIcon, LucideMessagesSquare, Users2,  VideoIcon, Ellipsis, PlaySquareIcon, LayoutDashboardIcon, ChevronsRightIcon } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
-import { useSocket } from '../component/specific/socket';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 
@@ -10,7 +9,6 @@ const navItems = [
   { name: 'Explore', icon: <RocketIcon />, path: '/explore' },
   { name: 'Messages', icon: <LucideMessagesSquare />, path: '/messages' },
   { name: 'Communities', icon: <Users2 />, path: '/communities' }, 
-  { name: 'Bookmarks', icon: <BookmarkIcon />, path: '/bookmarks' },
   { name: 'Notifications', icon: <Bell />, path: '/notifications' },
   { name: 'Meet' , icon: <VideoIcon /> , path: '/meet' }, 
   { name: 'Go Live' , icon: <PlaySquareIcon /> , path: '/live' },   

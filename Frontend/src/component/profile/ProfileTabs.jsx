@@ -15,7 +15,7 @@ import CommentItem from '../comment/CommentItem';
 
 
 
-const tabs = ['Posts', 'Media' , 'Replies' , 'Likes' , 'History'];
+const tabs = ['Posts', 'Media' , 'Replies' , 'Likes' , 'BookMarks' , 'History'];
 
 function ProfileTabs() {
   const dispatch = useDispatch();
