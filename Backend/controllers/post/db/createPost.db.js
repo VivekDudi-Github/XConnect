@@ -25,7 +25,7 @@ export const getValidVideos = async (videoIds, userId) => {
 
 export const getMentionOps = async (mentions, postId, senderId) => {
   if (!mentions.length) return [];
-
+  console.log(mentions);
   const users = await User.find({ username: { $in: mentions } }).select('_id');
   
   return users

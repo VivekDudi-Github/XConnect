@@ -152,8 +152,8 @@ export default function CreatePost() {
     };
   
     const detectMentions = () => {
-      const matches = content.match(/@[\w]+/g);
-      setMentions(matches || []);
+      const matches = content.match(/@[\w]+/g) || [];
+      setMentions(matches.map(m => m.slice(1)) || []);
       return matches || [] ;
     };
 

@@ -64,7 +64,7 @@ useEffect(() => {
   
   fetchMorePost({page : 1 , tab : activeTab , username : username ?? user?.username}) ; 
   
-}, [activeTab])
+}, [activeTab , username])
 
 
 useEffect(() => {
@@ -110,8 +110,8 @@ useEffect(() => {
 
       {posts && activeTab === 'Replies' && (
         <div className="mt-6 mx-2 gap-4 max-w-6xl">
-          {posts.map((post, i) => (
-            <div ref={ i === posts.length - 1 ? lastPostRef : null }  key={i}
+          {posts.map((post) => (
+            <div ref={ i === posts.length - 1 ? lastPostRef : null }  key={post._id}
               className=' mb-3 border-b- dark:border-gray-700 border-gray-600 '
             >
               {post.replyTo === 'post' && <PostCard post={post.postDetails}  />}
@@ -127,7 +127,7 @@ useEffect(() => {
       )}
 
       {posts && activeTab !== 'Replies' && (
-        <div className="mt-6 mx-2 columns-1 sm:columns-1 lg:columns-3 gap-4 max-w-6xl">
+        <div className="mt-6 mx-2  gap-4 max-w-4xl">
           {posts.map((post, i) => (
             <div ref={ i === posts.length - 1 ? lastPostRef : null }  key={i} >
               <PostCard post={post}  />
@@ -137,7 +137,7 @@ useEffect(() => {
       )}
       
       {posts.length === 0  && (isLoading || isFetching) &&  (
-        <div className=' mx-2 columns-1 sm:columns-1 lg:columns-3 gap-4 max-w-6xl'>
+        <div className=' mx-2 gap-4 max-w-4xl'>
           {Array.from({length : 6}).map((_  , i) => (
             <PostCardSkeleton key={i}/>
           ))}

@@ -17,7 +17,7 @@ import moment from 'moment';
 import { LikesCount } from '../models/likesCount.model.js';
 import { VideoUpload } from '../models/videoUpload.model.js';
 
-const ObjectId = mongoose.Types.ObjectId ;
+export const ObjectId = mongoose.Types.ObjectId ;
 
 //add videoId in the media
 const createPost = TryCatch( async(req , res) => {
@@ -439,11 +439,29 @@ const getUserPosts = TryCatch(async(req , res) => {
 const fetchPostsTabs = async(req , res ,id , tab , limit , skip) => {
   const totalPost  = await Post.countDocuments({author : id}) ;
   const totalPages = Math.ceil(totalPost/limit) ;
+  console.log(req.user._id , id , 'line:442');
   
+  let isMe = id.equals(req.user._id) ;
+
+  let filter = [] ;
+  if(!isMe){
+    filter = [
+      { scheduledAt: { $exists: false } },
+      { scheduledAt: null },
+      { scheduledAt: { $lt: new Date() } }
+    ]
+  }else 
+    filter= [
+      { scheduledAt: { $exists: false } },
+      { scheduledAt: null },
+      { scheduledAt: { $exists: true  } }
+  ]
+
   const posts = await Post.aggregate([
     {$match : {
       author :  new ObjectId(`${id}`) ,
       isDeleted : false ,
+      $or: [...filter] ,
     }} ,
     {$sort : {
       createdAt : -1 
@@ -1544,6 +1562,7 @@ const fetchFeedPost = TryCatch( async(req , res) => {
           $and : [
             // {$gte: ['$createdAt', threeDaysAgo] } ,
             {$eq : ['$isDeleted' , false]} ,
+            {$lte : ['$scheduledAt' , Date.now() ]} , 
             ...filter ,
             {$or : [
               { $gte: ['$createdAt', timeAgo ] },

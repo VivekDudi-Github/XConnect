@@ -1,6 +1,6 @@
 import {ResError , ResSuccess ,TryCatch} from '../../../utils/extra.js';
 import { createPostService } from '../services/createPost.services.js';
-import { validateCreatePost } from '../vadilator/createPost.validator.js';
+import { validateCreatePost } from '../validator/createPost.validator.js';
 
 export const createPost = TryCatch(async (req, res) => {
   req.CreateMediaForDelete = [];

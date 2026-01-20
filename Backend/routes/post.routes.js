@@ -1,9 +1,16 @@
 import { uploadFiles} from "../middlewares/multer.js";
 import express from "express";
 import { checkUser } from "../utils/chekAuth.js";
-import {  deletePost, editPost, fetchFeedPost, getUserPosts, getPost, toggleOnPost, increasePostViews, fetchExplorePost } from "../controllers/post.controller.js";
-import { createPost } from "../controllers/post/controller/createPost.controller.js";
 
+
+import { createPost } from "../controllers/post/controller/createPost.controller.js";
+import { deletePost } from "../controllers/post/controller/deletePost.controller.js"
+import { editPost } from "../controllers/post/controller/editPost.controller.js";
+import { toggleOnPost , increasePostViews } from "../controllers/post/controller/toggleOnPost.controller.js";
+import { getPost } from "../controllers/post/controller/getPost.contorller.js";
+import { getUserPosts } from "../controllers/post/controller/getUserPosts.controller.js";
+import { fetchFeedPost } from "../controllers/post/controller/fetchFeedPosts.controller.js";
+import { fetchExplorePost  } from "../controllers/post/controller/explore.controller.js"; 
 
 const router = express.Router();
 router.post('/' , checkUser , uploadFiles , createPost);

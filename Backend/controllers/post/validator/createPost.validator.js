@@ -1,4 +1,4 @@
-import { createPostSchema } from '../validator_Schema/createPost.schema.js';
+import { createPostSchema } from '../validator_Schema/Post.schema.js';
 import { ResError } from '../../../utils/extra.js';
 import moment from 'moment';
 import {Community} from '../../../models/community.model.js';
@@ -39,3 +39,5 @@ export const validateCreatePost = async (req, res) => {
 
   return true;
 };
+
+

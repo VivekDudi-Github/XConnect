@@ -27,6 +27,7 @@ function ProfileHeader() {
   useEffect(() => {
     if(data && username) {
       setUser(data?.data) ; 
+      console.log(data?.data);
       setFollowStatus(data?.data?.isFollowing)
     }
   } , [data ,username])

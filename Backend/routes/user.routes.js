@@ -1,8 +1,9 @@
 import express from "express";
 import { checkUser } from "../utils/chekAuth.js";
-import { changePassword, deleteUser, getAnotherUser, getMe, loginUser, logoutUser, registerUser, togglefollow, updateUser , getMyNotifications , changeMYNotificationStatus} from "../controllers/user.controller.js";
+import { changePassword, deleteUser, getAnotherUser, getMe, loginUser, logoutUser, togglefollow, updateUser , getMyNotifications , changeMYNotificationStatus} from "../controllers/user.controller.js";
 import { uploadFiles} from "../middlewares/multer.js";
 
+import {registerUser} from '../controllers/user/controller/register..controller.js' ;
 
 const router = express.Router();
 

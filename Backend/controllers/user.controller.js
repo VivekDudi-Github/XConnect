@@ -9,7 +9,6 @@ import { Types } from "mongoose";
 
 const ObjectId = Types.ObjectId;
 
-//update banner & dp left
 const cookieOptions = {
     secure : true ,
     httpOnly : true  ,
@@ -26,7 +25,6 @@ const generateTokens =async (user) => {
         return { accessToken, refreshToken };
     } catch (error) {
         console.log(error);
-        
         throw new Error('Error while creating the tokens')   
     }
 }
@@ -251,9 +249,11 @@ const getAnotherUser = TryCatch(async(req , res) => {
         {$project : {
             refreshToken : 0 ,
             password : 0 ,
+            email : 0 ,
         }} ,
+        //total followers
         {$lookup : {
-            from : 'following' ,
+            from : 'followings' ,
             let : { userId : '$_id'} ,
             pipeline : [
                 {$match : {
@@ -268,8 +268,9 @@ const getAnotherUser = TryCatch(async(req , res) => {
             ] ,
             as : 'followers' ,
         }} ,
+        //following
         {$lookup : {
-            from : 'following' ,
+            from : 'followings' ,
             let : { userId : '$_id'} ,
             pipeline : [
                 {$match : {
@@ -290,25 +291,23 @@ const getAnotherUser = TryCatch(async(req , res) => {
             pipeline : [
                 {$match : {
                     $expr : {
-                        $eq : ['$author' , '$$userId'] ,
-                        $eq : ['$isDeleted' , false] ,
+                        $and : [
+                            {$eq : ['$author' , '$$userId'] },
+                            {$eq : ['$isDeleted' , false] },
+                        ]
                     }
                 }} ,
                 {$project : {
-                    content : 0 ,
-                    author : 0 ,
-                    createdAt : 0 ,
-                    isEdited : 0 ,
+                    _id : 1
                 }}
             ] ,
-            as : 'posts' ,
+            as : 'totalPosts' ,
         }} ,
         {$addFields : {
             followers : {$size : '$followers'} ,
             following : {$size : '$following'} ,
-            posts : {$size : '$posts'} ,
-        }}  
-        
+            posts : {$size : '$totalPosts'} ,
+        }}
     ])
     
     if(!user) return ResError(res , 404 , 'User not found')
