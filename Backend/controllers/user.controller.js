@@ -219,23 +219,6 @@ const updateUser = TryCatch( async(req , res) => {
 
 } , 'updateProfile')
 
-const deleteUser = TryCatch(async(req , res) => {
-    const {password} = req.body ;
-
-    if(!password) return ResError(res , 400 , 'Please provide the password' )
-
-    const user = await User.findById(req.user._id)
-    const passCheck = await user.IsPasswordCorrect(password)
-
-    if(!passCheck) return ResError(res , 400 , 'Provided Password is incorrect')
-    
-    user.isDeleted  = true ;
-    user.deletedAt = new Date() ;
-    await user.save() ; 
-
-    return ResError(res ,200 , "Accound removed Successfully")
-
-} , 'deleteUser')
 
 const getAnotherUser = TryCatch(async(req , res) => { 
     const {username} = req.params ;
@@ -316,6 +299,25 @@ const getAnotherUser = TryCatch(async(req , res) => {
 
     return ResSuccess(res , 200 , {...user[0] , isFollowing : isFollowing ? true : false })   
 } ,'getAnotherUser')
+
+
+const deleteUser = TryCatch(async(req , res) => {
+    const {password} = req.body ;
+
+    if(!password) return ResError(res , 400 , 'Please provide the password' )
+
+    const user = await User.findById(req.user._id)
+    const passCheck = await user.IsPasswordCorrect(password)
+
+    if(!passCheck) return ResError(res , 400 , 'Provided Password is incorrect')
+    
+    user.isDeleted  = true ;
+    user.deletedAt = new Date() ;
+    await user.save() ; 
+
+    return ResError(res ,200 , "Accound removed Successfully")
+
+} , 'deleteUser')
 
 const changePassword = TryCatch(async(req , res) => {
     const {oldPassword , newPassword}  = req.body ;

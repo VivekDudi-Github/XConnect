@@ -1,0 +1,20 @@
+import { ResError } from '../../../utils/extra.js';
+import { createCommunitySchema } from '../validator_schema/community.schema.js';
+
+export const validateCreateCommunity = (req, res) => {
+  try {
+    req.body = createCommunitySchema.parse(req.body);
+
+    if (!req.files?.avatar?.length) {
+      return ResError(res, 400, 'Avatar is required');
+    }
+
+    if (!req.files?.banner?.length) {
+      return ResError(res, 400, 'Banner is required');
+    }
+
+    return true;
+  } catch (err) {
+    return ResError(res, 400, err.errors[0].message);
+  }
+};

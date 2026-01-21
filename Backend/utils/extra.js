@@ -35,12 +35,26 @@ const TryCatch = (func , funcName ) => {
   }
 }
 
+const generateTokens = async (user) => {
+  const accessToken = user.generateAccessToken();
+  const refreshToken = user.generateRefreshToken();
 
+  user.refreshToken = refreshToken;
+  await user.save();
 
+  return { accessToken, refreshToken };
+};
 
+const cookieOptions = {
+  httpOnly: true,
+  secure: true,
+  sameSite: 'strict',
+};
 
 export { 
   TryCatch ,
   ResError ,
   ResSuccess ,
+  cookieOptions ,
+  generateTokens ,
 }

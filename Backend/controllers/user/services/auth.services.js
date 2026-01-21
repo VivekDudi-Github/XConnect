@@ -1,15 +1,29 @@
-export const generateTokens = async (user) => {
-  const accessToken = user.generateAccessToken();
-  const refreshToken = user.generateRefreshToken();
+import { User } from '../../../models/user.model.js';
 
-  user.refreshToken = refreshToken;
-  await user.save();
+export const loginUserService = async ({
+  email,
+  username,
+  password,
+}) => {
+  const user = await User.findOne({
+    $or: [
+      email ? { email } : null,
+      username ? { username } : null,
+    ].filter(Boolean),
+  });
 
-  return { accessToken, refreshToken };
-};
+  if (!user) {
+    throw new Error('INVALID_CREDENTIALS');
+  }
 
-export const cookieOptions = {
-  httpOnly: true,
-  secure: true,
-  sameSite: 'strict',
+  const isPasswordCorrect = await user.IsPasswordCorrect(password);
+  if (!isPasswordCorrect) {
+    throw new Error('INVALID_CREDENTIALS');
+  }
+
+  const userObj = user.toObject();
+  delete userObj.password;
+  delete userObj.refreshToken;
+
+  return { user, userObj };
 };

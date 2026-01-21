@@ -1,9 +1,11 @@
 import express from 'express';
 import {checkUser} from '../utils/chekAuth.js'
 
-import { communityFeed, CreateCommunity, GetCommunity, GetCommunityPosts , getFollowingCommunities, followCommunity, updateCommunity, inviteMods, getCommunityIsInvited, toggleJoinMod  } from '../controllers/community.controller.js';
+import { communityFeed,  GetCommunityPosts , getFollowingCommunities, followCommunity, updateCommunity, inviteMods, getCommunityIsInvited, toggleJoinMod  } from '../controllers/community.controller.js';
 import { uploadFiles } from '../middlewares/multer.js';
 
+import { CreateCommunity } from '../controllers/community/controller/createCommunity.controller.js'
+import { GetCommunity } from '../controllers/community/controller/getCommunity.controller.js'
 
 const router = express.Router();
 

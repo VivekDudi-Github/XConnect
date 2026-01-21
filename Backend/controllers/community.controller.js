@@ -5,7 +5,6 @@ import { Post } from "../models/post.model.js";
 import { deleteFilesFromCloudinary, uploadFilesTOCloudinary } from "../utils/cloudinary.js";
 import { ResSuccess, TryCatch , ResError } from "../utils/extra.js";
 import { Preferance } from "../models/prefrence.model.js";
-import {io} from '../app.js'
 import { emitEvent } from "../utils/socket.js";
 import { Notification } from "../models/notifiaction.model.js";
 
@@ -80,9 +79,6 @@ const GetCommunity = TryCatch(async(req , res) => {
 
 } , 'GetCommunity')
 
-const GetCommunities = TryCatch(async(req , res) => {
-  
-} , 'GetCommunities')
 
 const GetCommunityPosts = TryCatch(async(req , res) => {
   const id = req.params.id ;
@@ -113,9 +109,7 @@ const GetCommunityPosts = TryCatch(async(req , res) => {
 
 } , 'GetCommunityPosts')
 
-const GetCommunityFollowers = TryCatch(async(req , res) => {
-  
-} , 'GetCommunityFollowers')
+
 
 const getFollowingCommunities = TryCatch( async(req , res) => {
   const followings = await Following.find({
@@ -127,6 +121,30 @@ const getFollowingCommunities = TryCatch( async(req , res) => {
   
   return ResSuccess(res , 200 , communities) ;
 } , 'GetFollowingCommunities')
+
+
+const followCommunity = TryCatch(async(req , res) => {
+  const {id} = req.params ;
+
+  if(!id) return ResError(res , 400 , 'Community ID is required')
+
+  const communityAuthor = await Community.findById(id).select('creator')
+
+  if(communityAuthor.creator.equals(req.user._id)) return ResError(res , 400 , 'You cannot unfollow your own community.') ;
+
+  const isExistFollowing = await Following.exists({followingCommunity : id , followedBy : req.user._id})
+  if(isExistFollowing){
+    await Following.findOneAndDelete({followingCommunity : id , followedBy : req.user._id})
+    return ResSuccess(res , 200 , {operation : false} )
+  } else {
+    await Following.create({
+      followingCommunity : id ,
+      followedBy : req.user._id ,
+    })
+    return ResSuccess(res , 200 , {operation : true} )
+  }
+
+} , 'followCommiunity')
 
 const communityFeed = TryCatch( async(req , res) => {
   const userId = req.user._id ;
@@ -296,28 +314,6 @@ const communityFeed = TryCatch( async(req , res) => {
     
 } , 'CommunityFeed')
 
-const followCommunity = TryCatch(async(req , res) => {
-  const {id} = req.params ;
-
-  if(!id) return ResError(res , 400 , 'Community ID is required')
-
-  const communityAuthor = await Community.findById(id).select('creator')
-
-  if(communityAuthor.creator.equals(req.user._id)) return ResError(res , 400 , 'You cannot unfollow your own community.') ;
-
-  const isExistFollowing = await Following.exists({followingCommunity : id , followedBy : req.user._id})
-  if(isExistFollowing){
-    await Following.findOneAndDelete({followingCommunity : id , followedBy : req.user._id})
-    return ResSuccess(res , 200 , {operation : false} )
-  } else {
-    await Following.create({
-      followingCommunity : id ,
-      followedBy : req.user._id ,
-    })
-    return ResSuccess(res , 200 , {operation : true} )
-  }
-
-} , 'followCommiunity')
 
 const updateCommunity = TryCatch( async(req , res) => {
     req.CreateMediaForDelete = [] ;
@@ -470,6 +466,15 @@ const toggleJoinMod = TryCatch( async(req , res) => {
     return ResSuccess(res , 200 , {operation : true}) ;
   }
 } , 'toggleJoinMod')
+
+
+
+const GetCommunities = TryCatch(async(req , res) => {
+  
+} , 'GetCommunities')
+const GetCommunityFollowers = TryCatch(async(req , res) => {
+  
+} , 'GetCommunityFollowers')
 
 
 export {
