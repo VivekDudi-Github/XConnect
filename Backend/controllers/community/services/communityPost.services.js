@@ -1,7 +1,7 @@
 import {
   countCommunityPosts,
   findCommunityPosts,
-} from '../services/createCommunity.services.js';
+} from '../db/communityPost.db.js';
 
 export const getCommunityPostsService = async ({
   communityId,

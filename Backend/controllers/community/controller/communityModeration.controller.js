@@ -1,14 +1,13 @@
-import { TryCatch } from '../../utils/tryCatch.js';
-import { ResSuccess, ResError } from '../../utils/response.js';
+import { TryCatch , ResError , ResSuccess } from '../../../utils/extra.js';
 import {
   inviteModeratorsService,
   checkModInviteService,
   toggleModeratorService,
-} from './moderation.service.js';
+} from '../services/communityModeration.services.js';
 import {
   inviteModsSchema,
   communityIdParamSchema,
-} from './moderation.schema.js';
+} from '../validator_schema/community.schema.js';
 import { emitEvent } from '../../../utils/socket.js';
 import { NOTIFICATION_RECEIVE } from '../../../utils/constants/notification.contant.js';
 

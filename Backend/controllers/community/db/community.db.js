@@ -1,4 +1,4 @@
-import Community from '../../models/community.js';
+import { Community } from "../../../models/community.model.js";
 
 export const findCommunityById = (id) => {
   return Community.findById(id);
