@@ -1,7 +1,7 @@
 import {TryCatch , ResSuccess} from "../../utils/extra.js";
 import { validate } from "../../middlewares/validate.js";
 import * as schema from "./message.validator.js";
-import * as service from "./message.service.js";
+import * as service from "./message.services.js";
 
 export const createMessage = TryCatch(async (req, res) => {
   validate(schema.createMessageSchema, req);

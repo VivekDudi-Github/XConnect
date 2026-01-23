@@ -1,5 +1,5 @@
-import { getAnalyticsDashboard } from "./analytics.service.js";
-import { analyticsPageSchema } from "./analytics.schema.js";
+import { getAnalyticsDashboard } from "./analytics.services.js";
+import { analyticsPageSchema } from "./analytics.validator.js";
 import { ResSuccess , TryCatch } from "../../utils/extra.js";
 
 export const getAnalyticsPage = TryCatch(async (req, res) => {
@@ -8,7 +8,7 @@ export const getAnalyticsPage = TryCatch(async (req, res) => {
   });
 
   if (!parsed.success) {
-    return res.status(400).json(parsed.error.format());
+    return res.status(400).json(parsed.error.format({ preety: true }));
   }
 
   const data = await getAnalyticsDashboard(parsed.data.userId);

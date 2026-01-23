@@ -1,8 +1,8 @@
 import { TryCatch , ResSuccess } from "../../utils/extra.js";   
 import { validate } from "../../middlewares/validate.js";
-import * as service from "./comment.service.js";
+import * as service from "./comment.services.js";
 import * as repo from "./comment.db.js";
-import * as schema from "./comment.schema.js";
+import * as schema from "./comment.validator.js";
 
 
 /* CREATE */
@@ -76,3 +76,4 @@ export const toggleDislikeComment = TryCatch(async (req, res) => {
 
   ResSuccess(res, 200, { operation: result });
 });
+

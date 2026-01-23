@@ -2,6 +2,10 @@ import { stripe } from "../utils/stripe.js";
 import {LiveChat} from '../models/liveChats.model.js'
 import {TryCatch , ResError , ResSuccess} from '../utils/extra.js'
 import { io } from "../app.js";
+import dotenv from 'dotenv' ;
+import stripe from 'stripe' ;
+
+dotenv.config() ;
 
 const createSuperchatPayment = TryCatch( async (req, res) => {
     const { streamId, message, amount } = req.body;
@@ -29,6 +33,35 @@ const createSuperchatPayment = TryCatch( async (req, res) => {
 } , 'PaymentIntent')
 
 
+const receiveWebhook = TryCatch(async(req , res , next) => {
+    const sig = req.headers["stripe-signature"]
+    console.log('success');
+    
+    let event ;
+
+    try {
+      event = stripe.webhooks.constructEvent(
+        req.body,
+        sig,
+        process.env.WEBHOOK_KEY,
+      );
+    } catch (err) {
+      console.error("Webhook signature verification failed:", err.message);
+      return res.sendStatus(400);
+    }
+    
+    if(event.type === 'payment_intent.succeeded'){
+      console.log(event.data.object.metadata , event.type);
+      let data = event.data.object;
+      let metadata = data.metadata;
+      req.metadata = metadata ;
+      if(metadata.type === 'superchat'){
+        return createSuperchatPaymentWebhook(req , res , next)
+      }
+    }
+    return res.sendStatus(200)
+  } , 'webhook')
+
 const createSuperchatPaymentWebhook = TryCatch(async(req , res) => {
   console.log('webHook Reached');
   
@@ -54,5 +87,5 @@ const createSuperchatPaymentWebhook = TryCatch(async(req , res) => {
 
 export { 
   createSuperchatPayment ,
-  createSuperchatPaymentWebhook ,
+  receiveWebhook
 }

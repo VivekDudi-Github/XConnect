@@ -1,11 +1,11 @@
 import { ObjectId } from "mongodb";
-import {WatchHistory} from "../../models/WatchHistory.js";
-import {Following} from "../../models/Following.js";
-import {Payout} from "../../models/Payout.js";
-import {Post} from "../../models/Post.js";
-import {LiveStream} from "../../models/LiveStream.js";
-import {LikesCount} from "../../models/LikesCount.js";
-import {CommentCount} from "../../models/CommentCount.js";
+import {WatchHistory} from "../../models/watchHistory.model.js";
+import {Following} from "../../models/following.model.js";
+import {Payout} from "../../models/payout.model.js";
+import {Post} from "../../models/post.model.js";
+import {LiveStream} from "../../models/liveStream.model.js";
+import {LikesCount} from "../../models/likesCount.model.js";
+import {CommentCount} from "../../models/commentCount.model.js";
 
 export const analyticsRepo = {
   getUserReach(userId, start, end) {

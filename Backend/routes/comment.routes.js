@@ -1,17 +1,17 @@
 import express from 'express' ;
 import { checkUser } from '../utils/chekAuth.js';
-import { createComment, deleteComment, getSingleComment , getComments, toggleLikeComment, toggleDislikeComment } from '../controllers/comment.controller.js';
+import * as routes from '../controllers/comment/comment.controller.js';
 
 const router = express.Router() ;
 
-router.post('/:id' , checkUser , createComment) ;
-router.get('/post/:id' , checkUser , getComments) ;
+router.post('/:id' , checkUser , routes.createComment) ;
+router.get('/post/:id' , checkUser , routes.getComments) ;
 
-router.get('/:id' , checkUser , getSingleComment) ;
+router.get('/:id' , checkUser , routes.getSingleComment) ;
 
-router.post('/like/:id' , checkUser , toggleLikeComment) ;
-router.post('/dislike/:id' , checkUser , toggleDislikeComment) ;
+router.post('/like/:id' , checkUser , routes.toggleLikeComment) ;
+router.post('/dislike/:id' , checkUser , routes.toggleDislikeComment) ;
 
-router.delete('/:id' , checkUser , deleteComment) ;
+router.delete('/:id' , checkUser , routes.deleteComment) ;
 
 export default router ;

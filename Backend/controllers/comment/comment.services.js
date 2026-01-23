@@ -49,3 +49,16 @@ export const toggleDislikeService = async ({ commentId, userId }) => {
   await repo.addDislike(commentId, userId);
   return true;
 };
+
+export const deleteCommentService = async (id, userId) => {
+  const comment = await repo.findCommentById(id);
+
+  if (!comment) throw { status: 404, message: "Comment not found" };
+  if (comment.user.toString() !== userId.toString())
+    throw { status: 403, message: "You are not the owner of this comment" };
+
+  await repo.commentExists(id);
+  await repo.removeLike(id, userId);
+  await repo.removeDislike(id, userId);
+  await comment.deleteOne();
+};

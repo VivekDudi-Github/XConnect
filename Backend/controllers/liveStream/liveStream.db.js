@@ -1,6 +1,6 @@
-import LiveStream from "./livestream.model.js";
-import LiveChat from "../chat/liveChat.model.js";
-import Following from "../follow/following.model.js";
+import { LiveChat } from "../../models/liveChats.model.js";
+import { LiveStream } from "../../models/liveStream.model.js";
+import { Following } from "../../models/following.model.js";
 
 export const createLiveStreamRepo = data =>
   LiveStream.create(data);

@@ -8,7 +8,7 @@ import {
   deleteLiveChatsRepo,
   getLiveChatsRepo,
   getFollowStatsRepo,
-} from "./livestream.repository.js";
+} from "./liveStream.db.js";
 
 export const createLiveStreamService = async ({
   user,

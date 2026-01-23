@@ -126,6 +126,32 @@ export const searchPosts = (q, skip, limit, userId) =>
     }
   ]);
 
+export const searchPostsAggregates = (q) =>
+  Post.aggregate([
+    {$searchMeta : {
+      index : 'post' ,
+      compound: {
+      must: [
+        {
+          text: {
+            query: q,
+            path: 'content',
+            fuzzy: { maxEdits: 2, prefixLength: 2 }
+          }
+        }
+      ],
+      mustNot: [
+        {
+          equals: {
+            path: "isDeleted",
+            value: true
+          }
+        }
+      ]
+    }}}
+  ])
+
+
 /* USERS */
 export const searchUsers = (q, skip, limit, userId) =>
   User.aggregate([
@@ -162,9 +188,17 @@ export const searchUsers = (q, skip, limit, userId) =>
       }
     },
 
+    {$lookup : {
+      from : 'followings' , 
+      localField : '_id' ,
+      foreignField : 'followedTo' ,
+      as : 'totalFollowers'
+    }} ,
+
     {
       $addFields: {
-        isFollowing: { $gt: [{ $size: '$followings' }, 0] }
+        isFollowing: { $gt: [{ $size: '$followings' }, 0] },
+        totalFollowers : {$size : '$totalFollowers'} ,
       }
     },
 
@@ -173,10 +207,26 @@ export const searchUsers = (q, skip, limit, userId) =>
         username: 1,
         avatar: 1,
         fullname: 1,
-        isFollowing: 1
+        isFollowing: 1 ,
+        totalFollowers : 1 ,
       }
     }
   ]);
+
+export const searchUsersAggregates = (q) =>
+  User.aggregate([
+    {$searchMeta : {
+      index : 'autocomplete_users' ,
+      autocomplete : {
+        query : q , 
+        path : 'username' , 
+        fuzzy : {
+          maxEdits : 2 , 
+          prefixLength : 2
+      }}
+    }}
+  ])
+  
 
 /* COMMUNITIES */
 export const searchCommunities = (q, skip, limit, userId) =>
@@ -229,3 +279,19 @@ export const searchCommunities = (q, skip, limit, userId) =>
       }
     }
   ]);
+
+export const searchCommunitiesAggregates = (q) =>
+  Community.aggregate([
+    {$searchMeta : {
+      index : 'communities' ,
+      text : {
+        query : q , 
+        path : ['name' , 'description'] , 
+        fuzzy : {
+          maxEdits : 2 , 
+          prefixLength : 2
+        }
+      }
+    }}
+  ])
+ 

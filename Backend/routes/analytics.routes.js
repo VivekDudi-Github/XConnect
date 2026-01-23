@@ -1,6 +1,6 @@
 import express from 'express' ;
 import {checkUser} from '../utils/chekAuth.js'
-import { getAnalyticsPage } from '../controllers/analytics.controller.js';
+import { getAnalyticsPage } from '../controllers/analytics/analytics.controller.js';
 
 const router = express.Router() ;
 

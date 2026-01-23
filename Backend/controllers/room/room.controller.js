@@ -1,7 +1,7 @@
 import { TryCatch , ResSuccess } from "../../utils/extra.js";
 import { validate } from "../../middlewares/validate.js";
-import * as schema from "./room.schema.js";
-import * as service from "./room.service.js";
+import * as schema from "./room.validator.js";
+import * as service from "./room.services.js";
 import {Room} from "../../models/room.model.js";
 import { getRoomsAggregation } from "./room.db.js";
 

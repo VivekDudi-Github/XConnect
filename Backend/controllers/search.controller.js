@@ -255,7 +255,7 @@ const getSearchUsers = async(q , skip , limit , userId) => {
 const getSearchCommunities = async(q , skip, limit , userId ) => {
   let totalComm ;
   if(skip === 0){
-    let totalComm = await User.aggregate([
+    let totalComm = await Community.aggregate([
       {$searchMeta : {
         index : 'communities' ,
         text : {query : q , path : ['name' , 'description'] , fuzzy : {maxEdits : 2 , prefixLength : 2}}

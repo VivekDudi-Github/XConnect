@@ -100,3 +100,17 @@ export const getCommentsAggregate = ({
     { $unwind: { path: "$author", preserveNullAndEmptyArrays: true } },
     { $project: { likes: 0, dislikes: 0, userLike: 0 } },
   ]);
+
+export const getACommentAggregate = ({ id }) =>
+  Comment.aggregate([
+    { $match: { _id: new ObjectId(`${id}`) } },
+    {
+      $lookup: {
+        from: "users",
+        localField: "user",
+        foreignField: "_id",
+        pipeline: [{ $project: { avatar: 1, username: 1, fullname: 1 } }],
+        as: "author",
+      },
+    },
+  ]);

@@ -1,14 +1,14 @@
 import express from 'express'
-import { searchBarsearch, searchUsers , normalSearch, continueSearch } from '../controllers/search.controller.js'
+import { searchBarSearch, searchUsers , normalSearch, continueSearch } from '../controllers/search/search.controller.js'
 import {checkUser} from '../utils/chekAuth.js'
 
 const router = express.Router()
 
-router.post('/searchbar' ,checkUser , searchBarsearch) ;
+router.post('/searchbar' ,checkUser , searchBarSearch) ;
 router.post('/n', checkUser , normalSearch) ;
 
 router.get('/continue' , checkUser , continueSearch)
 
 router.get('/searchUsers' , checkUser , searchUsers)
 
-export default router
+export default router ;

@@ -1,6 +1,6 @@
 import { validate } from "../../middlewares/validate.js";
-import * as schema from "./liveStream.schema.js";
-import * as service from "./livestream.service.js";
+import * as schema from "./liveStream.validator.js";
+import * as service from "./liveStream.services.js";
 import { ResSuccess, TryCatch } from "../../utils/extra.js";
 
 export const createLiveStream = TryCatch(async (req, res) => {
