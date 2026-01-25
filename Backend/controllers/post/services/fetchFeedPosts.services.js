@@ -1,8 +1,10 @@
 import { fetchFeedPostsDB ,getUserPreferences } from '../db/fetchFeedPosts.db.js';
+let limit = 10 ;
 
-
-export const fetchFeedService = async ({ user }) => {
+export const fetchFeedService = async ({ user ,page , tab }) => {
   const userId = user._id;
+  
+  let skip = (page - 1) * limit;
 
   const preferences = await getUserPreferences(userId);
   const hashtags = preferences.map(p => p.hashtags);
@@ -14,5 +16,8 @@ export const fetchFeedService = async ({ user }) => {
     userId,
     hashtags,
     timeAgo,
+    tab , 
+    skip , 
+    limit, 
   });
 };

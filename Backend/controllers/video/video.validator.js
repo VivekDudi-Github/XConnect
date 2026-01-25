@@ -10,7 +10,7 @@ export const initVideoUploadSchema = z.object({
 export const uploadChunkSchema = z.object({
   body: z.object({
     public_id: z.string().uuid(),
-    chunkIdx: z.number().int().min(0)
+    chunkIdx: z.coerce.number().int().min(0)
   })
 });
 

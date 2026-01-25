@@ -80,13 +80,13 @@ function DashboardMain() {
 
       setNewFollowers(data?.data?.newFollowers ?? 0) ;
       setLastFollowers(data?.data?.lastFollowers ?? 0) ;
-      setPayout(data?.data?.payouts) ;
+      setPayout(data?.data?.pendingPayout) ;
       setTopEngagedPosts(data?.data?.topEngagedPosts) ;
-      setFollowerGraphData(data.data.followerGraphData) ;
-      setScheduled([...data.data?.ScheduledPosts , ...data?.data?.ScheduledLive])
+      setFollowerGraphData(data.data?.followerGraph) ;
+      setScheduled([...data.data?.scheduledPosts , ...data?.data?.scheduledLives]);
     
-      setCommentCount(data?.data?.commentCount[0]?.count ?? 0) ;
-      setLikeCount(data?.data?.likesCount[0]?.count ?? 0) ;
+      setCommentCount(data?.data?.commentCount ?? 0) ;
+      setLikeCount(data?.data?.likesCount ?? 0) ;
     }
   } , [data])
 

@@ -1,7 +1,6 @@
 import { TryCatch , ResSuccess } from "../../utils/extra.js";   
 import { validate } from "../../middlewares/validate.js";
 import * as service from "./comment.services.js";
-import * as repo from "./comment.db.js";
 import * as schema from "./comment.validator.js";
 
 
@@ -14,48 +13,32 @@ export const createComment = TryCatch(async (req, res) => {
     userId: req.user._id,
     content: req.body.content,
     commentId: req.body.comment_id,
+    isEdited : req.body.isEdited ,
   });
 
   ResSuccess(res, 201, comment);
-});
-
+} , 'createComment');
+ 
 /* GET COMMENTS */
 export const getComments = TryCatch(async (req, res) => {
+  console.log(req.params.id , 'const-params ');
   validate(schema.getCommentsSchema, req);
 
-  const { page, limit, sortBy, isComment, comment_id } = req.query;
-  const skip = (page - 1) * limit;
+  let result  = await service.getCommentsService({userId : req.user._id , postId : req.params.id , ...req.query})
 
-  const sortStages =
-    sortBy === "Newest"
-      ? [{ $sort: { createdAt: -1 } }]
-      : sortBy === "Most Liked"
-      ? [{ $sort: { likeCount: -1 } }]
-      : [];
+  return ResSuccess(res, 200, result);
+} , 'getComments');
 
-  const replyMatch =
-    isComment === "true" && comment_id
-      ? [
-          { $eq: ["$replyTo", "comment"] },
-          { $eq: ["$comment_id", comment_id] },
-        ]
-      : [{ $eq: ["$replyTo", "post"] }];
+export const getAComment = TryCatch(async (req, res) => {
+  validate(schema.CheckIdParams, req);
 
-  const comments = await repo.getCommentsAggregate({
-    postId: req.params.id,
-    userId: req.user._id,
-    skip,
-    limit,
-    sortStages,
-    replyMatch,
-  });
-
-  ResSuccess(res, 200, comments);
-});
+  const comment = await service.getACommentService(req.params.id);
+  ResSuccess(res, 200, comment);
+} , 'getAComment');
 
 /* LIKE */
 export const toggleLikeComment = TryCatch(async (req, res) => {
-  validate(schema.toggleCommentSchema, req);
+  validate(schema.CheckIdParams, req);
 
   const result = await service.toggleLikeService({
     commentId: req.params.id,
@@ -63,11 +46,11 @@ export const toggleLikeComment = TryCatch(async (req, res) => {
   });
 
   ResSuccess(res, 200, { operation: result });
-});
+} , 'toggleLikeComment');
 
 /* DISLIKE */
 export const toggleDislikeComment = TryCatch(async (req, res) => {
-  validate(schema.toggleCommentSchema, req);
+  validate(schema.CheckIdParams, req);
 
   const result = await service.toggleDislikeService({
     commentId: req.params.id,
@@ -75,5 +58,13 @@ export const toggleDislikeComment = TryCatch(async (req, res) => {
   });
 
   ResSuccess(res, 200, { operation: result });
-});
+} , 'toggleDislikeComment');
+
+/* DELETE */
+export const deleteComment = TryCatch(async (req, res) => {
+  validate(schema.CheckIdParams, req);
+
+  await service.deleteCommentService(req.params.id, req.user._id);
+  ResSuccess(res, 200, "Comment deleted successfully");
+} , 'deleteComment');
 

@@ -28,7 +28,7 @@ export default function CommentSection({comment_Id}) {
   const [mentions , setMentions] = useState([]) ;
 
   const [isOpenOptions , setIsOpenOptions] = useState(false) ;
-  const [sortBy, setSortBy] = useState('top');
+  const [sortBy, setSortBy] = useState('Top');
 
   const [totalPages , setTotalPages] = useState(1);
   const [page , setPage] = useState(1);
@@ -95,6 +95,8 @@ useEffect(() => {
 useEffect(() => {
   if(page > totalPages) return ;
   if(data && data?.data){
+    console.log(data);
+    
     setComments([...data?.data?.comments , ...comments]) ;
     setTotalComments(data?.data?.totalComments) ;
     setTotalPages(data?.data?.totalPages) ;

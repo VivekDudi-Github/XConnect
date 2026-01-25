@@ -58,7 +58,7 @@ const getAnalyticsPage = TryCatch(async(req , res) => {
 
   const lastPayouts = await Payout.find().sort({createdAt : -1}).limit(3) ;
 
-  const ScheduledPosts = await Post.find({ 
+  const scheduledPosts = await Post.find({ 
     scheduledAt : {$gt : new Date(Date.now())},
     author : req.user._id,
   })
@@ -66,7 +66,7 @@ const getAnalyticsPage = TryCatch(async(req , res) => {
   .sort({scheduledAt : 1}) 
   .limit(5);
 
-  const ScheduledLive = await LiveStream.find({
+  const scheduledLive = await LiveStream.find({
     host : new ObjectId(`${userId}`),
   })
   .sort({scheduledAt : 1})
@@ -103,8 +103,8 @@ const getAnalyticsPage = TryCatch(async(req , res) => {
     newFollowers ,
     lastFollowers ,
     lastPayouts ,
-    ScheduledLive ,
-    ScheduledPosts ,
+    scheduledLive ,
+    scheduledPosts ,
 
     likesCount ,
     commentCount ,

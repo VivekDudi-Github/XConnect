@@ -7,7 +7,7 @@ const router = express.Router() ;
 router.post('/:id' , checkUser , routes.createComment) ;
 router.get('/post/:id' , checkUser , routes.getComments) ;
 
-router.get('/:id' , checkUser , routes.getSingleComment) ;
+router.get('/:id' , checkUser , routes.getAComment) ;
 
 router.post('/like/:id' , checkUser , routes.toggleLikeComment) ;
 router.post('/dislike/:id' , checkUser , routes.toggleDislikeComment) ;

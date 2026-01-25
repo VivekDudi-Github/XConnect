@@ -110,7 +110,7 @@ useEffect(() => {
 
       {posts && activeTab === 'Replies' && (
         <div className="mt-6 mx-2 gap-4 max-w-6xl">
-          {posts.map((post) => (
+          {posts.map((post , i) => (
             <div ref={ i === posts.length - 1 ? lastPostRef : null }  key={post._id}
               className=' mb-3 border-b- dark:border-gray-700 border-gray-600 '
             >

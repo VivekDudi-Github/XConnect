@@ -14,6 +14,7 @@ export const validateFetchFeed = (req, res) => {
 
     return true;
   } catch (err) {
-    return ResError(res, 400, err.errors[0].message);
+    console.error(err);
+    return ResError(res, 400, err.issues[0].message);
   }
 };

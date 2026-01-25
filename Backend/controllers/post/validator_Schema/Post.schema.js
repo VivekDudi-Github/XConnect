@@ -16,7 +16,7 @@ export const createPostSchema = z.object({
   repost: z.string().optional(),
   community: z.string().optional(),
 
-  scheduledAt: z.iso.datetime().pipe(z.coerce.date()).optional(),
+  scheduledAt: z.coerce.date().pipe(z.coerce.date()).optional(),
 
   videoIds: z.array(z.string()).optional(),
 });
@@ -48,7 +48,7 @@ export const paginationSchema = z.object({
 
 
 export const fetchFeedSchema = z.object({
-  tab: z.enum(['ForYou', 'Following', 'Media', 'Communities']).default('ForYou'),
+  tab: z.enum(['For You', 'Following', 'Media', 'Communities']).default('ForYou'),
   page: z.coerce.number().int().min(1).default(1),
 });
 

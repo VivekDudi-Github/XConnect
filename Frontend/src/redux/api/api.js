@@ -127,10 +127,18 @@ const api = createApi({
       })
     }) ,
     getComment : builder.query({
-      query : ({id , page , sortBy , isComment , limit = 5 , comment_id }) => ({
-        url : `/comment/post/${id}?page=${page}&sortBy=${sortBy}&isComment=${isComment}&comment_id=${comment_id}&limit=${limit}` ,
+      query : ({id , page , sortBy , isComment , limit = 5 , comment_id }) => {
+        
+        let params = new URLSearchParams() ;
+        if (page !== undefined) params.append("page", page);
+        if (sortBy) params.append("sortBy", sortBy);
+        if (isComment !== undefined) params.append("isComment", String(isComment));
+        if (comment_id) params.append("comment_id", comment_id);
+        params.append("limit", String(limit));
+        return {
+         url: `/comment/post/${id}?${params.toString()}`,
         credentials : 'include' ,
-      })  
+      }} 
     }) ,
     toggleLikeComment : builder.mutation({
       query : ({id}) => ({

@@ -34,7 +34,7 @@ export const analyticsRepo = {
 
   getTopEngagedPosts(userId, since) {
     return WatchHistory.aggregate([
-      { $match: { author: new ObjectId(userId), createdAt: { $gte: since } } },
+      { $match: { author: new ObjectId(`${userId}`), createdAt: { $gte: since } } },
       { $group: { _id: "$post", count: { $sum: 1 } } },
       { $sort: { count: -1 } },
       { $limit: 10 },
@@ -105,15 +105,16 @@ export const analyticsRepo = {
 
   getCommentCount(userId, since) {
     return CommentCount.aggregate([
-      {
-        $match: {
-          user: new ObjectId(userId),
-          createdAt: { $gte: since },
-        },
-      },
-      { $group: { _id: "$user", count: { $sum: "$count" } } },
-    ]);
-  },
+      {$match : {
+        user : new ObjectId(`${userId}`) ,
+        createdAt : {$gte : since} ,
+      }} ,
+      {$group : {
+        _id : '$user' ,
+        count : {$sum : '$count'} ,
+      }}
+    ])
+  },    
 
   getLastPayout() {
     return Payout.findOne().sort({ createdAt: -1 });

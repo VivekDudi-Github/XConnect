@@ -4,11 +4,10 @@ import { fetchFeedService } from '../services/fetchFeedPosts.services.js';
 
 export const fetchFeedPost = TryCatch(async (req, res) => {
   const valid = validateFetchFeed(req, res);
-  if (!valid) return;
-
+  if (!valid) return;  
   const posts = await fetchFeedService({
     user: req.user,
-    ...req.feed,
+    ...req.query,
   });
 
   return ResSuccess(res, 200, posts);

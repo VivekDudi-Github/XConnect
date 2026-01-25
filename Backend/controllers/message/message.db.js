@@ -1,4 +1,4 @@
-import { Room } from "../../models/Room.model.js";
+import { Room } from "../../models/room.model.js";
 import { Message } from "../../models/messages.model.js";
 
 export const findRoomById = roomId =>

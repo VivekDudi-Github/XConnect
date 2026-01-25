@@ -15,7 +15,7 @@ import { toast } from 'react-toastify';
 
 
 
-const TABS = ["All", "Following", "Communities", "Media"]
+const TABS = ["For You", "Following", "Communities", "Media"]
 function Feed() {
   const dispatch = useDispatch();
   const observer = useRef() ;
@@ -23,7 +23,7 @@ function Feed() {
   const {isDeleteDialog} = useSelector(state => state.misc);
   
   const [page , setPage] = useState(1) ;
-  const [activeTab, setActiveTab] = useState("All");
+  const [activeTab, setActiveTab] = useState("For You");
   const [pause , setPause] = useState(false) ;
   const [posts , setPosts] = useState([]) ;
 

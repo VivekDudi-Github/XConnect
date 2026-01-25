@@ -8,7 +8,7 @@ const ObjectId = Types.ObjectId;
 /* ---------- BASIC ---------- */
 
 export const findCommentById = (id) =>
-  Comment.findById(id).select("user isDeleted content createdAt");
+  Comment.findById(id).select("user isDeleted content createdAt").populate("user" , "avatar username fullname");
 
 export const commentExists = (id) =>
   Comment.exists({ _id: id, isDeleted: false });
@@ -36,6 +36,12 @@ export const addLike = (comment, user) =>
 export const addDislike = (comment, user) =>
   Dislikes.create({ comment, user });
 
+export const deleteAllLikes = (comment) => 
+  Likes.deleteMany({comment : comment._id}) ;
+  
+export const deleteAllDislikes = (comment) => 
+  Dislikes.deleteMany({comment : comment._id}) ;
+
 /* ---------- AGGREGATIONS ---------- */
 
 export const getCommentsAggregate = ({
@@ -51,7 +57,7 @@ export const getCommentsAggregate = ({
       $match: {
         $expr: {
           $and: [
-            { $eq: ["$post", new ObjectId(postId)] },
+            { $eq: ["$post", new ObjectId(`${postId}`)] },
             ...replyMatch,
           ],
         },
@@ -62,10 +68,10 @@ export const getCommentsAggregate = ({
     { $lookup: { from: "dislikes", localField: "_id", foreignField: "comment", as: "dislikes" } },
 
     ...sortStages,
-    { $skip: skip },
-    { $limit: limit },
+    { $skip: Number(skip) },
+    { $limit: Number(limit) },
 
-    {
+    {//author
       $lookup: {
         from: "users",
         localField: "user",
@@ -75,30 +81,77 @@ export const getCommentsAggregate = ({
       },
     },
 
-    {
+    {//user like
       $lookup: {
         from: "likes",
         let: { cid: "$_id" },
         pipeline: [
           { $match: { $expr: { $and: [
             { $eq: ["$comment", "$$cid"] },
-            { $eq: ["$user", new ObjectId(userId)] },
+            { $eq: ["$user", new ObjectId(`${userId}`)] },
           ]}}},
         ],
         as: "userLike",
       },
     },
 
-    {
+    {$lookup : {
+      from : 'dislikes' ,
+      let : { commentId : '$_id'} ,
+      pipeline : [
+        {$match : {
+          $expr : {
+            $and : [
+              {$eq : ['$comment' , '$$commentId']} ,
+              {$eq : ['$user' , new ObjectId(`${userId}`)]} ,
+            ]
+          }
+        }} ,
+      ] ,
+      as : 'userDislike' ,
+    }} ,
+
+    {//replydetails
+      $lookup : {
+        from : 'comments' ,
+        let : { commentId : '$_id'} ,
+        pipeline : [
+          {$match : {
+            $expr : {
+              $and : [
+                {$eq : ['$post' , new ObjectId(`${postId}`)]} ,
+                {$eq : ['$replyTo' , 'comment']} ,
+                {$eq : ['$comment_id' , '$$commentId']} ,
+              ]
+            }
+          }} ,
+          {$project : {
+            _id : 1
+          }}
+        ] ,
+        as : 'replyDetails'
+      }
+    },
+
+    {//add feilds
       $addFields: {
+        replyCount : {$size : '$replyDetails'} ,
+        author : '$author' ,
         likeCount: { $size: "$likes" },
-        dislikeCount: { $size: "$dislikes" },
+        dislikeCount: { $size: "$dislikes" } ,
         likeStatus: { $gt: [{ $size: "$userLike" }, 0] },
+        dislikeStatus : { $gt : [{ $size : '$userDislike'} , 0 ]}  ,
       },
     },
 
     { $unwind: { path: "$author", preserveNullAndEmptyArrays: true } },
-    { $project: { likes: 0, dislikes: 0, userLike: 0 } },
+    { $project: {
+      userDetails : 0 ,
+      totalLike : 0 ,
+      totalDislike : 0 ,
+      userLike : 0 ,
+      userDislike : 0 ,
+     } },
   ]);
 
 export const getACommentAggregate = ({ id }) =>

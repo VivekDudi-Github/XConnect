@@ -3,19 +3,15 @@ import { ResError } from "../utils/extra.js";
 
 export const validate = (schema, req) => {
   try {
+    console.log(req.body , req.query , req.params);
+    
     schema.parse({
       body: req.body,
       query: req.query,
       params: req.params,
     });
-  } catch (err) {
-    if (err instanceof ZodError) {
-      const message = err.errors
-        .map(e => e.message)
-        .join(", ");
-
-      return ResError(req.res, 400, message);
-    }
+  } 
+  catch (err) {
     throw err;
   }
 };

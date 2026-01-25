@@ -1,5 +1,6 @@
 import fsAsync from 'fs/promises';
 import fs from 'fs';
+import { ZodError } from 'zod';
 
 const ResError = (res , statusCode , message) => {
   return res.status(statusCode).json({
@@ -19,9 +20,18 @@ const TryCatch = (func , funcName ) => {
       try {
           await func(req, res, next);
       } catch (error) {
-          console.log(`Error in ${funcName}:`, error);
-          return ResError(res, 500, `Internal Server Error`);
-      } finally {
+          if (error instanceof ZodError) {
+            const message = error.issues
+              .map(e => e.message)
+              .join(", ");
+
+            return ResError(req.res, 400, message);
+          } 
+          else {
+            console.log(`Error in ${funcName}:`, error);
+            return ResError(res, error.statusCode || 500 ,  `Internal Server Error`);
+          }
+        } finally {
         
         if(Array.isArray( req.CreateMediaForDelete) && req.CreateMediaForDelete.length > 0){
           await Promise.allSettled(

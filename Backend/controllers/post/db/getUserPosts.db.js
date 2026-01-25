@@ -36,7 +36,7 @@ const fetchUserPosts = async ({viewerId, authorId , limit, skip }) => {
     //author details
     {$lookup : {
       from : 'users' ,
-      let : { userId : new ObjectId(`${id}`)} ,
+      let : { userId : new ObjectId(`${authorId}`)} ,
       pipeline : [
         {
           $match : {
@@ -103,7 +103,7 @@ const fetchUserPosts = async ({viewerId, authorId , limit, skip }) => {
           $expr : {
             $and : [
               {$eq : ['$post' , '$$postId']} ,
-              {$eq : ['$user' , new ObjectId(`${id}`)]}
+              {$eq : ['$user' , new ObjectId(`${authorId}`)]}
             ]
           }
         }}
@@ -120,7 +120,7 @@ const fetchUserPosts = async ({viewerId, authorId , limit, skip }) => {
             $expr : {
               $and : [
                 {$eq : ['$post' , '$$postId']} ,
-                {$eq : ['$user' , new ObjectId(`${id}`)]}
+                {$eq : ['$user' , new ObjectId(`${authorId}`)]}
               ]
             }
           }
@@ -920,10 +920,177 @@ const fetchBookmarkedPosts = async({ authorId, viewerId , limit , skip}) => {
   return {posts , totalPages} ;
 }
 
+const fetchMediaPosts = async({authorId , viewerId , limit , skip}) => {
+
+  const total = await Post.countDocuments({ author: authorId });
+  const totalPages = Math.ceil(total / limit);
+
+  const isMe = authorId.equals(viewerId);
+
+  const scheduleFilter = isMe
+    ? [{ scheduledAt: { $exists: true } }, { scheduledAt: null }]
+    : [
+        { scheduledAt: { $exists: false } },
+        { scheduledAt: null },
+        { scheduledAt: { $lt: new Date() } },
+      ];
+
+  const posts = await Post.aggregate([
+    {
+      $match: {
+        author: new ObjectId(`${authorId}`),
+        isDeleted: false,
+        $or: scheduleFilter,
+        $expr : {
+          $gte: [{ $size: "$media" }, 1]
+        }
+      },
+    },
+    { $sort: { createdAt: -1 } },
+    { $skip: skip },
+    { $limit: limit },
+
+    //author details
+    {$lookup : {
+      from : 'users' ,
+      let : { userId : new ObjectId(`${authorId}`)} ,
+      pipeline : [
+        {
+          $match : {
+            $expr : {
+              $eq : [ '$_id' , '$$userId']
+            }
+          }
+        } ,
+        {
+          $project : {
+            avatar : 1 ,
+            username : 1 ,
+            fullname : 1 ,
+          }
+        }
+      ] ,
+      as : 'authorDetails'
+    }} , 
+    //repost
+    {$lookup : {
+      from : 'reposts' ,
+      let : {'repostsId' : '$repost' } ,
+      pipeline : [
+        {$match : {
+          $expr : {
+            $eq : [ '$_id' , '$$repostsId']
+          }
+        }} ,
+        {$lookup : {
+          from : 'users' ,
+          let : { userId : '$author' } ,
+          pipeline : [
+            {
+              $match : {
+                $expr : {
+                  $eq : [ '$_id' , '$$userId']
+                }
+              }
+            } ,
+            {
+              $project : {
+                avatar : 1 ,
+                username : 1 ,
+                fullname : 1 ,
+              }
+            }
+          ] ,
+          as : 'authorDetails'
+        }} ,
+        {$addFields : {
+          author : '$authorDetails' 
+        }} ,
+        {$unwind : '$author'}
+      ] ,
+      as : 'repostDetails'
+    }} ,
+
+  // check your post like status,
+    {$lookup : {
+      from : 'likes' ,
+      let : {'postId' : '$_id'} ,
+      pipeline : [
+        {$match : {
+          $expr : {
+            $and : [
+              {$eq : ['$post' , '$$postId']} ,
+              {$eq : ['$user' , new ObjectId(`${authorId}`)]}
+            ]
+          }
+        }}
+      ] ,
+      as : 'userLike'
+    }} ,
+    //userBookmark
+    {$lookup : {
+      from : 'bookmarks' ,
+      let : {'postId' : '$_id'} ,
+      pipeline : [
+        {
+          $match : {
+            $expr : {
+              $and : [
+                {$eq : ['$post' , '$$postId']} ,
+                {$eq : ['$user' , new ObjectId(`${authorId}`)]}
+              ]
+            }
+          }
+        }
+      ] , 
+      as : 'userBookmark'
+    }} ,
+    //totalLike
+    {$lookup : {
+      from : 'likes' ,
+      localField : '_id' ,
+      foreignField : 'post' ,
+      as : 'likesArray' ,
+    }} ,
+    //totalComments
+    {$lookup : {
+      from : 'comments' ,
+      localField : '_id' ,
+      foreignField : 'post' ,
+      as : 'totalComments' ,
+    }} ,
+
+
+    {$addFields : {
+      isBookmarked : { $gt : [{ $size : '$userBookmark'} , 0 ]} ,
+      likeStatus : { $gt : [{ $size : '$userLike'} , 0 ]} ,
+      likeCount :{ $size : '$likesArray'} , 
+      repost : '$repostDetails' , 
+      author : '$authorDetails' ,
+      commentCount : {$size : '$totalComments'} ,
+    }} ,
+    
+    {$project : {
+      userLike : 0 ,
+      isDeleted : 0 ,
+      likesArray : 0 ,
+      userBookmark : 0 ,
+      authorDetails : 0 ,
+      repostDetails : 0 ,
+    }} ,
+
+    {$unwind: { path: "$author", preserveNullAndEmptyArrays: true } },
+    {$unwind: { path: "$repost", preserveNullAndEmptyArrays: true } },
+  ]);
+
+  return { posts, totalPages };
+}
+
 export const TAB_HANDLERS = {
   Posts: fetchUserPosts,
   Replies: fetchReplies,
   Likes: fetchLikes,
   History: fetchHistory,
   BookMarks: fetchBookmarkedPosts,
+  Media : fetchMediaPosts  ,
 };
