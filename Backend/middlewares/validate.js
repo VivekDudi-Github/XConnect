@@ -3,7 +3,7 @@ import { ResError } from "../utils/extra.js";
 
 export const validate = (schema, req) => {
   try {
-    console.log(req.body , req.query , req.params);
+    console.log(req.body, ':body' , req.query , ':query' , req.params , ':params');
     
     schema.parse({
       body: req.body,

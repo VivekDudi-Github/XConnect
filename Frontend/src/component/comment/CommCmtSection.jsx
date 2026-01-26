@@ -12,7 +12,7 @@ import TextArea from 'react-textarea-autosize'
 
 function Comment({ comment,  id , nestedNo , closePreThreadFunc }) {
   const {user} = useSelector(state => state.auth) ;
-  console.log(comment?.content);
+  
   const renderPreRef = useRef(null) ;
   const [ContinueThread , setContinueThread] = useState(false) ;
 
@@ -42,7 +42,7 @@ function Comment({ comment,  id , nestedNo , closePreThreadFunc }) {
   const [page , setPage] = useState(1) ;
 
   const [fetchMoreComments , {data , isLoading , isFetching  ,error,  isError }] = useLazyGetCommentQuery() ;
-  
+  console.log(replies , 'replies');
 
   const deleteCommentFunc = async() => {
       try {
@@ -131,6 +131,7 @@ function Comment({ comment,  id , nestedNo , closePreThreadFunc }) {
 
   useEffect(() => {
     if(data && data.data){
+      console.log(data);
       setReplies((prev) => {
         if (prev.length &&
           prev.at(-1)?._id === data.data.comments.at(-1)?._id

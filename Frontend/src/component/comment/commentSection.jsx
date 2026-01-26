@@ -15,6 +15,7 @@ import { useDeleteCommentMutation, useLazyGetCommentQuery, usePostCommentMutatio
 import { useParams } from 'react-router-dom';
 import lastRefFunc from '../specific/LastRefFunc';
 import { useSelector } from 'react-redux';
+import Textarea from 'react-textarea-autosize' ;
 
 export default function CommentSection({comment_Id}) {
   const {id} = useParams();
@@ -139,7 +140,7 @@ const addToMentions = (username) => {
       {/* Input Section */}
       <div className="flex items-start gap-2 sticky top-0 z-20 p-4 rounded-b-lg shadow-md shadow-black/50 filter backdrop-blur-md"> 
         <div className='w-full'> 
-          <textarea
+          <Textarea maxRows={4}
             className="w-full p-2 rounded border border-gray-300 dark:border-gray-700 dark:bg-black duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500  dark:focus:ring-gray-300 dark:text-white resize-none"
             placeholder="Write a comment..."
             value={commentInput}
@@ -189,7 +190,7 @@ const addToMentions = (username) => {
               Most Liked
             </div>
             <div
-            onClick={() => setSortBy('Newest ') }
+            onClick={() => setSortBy('Newest') }
             className="flex items-center gap-2 px-2 py-1 rounded-md hover:bg-gray-300 dark:hover:bg-slate-900 cursor-pointer">
               Newest
             </div>

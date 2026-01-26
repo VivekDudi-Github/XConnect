@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import {TryCatch , ResError , ResSuccess} from '../utils/extra.js'
 
 import { User } from '../models/user.model.js'
-import { Room } from '../models/Room.model.js';
+import { Room } from '../models/room.model.js';
 import { UserRoomMeta } from '../models/UserRoomMeta.model.js';
 
 const ObjectId = mongoose.Types.ObjectId ;

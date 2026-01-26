@@ -2,6 +2,7 @@ import * as repo from "./comment.db.js";
 import { CommentCount } from "../../models/commentCount.model.js";
 import { Comment } from "../../models/comment.model.js";
 import { ObjectId } from "mongodb";
+import ApiError from '../../utils/ApiError.js' ;
 let limit = 5;
 
 export const createCommentService = async ({
@@ -59,8 +60,8 @@ export const deleteCommentService = async (id, userId) => {
   const comment = await repo.findCommentById(id);
 
   if (!comment) throw { status: 404, message: "Comment not found" };
-  if (comment.user.toString() !== userId.toString())
-    throw { status: 403, message: "You are not the owner of this comment" };
+  if (comment.user._id.toString() !== userId.toString())
+    throw new ApiError( 403, "You are not the owner of this comment" ); 
 
   await repo.commentExists(id);
   await repo.deleteAllDislikes(comment);
@@ -91,7 +92,7 @@ export const getCommentsService = async ({page , sortBy, isComment, comment_id, 
     isComment === "true" && comment_id
       ? [
           { $eq: ["$replyTo", "comment"] },
-          { $eq: ["$comment_id", comment_id] },
+          { $eq: ["$comment_id", new ObjectId(`${comment_id}`)] },
         ]
       : [{ $eq: ["$replyTo", "post"] }];
 
