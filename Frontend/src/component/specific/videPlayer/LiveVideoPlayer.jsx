@@ -3,13 +3,13 @@ import videojs from "video.js";
 import "video.js/dist/video-js.css";
 
 
-export default function VideoPlayer({ stream , audioStream  , src }) {
+export default function VideoPlayer({ stream , audioStream  }) {
   const videoRef = useRef(null);
   const playerRef = useRef(null);
 
   const audioRef = useRef(null); 
   const isChromium = !!window.chrome;
-
+  console.log("streams recieved by video player" ,stream , audioStream) ;
   useEffect(() => {
     if (!videoRef.current) return;
     // Init player without source
@@ -50,7 +50,6 @@ export default function VideoPlayer({ stream , audioStream  , src }) {
 
 
   useEffect(() => {
-    if(src) return;
     if (playerRef.current && stream) {
       const videoEl = playerRef.current.el().querySelector("video");
       
@@ -68,7 +67,6 @@ export default function VideoPlayer({ stream , audioStream  , src }) {
   }, [stream , stream?.active]); 
 
   useEffect(() => {
-    if(src) return;
     if (!audioStream) return;
     if(audioStream.getAudioTracks().length === 0) return ;
 
@@ -83,7 +81,6 @@ export default function VideoPlayer({ stream , audioStream  , src }) {
 
 
 useEffect(() => {
-  if(src) return;
   if (!audioStream?.active || !playerRef.current || !audioStream) return;
    if(audioStream?.getAudioTracks().length === 0) return ;
   const videoEl = playerRef.current.el().querySelector("video");

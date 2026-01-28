@@ -12,7 +12,7 @@ const navItems = [
   { name: 'Notifications', icon: <Bell />, path: '/notifications' },
   { name: 'Meet' , icon: <VideoIcon /> , path: '/meet' }, 
   { name: 'Go Live' , icon: <PlaySquareIcon /> , path: '/live' },   
-  {name : 'Dashboard' , icon : <LayoutDashboardIcon /> , path : '/dashboard' },
+  { name : 'Dashboard' , icon : <LayoutDashboardIcon /> , path : '/dashboard' },
   { name: 'Settings', icon: <Settings />, path: '/settings' },
 ];
 
@@ -28,7 +28,7 @@ export default function Sidebar({collapseFunc}) {
       if (window.innerWidth < 768) {
         setCollapse(true);
         collapseFunc(true);
-        setHide(true) ;
+        setHide(false) ;
       } else {
         setCollapse(false);
         collapseFunc(false);
@@ -57,7 +57,7 @@ export default function Sidebar({collapseFunc}) {
     }
   }
   return (
-    <nav className={`p-4 sm:pb-4 pb-16 dark:bg-black bg-white dark:text-gray-200 shadow-lg h-full shadow-black flex flex-col justify-between duration-200 ${collapse ? "w-[72px]" : "w-56"} ${!hidden ? '' : 'sm:translate-0 -translate-x-[74px] shadow-sm'} `}>  
+    <nav className={`p-4 sm:pb-4 pb-16 dark:bg-black bg-white dark:text-gray-200 shadow-lg h-full shadow-black flex flex-col justify-between duration-200 ${collapse ? "w-[72px]" : "w-56"} ${!hidden ? '' : 'sm:translate-0 -translate-x-[76px] shadow-sm'} `}>  
       <span className='space-y-3 flex flex-col overflow-y-auto'>
         {navItems.map(item => (
           <NavLink

@@ -28,7 +28,6 @@ export function useMediasoupConsumers(roomId ,socket , isBroadcast = false) {
    
 
     try {
-      console.log(socket);
       
       await ensureSocketReady(socket);
 
@@ -58,7 +57,7 @@ export function useMediasoupConsumers(roomId ,socket , isBroadcast = false) {
           console.log('consumer transport created');
           
           // 3. Fetch producers
-          if(!isBroadcast){
+          if(!isBroadcast){// broadcast means one way live stream
               socket.emit("getProducers", roomId, async (producers) => {
               for (const p_ of producers) {
                 let obj = { user: p_.user, producers: [] };
@@ -241,7 +240,7 @@ export function useMediasoupConsumers(roomId ,socket , isBroadcast = false) {
             kind,
             rtpParameters,
           });
-          console.log("Consumer spatialLayers:", consumer?.setPreferredSpatialLayer , consumer?.setPreferredLayers); 
+ 
           // stream.addTrack(consumer.track);
           await consumer.resume();
           consumersRef.current.set(consumer.id , consumer);

@@ -161,7 +161,7 @@ export default function MeetingPage({roomId , stopBroadcast , audioproducer ,vid
     if(!videoProducer) return ;
       let stream ;
       if(cameraOn){
-        stream = await navigator.mediaDevices.getDisplayMedia({ video : true , audio : false })
+        stream = await navigator.mediaDevices.getDisplayMedia({ video : true , audio : true })
       }else {
         stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true }) 
       }
@@ -170,8 +170,8 @@ export default function MeetingPage({roomId , stopBroadcast , audioproducer ,vid
       if(oldTrack) oldTrack.stop();
       await videoProducer.replaceTrack({ track: newTrack });
       if(oldTrack) oldTrack.stop();
-      localStreamRef.current.removeTrack(oldTrack);
-      localStreamRef.current.addTrack(newTrack);  
+      localStreamRef.current.videoStream.removeTrack(oldTrack);
+      localStreamRef.current.videoStream.addTrack(newTrack);  
       setCameraOn(!cameraOn);
   }
 

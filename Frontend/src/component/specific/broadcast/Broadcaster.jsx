@@ -56,7 +56,7 @@ export function useBroadcast(socket , isStream = false ) {
               socket.emit(
                 "connectProducerTransport",
                 { dtlsParameters, transportId: producerTransport.id },
-                () => callback()
+                () => callback() 
               );
             });
 
@@ -64,7 +64,7 @@ export function useBroadcast(socket , isStream = false ) {
             
             producerTransport.on("produce", async ({ kind, rtpParameters }, callback) => {
               if(!isStream){
-                socket.emit(
+                socket.emit( // used for creating live meetings 
                   "produce",
                   { kind, rtpParameters, roomId, transportId: producerTransport.id },
                   ({ id, error }) => {
@@ -75,7 +75,7 @@ export function useBroadcast(socket , isStream = false ) {
                     callback({ id });
                   }
                 )
-              }else {
+              }else { // used for creating live streams 
                 socket.emit(
                   "produce_stream" ,
                   { kind, rtpParameters, transportId: producerTransport.id },
