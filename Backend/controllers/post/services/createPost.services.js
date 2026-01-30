@@ -7,7 +7,7 @@ import {
   incrementHashtags,
 } from '../db/createPost.db.js';
 import { emitEvent } from '../../../utils/socket.js';
-import { NOTIFICATION_RECEIVE } from '../../../utils/constants/notification.contant.js';
+import { NOTIFICATION_RECEIVE } from '../../../utils/constants/notification.socketEvent.js';
 
 export const createPostService = async ({user,body,files}) => {
   const {

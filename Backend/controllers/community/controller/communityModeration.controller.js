@@ -9,7 +9,7 @@ import {
   communityIdParamSchema,
 } from '../validator_schema/community.schema.js';
 import { emitEvent } from '../../../utils/socket.js';
-import { NOTIFICATION_RECEIVE } from '../../../utils/constants/notification.contant.js';
+import { NOTIFICATION_RECEIVE } from '../../../utils/constants/notification.socketEvent.js';
 
 export const inviteMods = TryCatch(async (req, res) => {
   const parsed = inviteModsSchema.safeParse({ body: req.body });

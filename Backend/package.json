@@ -1,11 +1,12 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "main": "app.js",
+  "main": "server.js",
+
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node app.js",
-    "dev": "nodemon app.js"
+    "test": "cross-env NODE_ENV=TEST node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand",
+    "start": "cross-env NODE_ENV=PRODUCTION node server.js",
+    "dev": "cross-env NODE_ENV=DEV nodemon server.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
@@ -16,15 +17,18 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "file-type": "^21.3.0",
+    "jest": "^30.2.0",
     "jsonwebtoken": "^9.0.2",
     "mediasoup": "^3.19.1",
     "moment": "^2.30.1",
     "mongodb": "^6.16.0",
+    "mongodb-memory-server": "^11.0.1",
     "mongoose": "^8.15.1",
     "multer": "^2.0.0",
     "nodemon": "^3.1.10",
     "socket.io": "^4.8.1",
     "stripe": "^19.1.0",
+    "supertest": "^7.2.2",
     "uuid": "^11.1.0",
     "zod": "^4.3.5"
   },
@@ -32,5 +36,8 @@
   "author": "",
   "license": "ISC",
   "type": "module",
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "cross-env": "^10.1.0"
+  }
 }
