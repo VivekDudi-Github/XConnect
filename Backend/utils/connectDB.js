@@ -9,14 +9,15 @@ dotenv.config({
 
 const connectDB = async () => {
     try {
-        let uri ;        
+        let uri , mongoTestServer ;        
         if(process.env.NODE_ENV === 'TEST'){
-            let mongoServer = await MongoMemoryServer.create() ; 
-            uri = mongoServer.getUri() ;
+            mongoTestServer = await MongoMemoryServer.create() ;  
+            uri = mongoTestServer.getUri() ;
         }else uri = process.env.MONGODB_URL;
         
         await mongoose.connect(uri) ;
         console.log("mongoDB Connected");
+        if(mongoTestServer) return mongoTestServer ;
     } catch (error) {
         console.log("---error in connecting with the mongoDB servers : --" , error);
         process.exit() ;

@@ -2,9 +2,14 @@
   "name": "backend",
   "version": "1.0.0",
   "main": "server.js",
-
+  "jest": {
+    "testEnvironment": "node",
+    "setupFilesAfterEnv": [
+      "./test/testSetup.js"
+    ]
+  } ,
   "scripts": {
-    "test": "cross-env NODE_ENV=TEST node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand",
+    "test": "cross-env NODE_ENV=TEST node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand --detectOpenHandles",
     "start": "cross-env NODE_ENV=PRODUCTION node server.js",
     "dev": "cross-env NODE_ENV=DEV nodemon server.js"
   },

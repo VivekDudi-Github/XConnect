@@ -9,7 +9,7 @@ export const registerUser = TryCatch(async (req, res) => {
   try {
     const user = await registerUserService(req.body);
 
-    return ResSuccess(res, 201, user);
+    return ResSuccess(res, 201);
   } catch (err) {
     if (err.message === 'EMAIL_EXISTS')
       return ResError(res, 400, 'Email already exists');

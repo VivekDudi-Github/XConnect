@@ -6,6 +6,6 @@ export const validateGetMe = (req, res) => {
     getMeSchema.parse({ userId: req.user?._id?.toString() });
     return true;
   } catch (err) {
-    return ResError(res, 401, err.errors[0].message);
+    throw err ;
   }
 };

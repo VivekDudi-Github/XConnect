@@ -6,6 +6,6 @@ export const validateRegisterBody = (req, res) => {
     req.body = registerSchema.parse(req.body);
     return true;
   } catch (err) {
-    return ResError(res, 400, err.errors[0].message);
+    throw err ;
   }
 };

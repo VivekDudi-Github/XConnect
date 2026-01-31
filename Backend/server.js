@@ -1,4 +1,4 @@
-import newServer , {io} from "./app.js";
+import {io , newServer} from "./app.js";
 import { configDotenv } from "dotenv";
 import * as mediasoup from "mediasoup";
 import connectDB from "./utils/connectDB.js";
