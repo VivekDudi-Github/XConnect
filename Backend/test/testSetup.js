@@ -6,17 +6,17 @@ beforeAll(async () => {
   mongo = await connectDB();
 });
 
-afterEach(async () => {
-  try {
-    const collections = await mongoose.connection.db.collections();
+// afterEach(async () => {
+//   try {
+//     const collections = await mongoose.connection.db.collections();
   
-    for (let collection of collections) {
-      await collection.deleteMany();
-    }
-  } catch (error) {
-      throw new Error("Error while cleaning the database" , error);
- }
-});
+//     for (let collection of collections) {
+//       await collection.deleteMany();
+//     }
+//   } catch (error) {
+//       throw new Error("Error while cleaning the database" , error);
+//  }
+// });
 
 afterAll(async () => {
   try{

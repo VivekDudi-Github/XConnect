@@ -18,7 +18,7 @@ router.get('/:id' , checkUser , routes.GetCommunity);
 
 router.post('/invite-mods' , checkUser , routes.inviteMods) ;
 router.get('/is-invited/:id' , checkUser , routes.getCommunityIsInvited) ; 
-router.post('/toggleMode/:id' , checkUser , routes.toggleJoinMod)
+router.post('/toggleMode/:id' , checkUser , routes.toggleJoinMod) ;
 
 
 export default router;

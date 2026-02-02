@@ -24,7 +24,7 @@ router.get('/check-health' , (req , res) => {
 
 router.post('/signup' , registerUser);
 router.post('/login' , loginUser);
-router.get('/logout'  , logoutUser);
+router.post('/logout'  , logoutUser);
 
 router.get('/me', checkUser, getMe);
 router.patch('/me' , checkUser , uploadFiles , updateUser);

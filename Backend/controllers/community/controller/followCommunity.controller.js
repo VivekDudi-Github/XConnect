@@ -17,7 +17,7 @@ export const followCommunity = TryCatch(async (req, res) => {
       communityId: parsed.data.params.id,
     });
 
-    return ResSuccess(res, 200, result);
+    return ResSuccess(res, 200, {operation : result.operation});
   } catch (err) {
     if (err.message === 'SELF_FOLLOW') {
       return ResError(res, 400, 'You cannot unfollow your own community.');

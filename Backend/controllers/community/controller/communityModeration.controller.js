@@ -13,7 +13,7 @@ import { NOTIFICATION_RECEIVE } from '../../../utils/constants/notification.sock
 
 export const inviteMods = TryCatch(async (req, res) => {
   const parsed = inviteModsSchema.safeParse({ body: req.body });
-  if (!parsed.success) return ResError(res, 400, parsed.error.errors[0].message);
+  if (!parsed.success) return ResError(res, 400, parsed.issues[0].message); 
 
   try {
     const notifs = await inviteModeratorsService({

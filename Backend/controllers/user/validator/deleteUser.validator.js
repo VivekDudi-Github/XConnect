@@ -8,6 +8,6 @@ export const validateDeleteUser = (req, res) => {
     req.body = deleteUserSchema.parse(req.body);
     return true;
   } catch (err) {
-    return ResError(res, 400, err.errors[0].message);
+    throw err
   }
 };

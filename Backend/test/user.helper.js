@@ -15,15 +15,43 @@ const createUser = async () => {
     .send(userData);
 
   if (response.statusCode !== 201) {
+    console.log(response.body);
     throw new Error("User creation failed");
   }
 
   let loginRes = await agent
     .post("/api/v1/user/login")
-    .send(userData)
-  if(loginRes.statusCode !== 200) throw new Error("Login failed");
+    .send(userData) 
 
+  if(loginRes.statusCode !== 200) throw new Error("Login failed");
+  if(loginRes.statusCode !== 200) console.log(loginRes.body);
+  
   return agent;
 }
 
-export {createUser } ;
+const createOtherUser = async () => {
+  const agent = request.agent(app);
+  const userData = {
+    username: "test2",
+    password: "12345678",
+    fullname: "test2",
+    email: "test2@test.com",
+  };
+
+  const response = await agent
+    .post("/api/v1/user/signup")
+    .send(userData);
+
+  if (response.statusCode !== 201) {
+    throw new Error("User creation failed");
+  }
+
+  let loginRes = await agent
+    .post("/api/v1/user/login")
+    .send(userData) 
+
+  if(loginRes.statusCode !== 200) throw new Error("Login failed");
+  return {agent , user : response.body.data } ;
+}
+
+export {createUser , createOtherUser } ;

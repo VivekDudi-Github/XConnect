@@ -1,6 +1,9 @@
 import fsAsync from 'fs/promises';
 import fs from 'fs';
 import { ZodError } from 'zod';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const ResError = (res , statusCode , message) => {
   return res.status(statusCode).json({
@@ -57,8 +60,8 @@ const generateTokens = async (user) => {
 
 const cookieOptions = {
   httpOnly: true,
-  secure: true,
-  sameSite: 'strict',
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
 };
 
 export { 

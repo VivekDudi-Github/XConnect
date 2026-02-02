@@ -1,5 +1,6 @@
 import { User } from "../../../models/user.model.js";
 import { uploadFilesTOCloudinary , deleteFilesFromCloudinary } from "../../../utils/cloudinary.js";
+import { updateUserDb } from "../db/updateUserDB.js";
 
 export const updateUserService = async ({
   userId,
@@ -32,7 +33,7 @@ export const updateUserService = async ({
   
 
   const user = await updateUserDb({
-    ...body ,  
+    ...body , userId , 
     avatar: avatarResult ? avatarResult[0] : undefined,
     banner: bannerResult ? bannerResult[0] : undefined,
   })

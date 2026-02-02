@@ -1,17 +1,13 @@
 import {ResError , ResSuccess , TryCatch } from '../../../utils/extra.js';
 import { validateUpdateUser } from '../validator/updateUser.validator.js';
 import { updateUserService } from '../services/updateUser.services.js';
+import { cookieOptions } from '../../../utils/extra.js';
 
-const cookieOptions = {
-  secure: true,
-  httpOnly: true,
-  sameSite: true,
-};
 
 export const updateUser = TryCatch(async (req, res) => {
   const valid = validateUpdateUser(req, res);
   if (!valid) return;
-
+  
   try {
     const { user, avatarUpdated } = await updateUserService({
       userId: req.user._id,

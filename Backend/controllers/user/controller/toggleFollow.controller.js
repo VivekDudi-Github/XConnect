@@ -12,5 +12,5 @@ export const toggleFollow = TryCatch(async (req, res) => {
     currentUser: req.user,
   });
 
-  return ResSuccess(res, 200, result);
+  return ResSuccess(res, 200, {operation : result.followed});
 }, "toggleFollow");

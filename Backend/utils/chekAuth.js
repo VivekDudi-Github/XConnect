@@ -1,12 +1,8 @@
 import { User } from '../models/user.model.js';
 import jwt from 'jsonwebtoken';
 import cookie from 'cookie'
+import { cookieOptions } from './extra.js';
 
-const cookieOptions = {
-    secure : true ,
-    httpOnly : true  ,
-    sameSite : true
-}
 
 // checks for token in cookies and verifies it
 const checkUser = (req, res , next) => {
