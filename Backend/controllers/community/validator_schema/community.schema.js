@@ -1,4 +1,11 @@
 import { z } from 'zod';
+import { Types } from 'mongoose';
+
+const id = z.string().refine(
+    (id) => Types.ObjectId.isValid(id),
+    'Invalid community id'
+  );
+
 
 export const createCommunitySchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -9,13 +16,13 @@ export const createCommunitySchema = z.object({
 
 
 export const getCommunitySchema = z.object({
-  id: z.string().min(1, 'Community ID is required'),
+  id: id,
 });
 
 
 export const getCommunityPostsSchema = z.object({
   params: z.object({
-    id: z.string().min(1, 'Community ID is required'),
+    id: id,
   }),
   query: z.object({
     page: z
@@ -38,7 +45,7 @@ export const getCommunityPostsSchema = z.object({
 
 export const followCommunitySchema = z.object({
   params: z.object({
-    id: z.string().min(1, 'Community ID is required'),
+    id: id,
   }),
 });
 
@@ -54,7 +61,7 @@ export const communityFeedSchema = z.object({
 
 export const updateCommunitySchema = z.object({
   params: z.object({
-    id: z.string().min(1, 'Community ID is required'),
+    id: id,
   }),
   body: z.object({
     name: z.string().min(3).max(20).optional(),
@@ -76,6 +83,6 @@ export const inviteModsSchema = z.object({
 
 export const communityIdParamSchema = z.object({
   params: z.object({
-    id: z.string().min(1, 'Community ID is required'),
+    id: id,
   }),
 });

@@ -1,10 +1,22 @@
 import mongoose from "mongoose";
 import connectDB from "../utils/connectDB.js";
 
-
+let mongo ;
 beforeAll(async () => {
-  mongo = await connectDB();
+  mongo = await mongoose.connect(process.env.testMONGO_URI) ;
 });
+
+afterAll(async () => {
+  try{
+      await mongoose.connection.dropDatabase();
+      await mongoose.connection.close();
+      // await mongo.stop();
+  }catch (error) {
+      throw new Error("Error while closing the connection to the database" , error);
+  }
+});
+
+
 
 // afterEach(async () => {
 //   try {
@@ -17,13 +29,3 @@ beforeAll(async () => {
 //       throw new Error("Error while cleaning the database" , error);
 //  }
 // });
-
-afterAll(async () => {
-  try{
-      await mongoose.connection.dropDatabase();
-      await mongoose.connection.close();
-      await mongo.stop();
-  }catch (error) {
-      throw new Error("Error while closing the connection to the database" , error);
-  }
-});

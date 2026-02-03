@@ -1,9 +1,9 @@
-import { createUser } from "./user.helper.js";
+import { createOtherUser, createUser } from "./user.helper.js";
 
 let agent ;
 beforeAll(async () => {
   agent = await createUser() ;
-});
+}, 15000);
 
 describe("get my profile" , () => {
     it("should return my profile" , async () => {
@@ -95,7 +95,6 @@ describe('unauthenticated request', () => {
 
 describe('login tries with wrong credentials', () => { 
   it('should not allow login with wrong pass' , async () => {
-    agent = await createUser() ;
     let response = await agent
     .post("/api/v1/user/login")
     .send({

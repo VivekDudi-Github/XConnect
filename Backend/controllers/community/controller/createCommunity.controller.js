@@ -5,17 +5,19 @@ import { createCommunityService } from '../services/createCommunity.services.js'
 
 export const CreateCommunity = TryCatch(async (req, res) => {
   const valid = validateCreateCommunity(req, res);
-  if (!valid) return;
-
+  if (valid !== true) return;
+  console.log(req.body);
+  
   try {
     const community = await createCommunityService({
       userId: req.user._id,
       body: req.body,
-      files: req.files,
+      files: req?.files,
     });
 
     return ResSuccess(res, 201, community);
   } catch (err) {
+    console.log(err);
     return ResError(res, 500, 'Community could not be created');
   }
 }, 'CreateCommunity');
