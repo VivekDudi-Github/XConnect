@@ -6,7 +6,7 @@ export const validateExploreQuery = (req, res) => {
     req.query = exploreQuerySchema.parse(req.query);
     return true;
   } catch (err) {
-    return ResError(res, 400, err.errors[0].message);
+    throw err ;
   }
 };
 

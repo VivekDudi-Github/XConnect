@@ -13,17 +13,18 @@ import { NOTIFICATION_RECEIVE } from '../../../utils/constants/notification.sock
 
 export const inviteMods = TryCatch(async (req, res) => {
   const parsed = inviteModsSchema.safeParse({ body: req.body });
-  if (!parsed.success) return ResError(res, 400, parsed.issues[0].message); 
+  if (!parsed.success) return ResError(res, 400, parsed.error.issues[0].message); 
 
   try {
     const notifs = await inviteModeratorsService({
       ...parsed.data.body,
       user: req.user,
     });
-
+    console.log(notifs);
+    
     let sender = req.user ;
     notifs.forEach(notif => {
-      emitEvent(  NOTIFICATION_RECEIVE , 'user' , notif.reciver , 
+      emitEvent(  NOTIFICATION_RECEIVE , 'user' , notif.receiver , 
         {...notif._doc , 
           sender : {
             _id : sender._id ,
@@ -46,7 +47,7 @@ export const inviteMods = TryCatch(async (req, res) => {
 
 export const getCommunityIsInvited = TryCatch(async (req, res) => {
   const parsed = communityIdParamSchema.safeParse({ params: req.params });
-  if (!parsed.success) return ResError(res, 400, parsed.error.errors[0].message);
+  if (!parsed.success) return ResError(res, 400, parsed.error.issues[0].message);
 
   try {
     const isInvited = await checkModInviteService({
@@ -65,20 +66,23 @@ export const getCommunityIsInvited = TryCatch(async (req, res) => {
 
 export const toggleJoinMod = TryCatch(async (req, res) => {
   const parsed = communityIdParamSchema.safeParse({ params: req.params });
-  if (!parsed.success) return ResError(res, 400, parsed.error.errors[0].message);
+  if (!parsed.success) return ResError(res, 400, parsed.error.issues[0].message);
 
   try {
     const result = await toggleModeratorService({
       communityId: parsed.data.params.id,
       user: req.user,
     });
-
+    console.log(result);
+    
     return ResSuccess(res, 200, { operation: result.operation });
   } catch (err) {
+    console.log('error toggle mod' ,err);
+    
     if (err.message === 'COMMUNITY_NOT_FOUND')
       return ResError(res, 404, 'Invalid community ID');
     if (err.message === 'NOT_INVITED')
-      return ResError(res, 400, 'You are not invited as moderator');
+      return ResError(res, 403, 'You are not invited as moderator');
     throw err;
   }
 }, 'toggleJoinMod');

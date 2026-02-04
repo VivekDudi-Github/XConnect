@@ -1,18 +1,18 @@
 import { User } from '../models/user.model.js';
 import jwt from 'jsonwebtoken';
 import cookie from 'cookie'
-import { cookieOptions } from './extra.js';
-
+import { cookieOptions, ResError } from './extra.js';
+import bcrypt from 'bcryptjs';
 
 // checks for token in cookies and verifies it
-const checkUser = (req, res , next) => {
+const checkUser = async (req , res , next) => {
     try {
         let token = req.cookies.accessToken ;
         if(token){
-            return jwt.verify(token , process.env.ACCESS_TOKEN_SECRET , (err , decoded) => {
+            return jwt.verify(token , process.env.ACCESS_TOKEN_SECRET , async(err , decoded) => {
                 if(err){
                     console.log(err);
-                    checkRefreshToken() ;
+                    await checkRefreshToken() ;
                 }else {
                     req.user = decoded;
                     return next();
@@ -20,9 +20,9 @@ const checkUser = (req, res , next) => {
             });
         }
         
-        return checkRefreshToken() ;
+        return await checkRefreshToken() ;
 
-        function checkRefreshToken() {
+        async function checkRefreshToken() {
             token = req.cookies.refreshToken;
             try {
                 if(token){
@@ -38,7 +38,11 @@ const checkUser = (req, res , next) => {
                             const user = await User.findById(decoded._id).select("username _id avatar role");
                             const accessToken = user.generateAccessToken();
                             const refreshToken = user.generateRefreshToken();
-                            user.refreshToken = refreshToken;
+                            
+                            const isValid = await bcrypt.compare(token , user.refreshToken); 
+                            if(!isValid) return ResError(res , 403 , "Unauthenticated request, please re-login") ;
+                            
+                            user.refreshToken = await bcrypt.hash(refreshToken ,11); 
                             await user.save() ;
     
                             req.user = user;

@@ -6,6 +6,6 @@ export const validateGetCommunity = (req, res) => {
     req.params = getCommunitySchema.parse(req.params);
     return true;
   } catch (err) {
-    return ResError(res, 400, err.errors[0].message);
+    throw err ;
   }
 };

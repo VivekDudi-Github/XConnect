@@ -9,7 +9,7 @@ export const getFollowingCommunities = TryCatch(async (req, res) => {
 
 export const followCommunity = TryCatch(async (req, res) => {
   const parsed = followCommunitySchema.safeParse({ params: req.params });
-  if (!parsed.success) return ResError(res, 400, parsed.issues[0].message);
+  if (!parsed.success) return ResError(res, 400, parsed.error.issues[0].message);
 
   try {
     const result = await toggleFollowCommunityService({

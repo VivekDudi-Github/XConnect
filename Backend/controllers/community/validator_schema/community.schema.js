@@ -76,7 +76,7 @@ export const updateCommunitySchema = z.object({
 
 export const inviteModsSchema = z.object({
   body: z.object({
-    communityId: z.string().min(1),
+    communityId: id,
     mods: z.array(z.string()).min(1, 'No moderators to invite'),
   }),
 });

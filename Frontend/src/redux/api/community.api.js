@@ -61,7 +61,7 @@ export function communityApi(builder){
     }) ,
     toggleJoinMod : builder.mutation({
       query : ({id}) => ({
-        url : '/community/toggleMode/'+id ,
+        url : '/community/toggleMod/'+id ,
         method : 'POST' ,
         credentials : 'include'
       })

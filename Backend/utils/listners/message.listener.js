@@ -23,11 +23,12 @@ const MessageListener = (socket , io) => {
         }
       }
 
-      memberIds.forEach(member => {
-        io.to(`user:${member}`).emit('RECEIVE_MESSAGE' ,messageObj )
-      })
+      
       try {
         await Message.create(messageObj) ;
+        memberIds.forEach(member => {
+          io.to(`user:${member}`).emit('RECEIVE_MESSAGE' ,messageObj )
+        })
       } catch (error) {
         console.log('error while saving the message in socket' , error);
       }

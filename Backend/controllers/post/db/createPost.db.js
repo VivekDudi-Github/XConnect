@@ -7,20 +7,20 @@ import {Hashtag} from '../../../models/hastags.model.js';
 export const createPostDB = (data) => Post.create(data);
 
 export const getValidVideos = async (videoIds, userId) => {
-  const videos = [];
+  
+  const videos = await VideoUpload.find({ 
+    public_id: { $in: videoIds }, 
+    user: userId 
+  }).select('public_id');
 
-  for (const id of videoIds) {
-    const exists = await VideoUpload.exists({ public_id: id, user: userId });
-    if (!exists) continue;
-
-    videos.push({
-      type: 'video',
-      url: `/${id}/hsl/master.m3u8`,
-      public_id: id,
-    });
-  }
-
-  return videos;
+  return videoIds
+  .filter(id => videos.some(v => v.public_id === id))
+  .map(id => ({
+    type: 'video',
+    url: `/${id}/hsl/master.m3u8`,
+    public_id: id,
+  }));
+  
 };
 
 export const getMentionOps = async (mentions, postId, senderId) => {

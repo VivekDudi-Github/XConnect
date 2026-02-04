@@ -3,12 +3,13 @@ import { createUser , createOtherUser } from "./user.helper.js";
 let agent;
 let communityId;
 let otherAgent;
+let other ;
 
 beforeAll(async () => {
   agent = await createUser();
-  let other = await createOtherUser();
+  other = await createOtherUser();
   otherAgent = other.agent;
-} , 15000);
+} , 20000);
 
 describe("Communities", () => {
   it("should create a community", async () => {
@@ -26,68 +27,91 @@ describe("Communities", () => {
   });
 
   it("should join a community", async () => {
-    const res = await agent.post(
+    const res = await otherAgent.post(
       `/api/v1/community/follow/${communityId}`
     );
-
+    if(res.statusCode !== 200) console.log(res.body);
     expect(res.statusCode).toBe(200);
     expect(res.body.data.operation).toBe(true);
   });
 
-  // it("should unfollow a community", async () => {
-  //   const res = await agent.post(
-  //     `/api/v1/community/follow/${communityId}`
-  //   );
+  it("should unfollow a community", async () => {
+    const res = await otherAgent.post(
+      `/api/v1/community/follow/${communityId}`
+    );
+    if(res.statusCode !== 200) console.log(res.body);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.data.operation).toBe(false);
+  });
 
-  //   expect(res.statusCode).toBe(200);
-  //   expect(res.body.data.operation).toBe(false);
-  // });
+  it("shouldn't toggle join as mod if not invited" , async () => {
+    const res = await otherAgent
+      .post(`/api/v1/community/toggleMod/${communityId}`);
 
-  // it("shouldn't toggle join as mod if not invited" , async () => {
-  //   const res = await otherAgent
-  //     .post(`/api/v1/community/toggleMode/${communityId}`);
+    if(res.statusCode !== 403) console.log(res.body);
+    expect(res.statusCode).toBe(403);
+    expect(res.body.success).toBe(false);
+  });
 
-  //   expect(res.statusCode).toBe(403);
-  //   expect(res.body.message).toBe('NOT_INVITED');
-  // });
-
-  // it("shouldn't allow non-creator to invite mods" , async () => {
-  //   const res = await otherAgent
-  //     .post('/api/v1/community/invite-mods')
-  //     .send({
-  //       communityId ,
-  //       userIds : [otherAgent.userId]
-  //     });
-  //   expect(res.statusCode).toBe(403);
-  // });
+  it("shouldn't allow non-creator to invite mods" , async () => {
+    const res = await otherAgent
+      .post('/api/v1/community/invite-mods')
+      .send({
+        communityId ,
+        mods : [other.user._id]
+      });
+    if(res.statusCode !== 403) console.log(res.body , );
+    expect(res.statusCode).toBe(403);
+  });
   
 
 
-  // it("should invite a user to be mod" , async () => {
-  //   const res = await agent
-  //     .post('/api/v1/community/invite-mods')
-  //     .send({
-  //       communityId ,
-  //       userIds : [otherAgent.userId]
-  //     });
+  it("should invite a user to be mod" , async () => {
+    const res = await agent
+      .post('/api/v1/community/invite-mods')
+      .send({
+        communityId ,
+        mods : [other.user._id]
+      });
 
-  //   expect(res.statusCode).toBe(200);
-  // });
+    if(res.statusCode !== 200) console.log(res.body);
+    expect(res.statusCode).toBe(200);
+  });
 
-  // it("should check if user is invited to be mod" , async () => {
-  //   const res = await otherAgent
-  //     .get(`/api/v1/community/is-invited/${communityId}`);
+  it("should be able to check if user is invited to be mod" , async () => {
+    const res = await otherAgent
+      .get(`/api/v1/community/is-invited/${communityId}`);
 
-  //   expect(res.statusCode).toBe(200);
-  //   expect(res.body.data.isInvited).toBe(true);
-  // });
+    if(res.statusCode !== 200) console.log(res.body);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.data.isInvited).toBe(true);
+  });
 
-  // it("should toggle join as mod" , async () => {
-  //   const res = await otherAgent
-  //     .post(`/api/v1/community/toggleMode/${communityId}`);
+  it("should toggle join as mod" , async () => {
+    const res = await otherAgent
+      .post(`/api/v1/community/toggleMod/${communityId}`);
 
-  //   expect(res.statusCode).toBe(200);
-  //   expect(res.body.data.operation).toBe(true);
-  // });
+    if(res.statusCode !== 200) console.log(res.body);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.data.operation).toBe(true);
+  });
+
+  it("should leave as a mod" , async () => {
+    const res = await otherAgent
+      .post(`/api/v1/community/toggleMod/${communityId}`);
+
+    if(res.statusCode !== 200) console.log(res.body);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.data.operation).toBe(false);
+  });
+
+  it("shouldn't toggle join as mod" , async () => {
+    const res = await otherAgent
+      .post(`/api/v1/community/toggleMod/${communityId}`);
+
+    if(res.statusCode !== 403) console.log(res.body);
+    expect(res.statusCode).toBe(403);
+    expect(res.body.message).toBe('You are not invited as moderator');
+  });
 
 });

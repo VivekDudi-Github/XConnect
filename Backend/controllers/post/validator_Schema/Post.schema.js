@@ -18,7 +18,7 @@ export const createPostSchema = z.object({
 
   scheduledAt: z.coerce.date().pipe(z.coerce.date()).optional(),
 
-  videoIds: z.array(z.string()).optional(),
+  videoIds: z.array(z.string()).max(10).optional(),
 });
 
 

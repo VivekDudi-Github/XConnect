@@ -1,3 +1,4 @@
+import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
 import express from "express";
 import dotenv from 'dotenv' ;
@@ -30,9 +31,14 @@ dotenv.config() ;
 const app = express() ;
 const newServer = createServer(app) ;
 
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100
+});
+
+app.use('/api/', limiter);
+
 app.use('/api/v1/stripe' , stripeWebhook);
-
-
 
 
 const io = new Server(newServer, {

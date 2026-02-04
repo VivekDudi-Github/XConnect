@@ -17,7 +17,7 @@ export const registerUserService = async ({
     throw new Error('USERNAME_TAKEN');
   }
 
-  const salt = await bcrypt.genSalt(process.env.NODE_ENV === "TEST" ? 1 : 15);
+  const salt = await bcrypt.genSalt( 15);
   const hashedPassword = await bcrypt.hash(password, salt);
 
   const user = await User.create({

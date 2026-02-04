@@ -10,7 +10,7 @@ export const updateCommunity = TryCatch(async (req, res) => {
   });
 
   if (!parsed.success) {
-    return ResError(res, 400, parsed.error.errors[0].message);
+    return ResError(res, 400, parsed.error.issues[0].message);
   }
 
   const { id } = parsed.data.params;

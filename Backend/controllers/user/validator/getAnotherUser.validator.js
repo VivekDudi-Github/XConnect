@@ -6,6 +6,6 @@ export const validateGetAnotherUser = (req, res) => {
     req.params = getAnotherUserSchema.parse(req.params);
     return true;
   } catch (err) {
-    return ResError(res, 400, err.errors[0].message);
+    return ResError(res, 400, err.issues[0].message);
   }
 };

@@ -12,6 +12,6 @@ export const validateGetCommunityPosts = (req, res) => {
 
     return true;
   } catch (err) {
-    return ResError(res, 400, err.errors[0].message);
+    throw err ;
   }
 };

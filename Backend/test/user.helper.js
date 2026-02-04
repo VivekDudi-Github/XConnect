@@ -9,7 +9,6 @@ const createUser = async () => {
     fullname: "test",
     email: "test@test.com",
   };
-  console.log('test user started');
 
   const response = await agent
     .post("/api/v1/user/signup")
@@ -20,7 +19,6 @@ const createUser = async () => {
     console.log(response.body);
     throw new Error("User creation failed");
   }
-  console.log('test user login started');
   
   let loginRes = await agent
     .post("/api/v1/user/login")
@@ -42,7 +40,6 @@ const createOtherUser = async () => {
     email: "test2@test.com",
   };
   
-  console.log('test-2- user started');
   const response = await agent
     .post("/api/v1/user/signup")
     .send(userData);
@@ -51,12 +48,13 @@ const createOtherUser = async () => {
     throw new Error("User creation failed");
   }
   console.log('test-2- user signuped');
+
   let loginRes = await agent
     .post("/api/v1/user/login")
     .send(userData) 
-  console.log('test-2- user logined');
+  console.log('test-2- user login done');
   if(loginRes.statusCode !== 200) throw new Error("Login failed");
-  return {agent , user : response.body.data } ;
+  return {agent , user : loginRes.body.data } ;
 }
 
 export {createUser , createOtherUser } ;

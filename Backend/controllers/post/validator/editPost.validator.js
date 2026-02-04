@@ -12,9 +12,7 @@ export const validateEditPost = async (req, res) => {
 
   try {
     req.body = editPostSchema.parse(req.body);
-  } catch (err) {
-    return ResError(res, 400, err.errors[0].message);
-  }
+  } catch (err) {throw err;}
 
   const media = req.files?.media || [];
   if (!Array.isArray(media))

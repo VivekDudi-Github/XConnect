@@ -13,7 +13,7 @@ export const findModInvite = ({ sender, receiver, communityId }) =>
     sender,
     receiver,
     type: 'modInvite',
-    'community._id': communityId,
+    "community._id": communityId,
   });
 
 export const createNotification = (payload) =>
