@@ -5,7 +5,7 @@ import {  deleteUserService } from '../services/deleteUser.services.js';
 
 export const deleteUser = TryCatch(async (req, res) => {
   const valid = validateDeleteUser(req, res);
-  if (!valid) return;
+  if (valid !== true) return;
 
   try {
     await deleteUserService({

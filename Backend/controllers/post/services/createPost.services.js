@@ -45,13 +45,12 @@ export const createPostService = async ({user,body,files}) => {
     community: isCommunityPost ? community : null,
     title: isCommunityPost ? title : null,
     category: isCommunityPost ? category : null,
-    isAnonymous: isAnonymous || false,
+    isAnonymous: isCommunityPost ? isAnonymous ?? false : false ,
     type: isCommunityPost ? 'community' : 'post',
   });
 
   const mentionOps = await getMentionOps(mentions, post._id, user._id);
-  console.log('mentionOps' , mentionOps);
-  
+   
   await Promise.all([
     saveMentions(mentionOps),
     incrementHashtags(hashtags),

@@ -6,7 +6,7 @@ export const createSuperchatPayment = async (req, res) => {
   const parsed = createSuperchatSchema.safeParse(req.body);
 
   if (!parsed.success) {
-    return ResError(res, 400, parsed.error.format());
+    return ResError(res, 400, parsed.error.issues[0]);
   }
 
   const { streamId, message, amount } = parsed.data;

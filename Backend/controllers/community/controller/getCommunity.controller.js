@@ -5,7 +5,7 @@ import { getCommunityService } from '../services/getCommunity.services.js';
 
 export const GetCommunity = TryCatch(async (req, res) => {
   const valid = validateGetCommunity(req, res);
-  if (!valid) return;
+  if (valid !== true) return;
 
   const { id } = req.params;
 

@@ -1,7 +1,7 @@
 import { createUser , createOtherUser } from "./user.helper.js";
 
 let agent;
-let communityId;
+let communityId , communityPostId;
 let otherAgent;
 let other ;
 
@@ -25,6 +25,35 @@ describe("Communities", () => {
     expect(res.statusCode).toBe(201);
     communityId = res.body.data._id;
   });
+
+  it('should create a community post' , async() => {
+    const res = await agent
+      .post("/api/v1/post")
+      .send({
+        content: "Hello world" ,
+        isCommunityPost : true ,
+        title : "Hello world" ,
+        category : "general" ,
+        type : "community" ,
+        isAnonymous : false ,
+        community : communityId , // fake community id for testing
+      });
+
+    if(res.statusCode !== 201) console.log(res.body);
+    expect(res.statusCode).toBe(201);
+    expect(res.body.data).toHaveProperty("_id");
+    expect(res.body.data.category).toBe("general"); 
+    expect(res.body.data).toHaveProperty("_id");
+
+    communityPostId = res.body.data._id;
+  }) ;
+
+  it('should not get community post without author' , async() => {
+    let res =  await otherAgent.get('/api/v1/post/'+communityPostId)
+
+    if(res.statusCode !== 200) console.log(res.body);
+    expect(res.statusCode).toBe(200);
+  }) ;
 
   it("should join a community", async () => {
     const res = await otherAgent.post(

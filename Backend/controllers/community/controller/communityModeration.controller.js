@@ -20,7 +20,6 @@ export const inviteMods = TryCatch(async (req, res) => {
       ...parsed.data.body,
       user: req.user,
     });
-    console.log(notifs);
     
     let sender = req.user ;
     notifs.forEach(notif => {
@@ -73,12 +72,9 @@ export const toggleJoinMod = TryCatch(async (req, res) => {
       communityId: parsed.data.params.id,
       user: req.user,
     });
-    console.log(result);
     
     return ResSuccess(res, 200, { operation: result.operation });
   } catch (err) {
-    console.log('error toggle mod' ,err);
-    
     if (err.message === 'COMMUNITY_NOT_FOUND')
       return ResError(res, 404, 'Invalid community ID');
     if (err.message === 'NOT_INVITED')

@@ -5,7 +5,7 @@ import { getUserPostsService } from '../services/getUserPosts.services.js';
 
 export const getUserPosts = TryCatch(async (req, res) => {
   const valid = await validateGetUserPosts(req, res);
-  if (!valid) return;
+  if (valid !== true) return;
 
   const {
     page = 1,

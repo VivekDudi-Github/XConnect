@@ -12,7 +12,7 @@ export const validateDeletePost = async (req, res) => {
 
   const post = await findPostById(id);
   if (!post) return ResError(res, 404, 'Post not found.');
-
+  
   if (!post.author.equals(req.user._id))
     return ResError(res, 403, 'You are not authorized to delete this post.');
 

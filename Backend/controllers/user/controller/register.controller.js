@@ -4,7 +4,7 @@ import { ResError, ResSuccess, TryCatch } from "../../../utils/extra.js";
 
 export const registerUser = TryCatch(async (req, res) => {
   const valid = validateRegisterBody(req, res);
-  if (!valid) return;
+  if (valid !== true) return;
 
   try {
     const user = await registerUserService(req.body);

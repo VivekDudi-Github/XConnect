@@ -5,7 +5,7 @@ import { validateEditPost } from '../validator/editPost.validator.js';
 
 export const editPost = TryCatch(async (req, res) => {
   const valid = await validateEditPost(req, res);
-  if (!valid) return;
+  if (valid !== true) return;
 
   const post = await editPostService({
     post: req.post,

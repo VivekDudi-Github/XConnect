@@ -2,6 +2,7 @@ import { createPostSchema } from '../validator_Schema/Post.schema.js';
 import { ResError } from '../../../utils/extra.js';
 import moment from 'moment';
 import {Community} from '../../../models/community.model.js';
+import { ObjectId } from 'mongodb';
 
 export const validateCreatePost = async (req, res) => {
 

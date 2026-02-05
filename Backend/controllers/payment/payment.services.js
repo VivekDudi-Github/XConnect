@@ -24,7 +24,7 @@ export const paymentService = {
       },
     });
   },
-
+  
   async handleSuperchatWebhook(metadata) {
     const {
       _id,

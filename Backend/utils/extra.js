@@ -29,10 +29,10 @@ const TryCatch = (func , funcName ) => {
               .join(", ");
 
             return ResError(req.res, 400, message);
-          } 
+          } else if (error.statusCode) ResError(res, error.statusCode, error.message);
           else {
             console.log(`Error in ${funcName}:`, error);
-            return ResError(res, error.statusCode || 500 ,  `Internal Server Error`);
+            return ResError(res, error.statusCode || 500 , `Internal Server Error`);
           }
         } finally {
         

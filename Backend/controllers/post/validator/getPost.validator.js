@@ -1,6 +1,7 @@
 import { ObjectId } from 'mongodb';
 import { ResError } from '../../../utils/extra.js';
 import { getPostMeta } from '../db/getPost.db.js';
+import { Post } from '../../../models/post.model.js';
 
 export const validateGetPost = async (req, res) => {
   const { id } = req.params;

@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { io as socketIo } from "../../app.js";
 import {
   createLiveStreamRepo,
   findLiveStreamById,
@@ -9,6 +10,7 @@ import {
   getLiveChatsRepo,
   getFollowStatsRepo,
 } from "./liveStream.db.js";
+import ApiError from "../../utils/ApiError.js";
 
 export const createLiveStreamService = async ({
   user,
@@ -36,7 +38,7 @@ export const deleteLiveStreamService = async (id, user) => {
   const stream = await findLiveStreamById(id);
   if (!stream) throw { status: 404, message: "Live stream not found" };
   if (!stream.host.equals(user._id))
-    throw { status: 403, message: "Not stream host" };
+    throw new ApiError(403, "Not stream host");
 
   await deleteLiveChatsRepo(id);
   await deleteLiveStreamRepo(id);
@@ -46,10 +48,10 @@ export const updateLiveStreamService = async (id, user, updates, io) => {
   const stream = await findLiveStreamById(id);
   if (!stream) throw { status: 404, message: "Live stream not found" };
   if (!stream.host.equals(user._id))
-    throw { status: 403, message: "Not stream host" };
+    throw new ApiError(403, "Not stream host");
 
   Object.assign(stream, updates);
-  io.to(`liveStream:${stream._id}`).emit("RECEIVE_LIVE_STREAM_DATA", stream);
+  socketIo.to(`liveStream:${stream._id}`).emit("RECEIVE_LIVE_STREAM_DATA", stream);
 
   return updateLiveStreamRepo(stream);
 };

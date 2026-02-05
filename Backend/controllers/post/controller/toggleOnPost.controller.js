@@ -10,7 +10,7 @@ import { postIdParamSchema } from '../validator_Schema/Post.schema.js';
 
 export const toggleOnPost = TryCatch(async (req, res) => {
   const valid = await validateTogglePost(req, res);
-  if (!valid) return;
+  if (valid !== true) return;
 
   const { option } = req.body;
 
@@ -39,7 +39,7 @@ export const toggleOnPost = TryCatch(async (req, res) => {
 
 export const increasePostViews = TryCatch(async (req, res) => {
   const valid = postIdParamSchema.parse(req.params);
-  if (!valid) return;
+  if (valid !== true) return;
 
   const post = await Post.findByIdAndUpdate(
     req.params.id,

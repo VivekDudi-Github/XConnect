@@ -4,7 +4,7 @@ import { getCommunityPostsService } from '../services/communityPost.services.js'
 
 export const GetCommunityPosts = TryCatch(async (req, res) => {
   const valid = validateGetCommunityPosts(req, res);
-  if (!valid) return;
+  if (valid !== true) return;
 
   const { id } = req.params;
   const { page, limit } = req.query;

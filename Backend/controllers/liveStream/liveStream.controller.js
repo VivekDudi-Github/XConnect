@@ -12,14 +12,14 @@ export const createLiveStream = TryCatch(async (req, res) => {
   });
 
   ResSuccess(res, 201, stream);
-});
+} , 'createLiveStream');
 
 export const deleteLiveStream = TryCatch(async (req, res) => {
   validate(schema.liveStreamIdParamSchema, req);
 
   await service.deleteLiveStreamService(req.params.id, req.user);
   ResSuccess(res, 200, "Live stream deleted successfully");
-});
+} , 'deleteLiveStream');
 
 export const updateLiveStream = TryCatch(async (req, res) => {
   validate(schema.updateLiveStreamSchema, req);
@@ -32,7 +32,7 @@ export const updateLiveStream = TryCatch(async (req, res) => {
   );
 
   ResSuccess(res, 200, stream);
-});
+} , 'updateLiveStream');
 
 export const getLiveStream = TryCatch(async (req, res) => {
   validate(schema.liveStreamIdParamSchema, req);
@@ -43,7 +43,7 @@ export const getLiveStream = TryCatch(async (req, res) => {
   );
 
   ResSuccess(res, 200, stream);
-});
+} , 'getLiveStream');
 
 export const getUserLiveStreams = TryCatch(async (req, res) => {
   validate(schema.getUserLiveStreamsSchema, req);
@@ -55,7 +55,7 @@ export const getUserLiveStreams = TryCatch(async (req, res) => {
   );
 
   ResSuccess(res, 200, streams);
-});
+} , 'getUserLiveStreams');
 
 export const getLiveChats = TryCatch(async (req, res) => {
   validate(schema.getLiveChatsSchema, req);
@@ -67,4 +67,4 @@ export const getLiveChats = TryCatch(async (req, res) => {
   );
 
   ResSuccess(res, 200, { messages: chats });
-});
+} , 'getLiveChats');

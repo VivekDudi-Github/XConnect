@@ -4,7 +4,7 @@ import { deletePostService } from '../services/deletePost.services.js';
 
 export const deletePost = TryCatch(async (req, res) => {
   const valid = await validateDeletePost(req, res);
-  if (!valid) return;
+  if (valid !== true) return;
 
   await deletePostService({
     post: req.post,

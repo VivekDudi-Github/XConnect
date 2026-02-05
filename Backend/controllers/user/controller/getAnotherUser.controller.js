@@ -5,7 +5,7 @@ import { getAnotherUserService } from '../services/getAnotherUser.services.js';
 
 export const getAnotherUser = TryCatch(async (req, res) => {
   const valid = validateGetAnotherUser(req, res);
-  if (!valid) return;
+  if (valid !== true) return;
 
   try {
     const user = await getAnotherUserService({

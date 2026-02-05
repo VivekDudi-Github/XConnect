@@ -4,7 +4,7 @@ import {  changePasswordService } from '../services/changePass.services.js';
 
 export const changePassword = TryCatch(async (req, res) => {
   const valid = validateChangePassword(req, res);
-  if (!valid) return;
+  if (valid !== true) return;
 
   try {
     await changePasswordService({

@@ -19,7 +19,7 @@ export function liveApi(builder){
     getLiveStream : builder.query({
       query : ({id}) => {
         return {
-        url : `/live/get/${id}` ,
+        url : `/live/${id}` ,
         credentials : 'include' ,
       }
       }

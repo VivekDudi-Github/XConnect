@@ -6,7 +6,7 @@ import { cookieOptions } from '../../../utils/extra.js';
 
 export const updateUser = TryCatch(async (req, res) => {
   const valid = validateUpdateUser(req, res);
-  if (!valid) return;
+  if (valid !== true) return;
   
   try {
     const { user, avatarUpdated } = await updateUserService({

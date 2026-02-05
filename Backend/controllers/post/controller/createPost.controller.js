@@ -9,7 +9,7 @@ export const createPost = TryCatch(async (req, res) => {
   media.forEach(file => req.CreateMediaForDelete.push(file));
 
   const valid = await validateCreatePost(req, res);
-  if (!valid) return;
+  if (valid !== true ) return;
 
   const post = await createPostService({
     user: req.user,
@@ -19,6 +19,6 @@ export const createPost = TryCatch(async (req, res) => {
 
   if (!post) return ResError(res, 500, 'Post could not be created.');
 
-  ResSuccess(res, 200, post);
+  ResSuccess(res, 201, post);
 }, 'CreatePost');
 

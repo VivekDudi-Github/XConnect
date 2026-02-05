@@ -5,7 +5,7 @@ import { getPostService } from "../services/getPost.services.js";
 
 export const getPost = TryCatch(async (req, res) => {
   const valid = await validateGetPost(req, res);
-  if (!valid) return;
+  if (valid !== true) return;
 
   const post = await getPostService({
     postId: req.params.id,

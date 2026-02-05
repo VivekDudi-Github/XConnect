@@ -7,9 +7,9 @@ import { uploadFiles } from "../middlewares/multer.js";
 const router = express.Router();
 
 router.post('/create/' , checkUser , uploadFiles , routes.createLiveStream) ;
-router.delete('/delete/:id' , checkUser , routes.deleteLiveStream) ;
+router.delete('/:id' , checkUser , routes.deleteLiveStream) ;
 router.patch('/update/:id' , checkUser , uploadFiles , routes.updateLiveStream) ;
-router.get('/get/:id' , checkUser , routes.getLiveStream) ;
+router.get('/:id' , checkUser , routes.getLiveStream) ;
 router.get('/getUser/:id' , checkUser , routes.getUserLiveStreams) ;
 router.get('/getChats/:id' , checkUser , routes.getLiveChats) ;
 

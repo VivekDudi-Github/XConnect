@@ -4,7 +4,7 @@ import { getMeService } from '../services/getMe.services.js';
 
 export const getMe = TryCatch(async (req, res) => {
   const valid = validateGetMe(req, res);
-  if (!valid) return;
+  if (valid !== true) return;
 
   const user = await getMeService(req.user._id);
 

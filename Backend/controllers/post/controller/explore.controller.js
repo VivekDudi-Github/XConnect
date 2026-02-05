@@ -4,7 +4,7 @@ import { fetchExploreService } from '../services/explore.services.js';
 
 export const fetchExplorePost = TryCatch(async (req, res) => {
   const valid = validateExploreQuery(req, res);
-  if (!valid) return;
+  if (valid !== true) return;
 
   const { tab, page } = req.query;
 
