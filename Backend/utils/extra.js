@@ -31,8 +31,14 @@ const TryCatch = (func , funcName ) => {
             return ResError(req.res, 400, message);
           } else if (error.statusCode) ResError(res, error.statusCode, error.message);
           else {
-            console.log(`Error in ${funcName}:`, error);
-            return ResError(res, error.statusCode || 500 , `Internal Server Error`);
+            console.error(`Error in ${funcName}:`, {
+              message: error?.message,
+              stack: process.env.NODE_ENV !== 'PRODUCTION' ? error?.stack : undefined,
+              userId: req?.user?._id,
+              path: req?.path,
+              method: req?.method
+            });
+            return ResError(res, error.statusCode || 500 , process.env.NODE_ENV === 'DEV' ? err?.message : `Internal Server Error`);
           }
         } finally {
         

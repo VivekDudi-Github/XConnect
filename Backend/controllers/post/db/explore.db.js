@@ -1,4 +1,4 @@
-import { Likes } from '../../../models/likes.modal.js';
+import { Likes } from '../../../models/likes.model.js';
 import { Following } from '../../../models/following.model.js';
 
 

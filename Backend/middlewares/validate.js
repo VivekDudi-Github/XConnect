@@ -3,13 +3,13 @@ import { ResError } from "../utils/extra.js";
 
 export const validate = (schema, req) => {
   try {    
-    schema.parse({
+    let res = schema.parse({
       body: req.body,
       query: req.query,
       params: req.params,
     });
   } 
   catch (err) {
-    throw err;
+    throw new ZodError(err.issues);
   }
 };

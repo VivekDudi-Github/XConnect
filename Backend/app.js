@@ -43,7 +43,7 @@ app.use('/api/v1/stripe' , stripeWebhook);
 
 const io = new Server(newServer, {
   cors: {
-    origin: 'http://localhost:5173',
+    origin: process.env.CLIENT_URL || 'http://localhost:5173',
     credentials: true
   }
 });
@@ -53,6 +53,7 @@ io.use(checkSocketUser);
 app.use(cors({
   origin: 'http://localhost:5173', 
   credentials: true, 
+  optionsSuccessStatus : 200 
 }));
 app.use('/serve/hsl' , express.static(path.resolve("uploads/storage")))
 app.use(express.json());

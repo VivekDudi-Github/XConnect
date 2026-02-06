@@ -1,6 +1,6 @@
 import { Post } from '../../../models/post.model.js';
 import { Bookmark } from '../../../models/bookmark.model.js';
-import { Likes } from '../../../models/likes.modal.js';
+import { Likes } from '../../../models/likes.model.js';
 import { Notification } from '../../../models/notifiaction.model.js';
 import { LikesCount } from '../../../models/likesCount.model.js';
 import { Preferance } from '../../../models/prefrence.model.js';

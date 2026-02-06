@@ -1,7 +1,8 @@
 import { Types } from "mongoose";
 import { Comment } from "../../models/comment.model.js";
-import { Likes } from "../../models/likes.modal.js";
-import { Dislikes } from "../../models/dislikes.modal.js";
+import { Likes } from "../../models/likes.model.js";
+import { Dislikes } from "../../models/dislikes.model.js";
+import { Post } from "../../models/post.model.js";
 
 const ObjectId = Types.ObjectId;
 
@@ -15,6 +16,9 @@ export const commentExists = (id) =>
 
 export const createComment = (data) =>
   Comment.create(data);
+
+export const getPostAuthorId = (postId) =>
+  Post.findById(postId).select("author").then((post) => post.author);
 
 /* ---------- LIKE / DISLIKE ---------- */
 

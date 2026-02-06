@@ -12,6 +12,7 @@ import RenderPostContent from '../specific/RenderPostContent'
 import { clearUnreadMessage, storeSocketMessage } from '../../redux/reducer/messageSlice';
 import api, { useGetMessagesQuery } from '../../redux/api/api';
 import lastRefFunc from '../specific/LastRefFunc';
+import { toast } from 'react-toastify';
 
 
 const dummyMessages = [
@@ -177,10 +178,17 @@ export default function MessagingPage({username}) {
         socket.emit('User_Room_Meta_Update' , {room_id}) ; // update user meta
       }
     }
-    socket.on('RECEIVE_MESSAGE' , receiveMessageListener )
+    const errorMessageToast = (data) => {
+      if(data.error) {
+        toast.error(data.error ,`failed message: ${data.content}`) ;
+      }
+    }
+    socket.on('RECEIVE_MESSAGE' , receiveMessageListener ) ;
     socket.emit('User_Room_Meta_Update' , {room_id}) ; // update user meta
-    
+    socket.on('ERROR_MESSAGE' , errorMessageToast) ;
+
     return () => {
+      socket.off('ERROR_MESSAGE' , errorMessageToast) ;
       socket.off('RECEIVE_MESSAGE' , receiveMessageListener);
       socket?.emit('User_Room_Meta_Update' , {room_id}) ; // update user meta
     }

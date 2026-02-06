@@ -53,8 +53,8 @@ async function StartServer(){
     console.log('starting server');
     await connectDB() ;
 
-    newServer.listen(3000, () => {
-      console.log("Server is running on port 3000");
+    newServer.listen(process.env.PORT, () => {
+      console.log("Server is running on port "+process.env.PORT);
     });
 
     io.on("connection", async (socket) => {

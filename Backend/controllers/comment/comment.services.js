@@ -20,9 +20,9 @@ export const createCommentService = async ({
     replyTo: commentId ? "comment" : "post",
     comment_id: commentId || null,
   });
-
+  const postAuthorId = await repo.getPostAuthorId(postId); 
   await CommentCount.findOneAndUpdate(
-    { user: userId },
+    { user: postAuthorId },
     { $inc: { count: 1 } },
     { upsert: true }
   );
@@ -78,8 +78,8 @@ export const getACommentService = async (id) => {
 };
 
 export const getCommentsService = async ({page , sortBy, isComment, comment_id, postId , userId }) => {
-
-  let skip = (page - 1) * limit ;
+  console.log(page)
+  let skip = (Number(page) - 1) * limit ;
 
   const sortStages =
     sortBy === "Newest"

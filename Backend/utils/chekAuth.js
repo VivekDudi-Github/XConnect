@@ -35,15 +35,25 @@ const checkUser = async (req , res , next) => {
                                 message : "Unauthenticated request , please relogin."
                             });
                         } else{
-                            const user = await User.findById(decoded._id).select("username _id avatar role");
+                            let user = await User.findById(decoded._id).select("username _id avatar role refreshToken");
                             const accessToken = user.generateAccessToken();
                             const refreshToken = user.generateRefreshToken();
                             
                             const isValid = await bcrypt.compare(token , user.refreshToken); 
                             if(!isValid) return ResError(res , 403 , "Unauthenticated request, please re-login") ;
                             
-                            user.refreshToken = await bcrypt.hash(refreshToken ,11); 
-                            await user.save() ;
+                            let newHashedToken = await bcrypt.hash(refreshToken ,11); 
+                            
+                            
+                            user = await User.findOneAndUpdate({
+                                _id : user._id ,
+                                refreshToken : user.refreshToken
+                            } ,{
+                                $set : {
+                                    refreshToken : newHashedToken ,
+                                }
+                            } , {new : true}
+                            ) ;                           
     
                             req.user = user;
                             res

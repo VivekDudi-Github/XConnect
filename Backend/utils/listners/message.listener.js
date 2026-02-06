@@ -31,6 +31,10 @@ const MessageListener = (socket , io) => {
         })
       } catch (error) {
         console.log('error while saving the message in socket' , error);
+        io.to(`user:${_id}`).emit('ERROR_MESSAGE' , {
+          error : 'Failed to send the message. Please try again later.' ,
+          content : message ,
+        }) ;
       }
       
     }

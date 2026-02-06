@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import { de } from 'zod/v4/locales'
 
 const commentSchema = new mongoose.Schema({
   post : {
@@ -32,6 +33,7 @@ const commentSchema = new mongoose.Schema({
   isEdited : {
     type : Boolean ,
     required : true ,
+    default : false ,
   } ,
   isDeleted : {
     type : Boolean ,

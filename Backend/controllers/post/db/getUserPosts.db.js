@@ -1,6 +1,6 @@
 import { Bookmark } from "../../../models/bookmark.model.js";
 import { Comment } from "../../../models/comment.model.js";
-import { Likes } from "../../../models/likes.modal.js";
+import { Likes } from "../../../models/likes.model.js";
 import { Post } from "../../../models/post.model.js";
 import { ObjectId } from "mongodb";
 import { WatchHistory } from "../../../models/watchHistory.model.js";
