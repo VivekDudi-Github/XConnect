@@ -69,11 +69,11 @@ describe('comments', () => {
 
   it('should get comments of a post' , async () => {
     const res = await agent
-      .get(`/api/v1/comment/post/${postId}`)
+      .get(`/api/v1/comment/post/${postId}/?page=1&sortBy=Newest`)
 
     if(res.statusCode !== 200) console.log(res.body);
     expect(res.statusCode).toBe(200);
-    expect(Array.isArray(res.body.data)).toBe(true);
+    expect(Array.isArray(res.body.data.comments)).toBe(true);
   })
 
   it('should get comment' , async () => {

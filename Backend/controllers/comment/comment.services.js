@@ -59,7 +59,7 @@ export const toggleDislikeService = async ({ commentId, userId }) => {
 export const deleteCommentService = async (id, userId) => {
   const comment = await repo.findCommentById(id);
 
-  if (!comment) throw { status: 404, message: "Comment not found" };
+  if (!comment) throw { statusCode: 404, message: "Comment not found" };
   if (comment.user._id.toString() !== userId.toString())
     throw new ApiError( 403, "You are not the owner of this comment" ); 
 
@@ -72,7 +72,7 @@ export const deleteCommentService = async (id, userId) => {
 export const getACommentService = async (id) => {
   const comment = await repo.findCommentById(id);
 
-  if (!comment) throw { status: 404, message: "Comment not found" };
+  if (!comment) throw { statusCode: 404, message: "Comment not found" };
 
   return comment;
 };

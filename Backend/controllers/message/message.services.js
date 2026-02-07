@@ -18,7 +18,7 @@ export const createMessageService = async ({
   media,
 }) => {
   const isRoom = await findRoomById(room);
-  if (!isRoom) throw { status: 404, message: "Room not found" };
+  if (!isRoom) throw { statusCode: 404, message: "Room not found" };
 
   let attachments = [];
 
@@ -36,7 +36,7 @@ export const createMessageService = async ({
 
 export const getMessagesService = async ({ room, lastId, limit }) => {
   const isRoom = await findRoomById(room);
-  if (!isRoom) throw { status: 404, message: "Room not found" };
+  if (!isRoom) throw { statusCode: 404, message: "Room not found" };
 
   const filter = {
     room,
@@ -53,10 +53,10 @@ export const getMessagesService = async ({ room, lastId, limit }) => {
 
 export const deleteMessageService = async (id, userId) => {
   const message = await findMessageById(id);
-  if (!message) throw { status: 404, message: "Message not found" };
+  if (!message) throw { statusCode: 404, message: "Message not found" };
 
   if (!message.sender.equals(userId)) {
-    throw { status: 403, message: "Not message owner" };
+    throw { statusCode: 403, message: "Not message owner" };
   }
 
   if (message.attachments?.length > 0) {

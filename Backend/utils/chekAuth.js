@@ -3,32 +3,38 @@ import jwt from 'jsonwebtoken';
 import cookie from 'cookie'
 import { cookieOptions, ResError } from './extra.js';
 import bcrypt from 'bcryptjs';
+import dotenv from 'dotenv';
+dotenv.config();
+
+let NODE_ENV = process.env.NODE_ENV ;
 
 // checks for token in cookies and verifies it
 const checkUser = async (req , res , next) => {
     try {
         let token = req.cookies.accessToken ;
+        console.log('checking');
+        
         if(token){
             return jwt.verify(token , process.env.ACCESS_TOKEN_SECRET , async(err , decoded) => {
                 if(err){
-                    console.log(err);
-                    await checkRefreshToken() ;
+                    if(NODE_ENV !== 'PRODUCTION' ) console.log('error in verifying access token' , err);
+                    return await checkRefreshToken() ;
                 }else {
                     req.user = decoded;
                     return next();
                 }
             });
         }
-        
         return await checkRefreshToken() ;
 
         async function checkRefreshToken() {
             token = req.cookies.refreshToken;
+            console.log('refresh token' , token);
             try {
                 if(token){
                     return jwt.verify(token , process.env.REFRESH_TOKEN_SECRET , async (err , decoded) => {
                         if(err){
-                            console.log('error in verifying refresh token' , err);
+                            if(NODE_ENV !== 'PRODUCTION' ) console.log('error in verifying refresh token' , err);
     
                             return res.status(401).json({
                                 success : false ,
@@ -38,12 +44,11 @@ const checkUser = async (req , res , next) => {
                             let user = await User.findById(decoded._id).select("username _id avatar role refreshToken");
                             const accessToken = user.generateAccessToken();
                             const refreshToken = user.generateRefreshToken();
-                            
-                            const isValid = await bcrypt.compare(token , user.refreshToken); 
+
+                            const isValid = bcrypt.compareSync(token , user.refreshToken); 
                             if(!isValid) return ResError(res , 403 , "Unauthenticated request, please re-login") ;
                             
                             let newHashedToken = await bcrypt.hash(refreshToken ,11); 
-                            
                             
                             user = await User.findOneAndUpdate({
                                 _id : user._id ,
@@ -61,7 +66,7 @@ const checkUser = async (req , res , next) => {
                             .cookie('accessToken', accessToken, {...cookieOptions , maxAge: 30 * 60 * 1000});
                             return next();
                         }
-                })
+                    })
                 } else {
                     return res.status(401).json({
                         success: false,

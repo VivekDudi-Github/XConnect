@@ -24,7 +24,11 @@ export const getComments = TryCatch(async (req, res) => {
   console.log(req.params.id , 'const-params ');
   validate(schema.getCommentsSchema, req);
 
-  let result  = await service.getCommentsService({userId : req.user._id , postId : req.params.id , ...req.query})
+  let result  = await service.getCommentsService({
+    userId : req.user._id , 
+    postId : req.params.id , 
+    ...req.query
+  })
 
   return ResSuccess(res, 200, result);
 } , 'getComments');

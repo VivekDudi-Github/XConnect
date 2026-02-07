@@ -7,12 +7,16 @@ export function postApi(builder){
       }) ,
     }) ,
     createPost : builder.mutation({
-      query : (data) => ({
+      query : (data , username) => ({
         url : '/post' ,
         method : 'POST' ,
         body : data ,
         credentials : 'include' ,
-      })
+      } 
+    ) , 
+      invalidateTags : (result , error , arg) => [
+        { type: "UserPosts" , id : `posts-Posts-${arg.username}` } ,
+      ] ,
     }) ,
     deletePost : builder.mutation({
       query : (id) => ({
@@ -32,8 +36,8 @@ export function postApi(builder){
     
     getUserPosts: builder.query({
       query: ({ page, username, tab }) => {
-        const params = new URLSearchParams();
-
+        const params = new URLSearchParams(); console.log('get user post' , username , tab);
+        
         if (page !== undefined) params.append("page", String(page));
         if (tab) params.append("tab", tab);
         if (username) params.append("username", username);
@@ -43,6 +47,10 @@ export function postApi(builder){
           credentials: "include",
         };
       },
+      providesTags : (result , error , arg) => [
+        { type: "UserPosts", id: `posts-${arg.tab}-${arg.username}` }, 
+      ] ,
+      keepUnusedDataFor: 60 * 5, // 5 minutes
     }),
     toggleOnPost : builder.mutation({
       query : ({id , option}) => {

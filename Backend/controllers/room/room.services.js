@@ -14,10 +14,10 @@ export const createRoomService = async (user, payload) => {
   );
 
   if (type === "one-on-one" && validMemberIds.length !== 1)
-    throw { status: 400, message: "one-on-one must have exactly one member" };
+    throw { statusCode: 400, message: "one-on-one must have exactly one member" };
 
   if (type === "group" && (!name || !description))
-    throw { status: 400, message: "Group requires name and description" };
+    throw { statusCode: 400, message: "Group requires name and description" };
 
   if (type === "one-on-one") {
     const existing = await findOneOnOneRoom([...validMemberIds, user._id]);
@@ -48,9 +48,9 @@ export const createRoomService = async (user, payload) => {
 
 export const updateGroupService = async (user, payload) => {
   const room = await findRoomById(payload.id);
-  if (!room) throw { status: 404, message: "Room not found" };
+  if (!room) throw { statusCode: 404, message: "Room not found" };
   if (!room.owner.equals(user._id))
-    throw { status: 403, message: "Not room owner" };
+    throw { statusCode: 403, message: "Not room owner" };
 
   Object.assign(room, {
     ...(payload.name && { name: payload.name }),
@@ -88,9 +88,9 @@ export const updateGroupService = async (user, payload) => {
 
 export const deleteRoomService = async (user, roomId) => {
   const room = await findRoomById(roomId);
-  if (!room) throw { status: 404, message: "Room not found" };
+  if (!room) throw { statusCode: 404, message: "Room not found" };
   if (!room.owner.equals(user._id))
-    throw { status: 403, message: "Not room owner" };
+    throw { statusCode: 403, message: "Not room owner" };
 
   room.isDeleted = true;
   await room.save();

@@ -41,19 +41,18 @@ export const togglePostSchema = z.object({
 });
 
 export const paginationSchema = z.object({
-  page: z.coerce.number().min(1).default(1),
-  limit: z.coerce.number().min(1).max(50).default(10),
+  page: z.coerce.number().min(1),
 });
 
 
 
 export const fetchFeedSchema = z.object({
   tab: z.enum(['For You', 'Following', 'Media', 'Communities']).default('ForYou'),
-  page: z.coerce.number().int().min(1).default(1),
+  page: z.coerce.number().min(1),
 });
 
 
 export const exploreQuerySchema = z.object({
   tab: z.enum(['Trending', 'Media', 'Communities', 'People']),
-  page: z.coerce.number().int().min(1).default(1),
+  page: z.coerce.number().min(1),
 });

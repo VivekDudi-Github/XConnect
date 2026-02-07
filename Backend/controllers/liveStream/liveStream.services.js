@@ -36,7 +36,7 @@ export const createLiveStreamService = async ({
 
 export const deleteLiveStreamService = async (id, user) => {
   const stream = await findLiveStreamById(id);
-  if (!stream) throw { status: 404, message: "Live stream not found" };
+  if (!stream) throw { statusCode: 404, message: "Live stream not found" };
   if (!stream.host.equals(user._id))
     throw new ApiError(403, "Not stream host");
 
@@ -46,7 +46,7 @@ export const deleteLiveStreamService = async (id, user) => {
 
 export const updateLiveStreamService = async (id, user, updates, io) => {
   const stream = await findLiveStreamById(id);
-  if (!stream) throw { status: 404, message: "Live stream not found" };
+  if (!stream) throw { statusCode: 404, message: "Live stream not found" };
   if (!stream.host.equals(user._id))
     throw new ApiError(403, "Not stream host");
 
@@ -58,7 +58,7 @@ export const updateLiveStreamService = async (id, user, updates, io) => {
 
 export const getLiveStreamService = async (id, userId) => {
   const stream = await findLiveStreamById(id);
-  if (!stream) throw { status: 404, message: "Live stream not found" };
+  if (!stream) throw { statusCode: 404, message: "Live stream not found" };
 
   const followStats = await getFollowStatsRepo(userId, stream.host);
   return { ...stream.toObject(), ...followStats };

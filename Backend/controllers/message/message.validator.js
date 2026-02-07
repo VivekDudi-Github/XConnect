@@ -17,7 +17,6 @@ export const getMessagesSchema = z.object({
   query: z.object({
     room: objectId(),
     _id: z.string().optional(),
-    limit: z.coerce.number().min(1).max(50).default(20),
   }),
 });
 

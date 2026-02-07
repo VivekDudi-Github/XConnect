@@ -25,19 +25,7 @@ export const getCommunityPostsSchema = z.object({
     id: id,
   }),
   query: z.object({
-    page: z
-      .string()
-      .optional()
-      .transform(Number)
-      .refine(n => !isNaN(n) && n > 0, 'Page must be a positive number')
-      .default('1'),
-
-    limit: z
-      .string()
-      .optional()
-      .transform(Number)
-      .refine(n => !isNaN(n) && n > 0, 'Limit must be a positive number')
-      .default('10'),
+    page: z.coerce.number().min(1) ,  
   }),
 });
 
@@ -52,8 +40,7 @@ export const followCommunitySchema = z.object({
 
 export const communityFeedSchema = z.object({
   query: z.object({
-    page: z.string().optional().transform(Number).default('1'),
-    limit: z.string().optional().transform(Number).default('10'),
+    page: z.coerce.number().min(1),
   }),
 });
 

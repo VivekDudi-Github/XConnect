@@ -12,7 +12,7 @@ import { videoUploadApi } from './videoUpload.api';
 const api = createApi({
   reducerPath : 'api' ,
   baseQuery : fetchBaseQuery({baseUrl : 'http://localhost:3000/api/v1'}),
-  tagTypes : ['Room' , 'Messages' , 'User' , 'Post' ] ,
+  tagTypes : ['Room' , 'Messages' , 'User' , 'Post' , 'UserPosts' ] ,
 
   endpoints : (builder) => ({
 //users
@@ -44,7 +44,7 @@ const api = createApi({
       query : () => ({
         url : '/user/me/notifications' ,
         credentials : 'include' ,
-      })
+      }) , 
     }) ,
     changeNotificationStatus : builder.mutation({
       query : ({notificationId}) => ({
@@ -60,8 +60,9 @@ const api = createApi({
       query : () => ({
         url : '/analytics/home' ,
         credentials : 'include'
-      })
-    }) ,
+      }) ,
+    } ,
+  ) ,
 
   })
   

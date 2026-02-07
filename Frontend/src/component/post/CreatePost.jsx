@@ -92,7 +92,7 @@ export default function CreatePost() {
 
     try {
       console.log(form.get('videoIds') );
-     const data = await createPostMutate(form).unwrap();
+     const data = await createPostMutate(form , user.username).unwrap();
       if (data) {
         toast.success('Post created successfully!'); 
         setContent('');

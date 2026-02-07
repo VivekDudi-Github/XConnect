@@ -2,6 +2,7 @@ import fsAsync from 'fs/promises';
 import fs from 'fs';
 import { ZodError } from 'zod';
 import dotenv from 'dotenv';
+import bcrypt from 'bcryptjs';
 
 dotenv.config();
 
@@ -38,7 +39,7 @@ const TryCatch = (func , funcName ) => {
               path: req?.path,
               method: req?.method
             });
-            return ResError(res, error.statusCode || 500 , process.env.NODE_ENV === 'DEV' ? err?.message : `Internal Server Error`);
+            return ResError(res, error.statusCode || 500 , process.env.NODE_ENV === 'DEV' ? error?.message : `Internal Server Error`);
           }
         } finally {
         
@@ -58,7 +59,7 @@ const generateTokens = async (user) => {
   const accessToken = user.generateAccessToken();
   const refreshToken = user.generateRefreshToken();
 
-  user.refreshToken = refreshToken;
+  user.refreshToken = await bcrypt.hash(refreshToken, 11);
   await user.save();
 
   return { accessToken, refreshToken };

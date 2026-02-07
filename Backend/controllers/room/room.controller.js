@@ -31,6 +31,6 @@ export const getRooms = TryCatch(async (req, res) => {
 export const getSingleRoom = TryCatch(async (req, res) => {
   validate(schema.roomIdParamSchema, req);
   const room = await Room.findById(req.params.id);
-  if (!room) throw { status: 404, message: "Room not found" };
+  if (!room) throw { statusCode: 404, message: "Room not found" };
   ResSuccess(res, 200, room);
 } , 'getSingleRoom');

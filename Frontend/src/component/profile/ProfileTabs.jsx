@@ -14,7 +14,7 @@ import { useParams } from 'react-router-dom';
 import CommentItem from '../comment/CommentItem';
 
 
-
+const preferCached = true ;
 const tabs = ['Posts', 'Media' , 'Replies' , 'Likes' , 'BookMarks' , 'History'];
 
 function ProfileTabs() {
@@ -35,7 +35,7 @@ function ProfileTabs() {
   
 
   const [deleteMutation] = useDeletePostMutation() ;
-  const [fetchMorePost , {data , isError , isLoading , isFetching , error}] = useLazyGetUserPostsQuery();
+  const [fetchMorePost , {data , isError , isLoading , isFetching , error}] = useLazyGetUserPostsQuery({ refetchOnMountOrArgChange: false,});
 
   
   const lastPostRef = useCallback(node => {
@@ -48,6 +48,7 @@ function ProfileTabs() {
       username : username ?? user?.username ,
       totalPages : totalPages ,
       fetchFunc : fetchMorePost ,
+      preferCached
     })
   } , [fetchMorePost , page , isLoading ,totalPages , activeTab]
 )
@@ -62,7 +63,7 @@ useEffect(() => {
   setPosts([]) ;
   setTotalPages(1);
   
-  fetchMorePost({page : 1 , tab : activeTab , username : username ?? user?.username}) ; 
+  fetchMorePost({page : 1 , tab : activeTab , username : username ?? user?.username} , preferCached) ; 
   
 }, [activeTab , username])
 

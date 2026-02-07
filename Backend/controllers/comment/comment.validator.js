@@ -24,9 +24,8 @@ export const getCommentsSchema = z.object({
     id: objectId,
   }),
   query: z.object({
-    page: z.coerce.number().min(1).default(1),
-    limit: z.coerce.number().min(1).max(50).default(5),
-    sortBy: z.enum(["Top", "Most Liked", "Newest"]).default("Top").optional(),
+    page: z.coerce.number().min(1),
+    sortBy: z.enum(["Top", "Most Liked", "Newest"]),
     isComment: z.string().optional(),
     comment_id: objectId.optional(),
   }),
