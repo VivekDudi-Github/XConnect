@@ -1,6 +1,6 @@
 export function liveApi(builder){
   return {
-        createLive : builder.mutation({
+    createLive : builder.mutation({
       query : (data) => ({
         url : '/live/create' ,
         method : 'POST' ,

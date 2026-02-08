@@ -51,6 +51,8 @@ export default function StartLive() {
   const {startBroadcast , stopBroadcast , videoProducer , audioProducer , isLive : mediasoupReady , localStreamRef } = useBroadcast(socket , true ) ;
 
   const goLive = async() => {
+    if(!title) return toast.error('Title is required') ;
+    if(!description) return toast.error('Description is required') ;
     if(isRoomAvailable){
       if(timerRef.current ) clearInterval(timerRef.current) ; 
       rejoinLiveStream() ;
@@ -73,7 +75,6 @@ export default function StartLive() {
       return toast.error(error?.data?.message || 'Error creating live stream' );
     }
   };
-console.log('ss');
 
   useEffect(() => {
     const update = async() => {
@@ -231,7 +232,7 @@ console.log('ss');
           )}
         </div>
       ) : (
-        <WatchLive localStreamRef={localStreamRef} stopBroadcast={stopBroadcast} isProducer={true} streamData={streamData} />
+        <WatchLive localStreamRef={localStreamRef} stopBroadcast={() => setIsLive(false)} isProducer={true} streamData={streamData} />
       )}
     </>
   );

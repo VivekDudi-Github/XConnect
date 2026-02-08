@@ -28,7 +28,6 @@ export const updateLiveStream = TryCatch(async (req, res) => {
     req.params.id,
     req.user,
     req.body,
-    req.io
   );
 
   ResSuccess(res, 200, stream);

@@ -88,7 +88,7 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
       if(intervalRef.current) clearInterval(intervalRef.current) ;
     }
   } , [data , socket])
-
+  console.log(streamData) ;
 
   useEffect(() => {
     if(!socket) return ;
@@ -122,6 +122,7 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
   useEffect(() => {    
     return () => {
       cleanup();
+      leaveStream();
     }
   } , [])
 
@@ -135,7 +136,14 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
   const leaveStream = async() => {
     if(socket) socket.emit('LEAVE_SOCKET_ROOM' , {roomId : data?.data?._id , room : 'liveStream'}) ; 
   } 
+  const copyStreamId = () => {
+    toast.info('Stream ID copied to clipboard') ;
+    navigator.clipboard.writeText(SData._id) ;
+  }
 
+  const stopBroadcast = () => {
+    setIsBroadcasting(false);
+  }
 
   return (
     <div className="flex flex-col lg:flex-row h-screen pb-16 sm:pb-0 w-full ">
@@ -154,13 +162,13 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
                 {/* Left Side: Profile */}
                 <div className="flex items-center gap-3">
                   <img
-                    src={SData?.host?.avatar || '/default-avatar.png'}
+                    src={SData?.host?.avatar?.url || '/default-avatar.png'}
                     alt="Profile"
                     className="w-10 h-10 rounded-full border border-gray-700"
                   />
                   <div className="pt-1">
-                    <NavLink to={`/profile/${activeStream?.host?.username}`} className="font-semibold hover:underline text-sm  flex ">
-                      {SData?.hostName || 'Unknown Streamer'}
+                    <NavLink to={`/profile/${SData?.host?.username}`} className="font-semibold hover:underline text-sm  flex ">
+                      @{SData?.host?.username || 'Unknown Streamer'}
                     </NavLink>
                     <p className="text-xs text-gray-400 ">
                       {SData.followers ?? 0} followers
@@ -170,10 +178,10 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
 
                 {/* Right Side: Buttons */}
                 <div className="flex items-center gap-2">
-                  {isProducer && <ControlButton danger={true} onClick={() => dispatch(setisDeleteDialog(true))} > Stop Streaming</ControlButton>}
+                  {isProducer && <ControlButton danger={true} onClick={() => stopBroadcast()} > Stop Streaming</ControlButton>}
                   {!isProducer && <ControlButton >Follow</ControlButton> }
-                  <ControlButton><BookmarkCheckIcon /></ControlButton>
-                  <ControlButton ><Share2Icon /></ControlButton>
+                  {!isProducer && <ControlButton><BookmarkCheckIcon /></ControlButton>}
+                  <ControlButton ><Share2Icon onClick={copyStreamId} /></ControlButton>
                   <ControlButton onClick={() => setCollapse(prev => !prev)}><SidebarOpenIcon /></ControlButton>
                 </div>
               </div>

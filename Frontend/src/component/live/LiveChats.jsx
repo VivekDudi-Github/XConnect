@@ -37,7 +37,7 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
   const auth = useSelector((state) => state.auth.user);
 
   const stripPromiseRef = useRef(null) ;
-
+  console.log(streamData);
   useMemo(() => {
     console.log(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
     
@@ -117,7 +117,7 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
       const prevScrollTop = containerRef.current.scrollTop;
       console.log(data.data?.messages);
       let msgs = []
-      setEarliestMessage_id(data.data.messages[0]?._id) ;      
+      setEarliestMessage_id(data.data.messages[0]?._id) ; 
       data.data.messages.forEach(msg => {
         if(msg.isSuperChat) {
           msgs.push(msg)
@@ -191,6 +191,7 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
       {!streamData ? (<Loader/>) : 
       messages.map((msg, i) => {
         if(msg?.isSuperChat) return <div key={msg._id}><SuperChatUi msg={msg} i={i} BlockList={BlockListRef}  openOptions={openOptions}  toggleSetOptions={toggleSetOptions}  topMessageRef={topMessageRef} /></div> 
+        
         return (
           <div key={msg._id} ref={i === 0 ? topMessageRef : null} className={`w-full border-b border-gray-500 flex items-start justify-between gap-0.5 text-wrap break-words p-1 text-sm fade-in duration-200 relative ${openOptions == msg._id ? 'z-50' : 'z-0'} 
             ${(msg.sender._id === streamData?.host) ? 'dark:bg-white dark:text-black text-white bg-black rounded-lg' : 'dark:text-white rounded-sm'}`}>
@@ -199,7 +200,7 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
             </div>
             <div className="w-full text-left">
               <strong>{msg?.sender?.username}</strong> {' : '}
-              {moment(msg.createdAt).fromNow()}{' '}
+            
               {BlockListRef.current.has(msg.sender._id) ? (<i>Blocked</i>) :   <RenderPostContent text={msg.message} />}
             </div>
             <div className="relative" onClick={() => toggleSetOptions(msg._id)}>
@@ -217,14 +218,16 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
       {liveMessages.length > 0 ?  
       liveMessages.map((msg, i) => {
         if(msg?.isSuperChat ) return <div key={msg._id}><SuperChatUi msg={msg} i={i}  BlockList={BlockListRef}  openOptions={openOptions}  toggleSetOptions={toggleSetOptions}  topMessageRef={topMessageRef} /></div>
+        
         return <div key={msg._id} ref={i === 0 ? topMessageRef : null} className={`w-full border-b border-gray-500 flex items-start justify-between gap-0.5 text-wrap break-words p-1 text-sm fade-in duration-200 relative ${openOptions == msg._id ? 'z-50' : 'z-0'} 
             ${(msg.sender._id === streamData?.host) ? 'dark:bg-white dark:text-black text-white bg-black rounded-lg' : 'dark:text-white rounded-sm'}`}>
+            
             <div className="w-fit">
               <img className="rounded-full size-8 mr-1 dark:border " src={msg?.sender?.avatar?.url || './avatar-default.svg'} alt="" />
             </div>
             <div className="w-full text-left">
               <strong>{msg?.sender?.username}</strong> {' : '}
-              {moment(msg.createdAt).fromNow()}
+              
               {BlockListRef.current.has(msg.sender._id) ? (<i>Blocked</i>) :   <RenderPostContent text={msg.message} />}
             </div>
             <div className="relative" onClick={() => toggleSetOptions(msg._id)}>
@@ -251,7 +254,7 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
         <span hidden={collapseTopBar} className="p-1 px-1.5 bg-white rounded-xl text-xs font-semibold ">Pins- 0</span>
         <span hidden={collapseTopBar} className="p-1 px-1.5 bg-white rounded-xl text-xs font-semibold ">SuperChats : ₹{TotalChatAmount}</span>
       </span>
-      <div className={` flex gap-1 text-white overflow-x-scroll  text-[14px] duration-200 ${collapseTopBar ? 'size-0' : 'max-w-full'}`}>
+      {/* <div className={` flex gap-1 text-white overflow-x-scroll  text-[14px] duration-200 ${collapseTopBar ? 'size-0' : 'max-w-full'}`}>
         <button className="p-1 flex max-w-40  h-6 flex-nowrap gap-1 px-1.5 shadowLight bg-gradient-to-r border-r border-slate-500 from-[#25617a] dark:to-black to-white rounded-xl text-xs font-semibold "  >
           <img src="/avatar-default.svg" alt="" className="w-4 h-4 rounded-full" />
           <span className="text-nowrap truncate">Name what you want to play?</span>
@@ -260,7 +263,7 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
           <img src="/avatar-default.svg" alt="" className="w-4 h-4 rounded-full" />
           <span className="text-nowrap truncate">Name what you want to play?</span>
         </button>
-      </div>
+      </div> */}
       <div className={` flex gap-1 text-white overflow-x-scroll  text-[14px] w-full duration-200 ${collapseTopBar ? 'size-0' : 'max-w-full'}`}>
         {superchats.length > 0 && superchats.map((m, i) => 
           <button key={i} className="p-1 flex min-w-fit h-7 flex-nowrap gap-1 px-1.5 bg-gradient-to-r border-r border-gray-500 from-[#872963] dark:to-black shadowLight rounded-xl text-xs font-semibold" 

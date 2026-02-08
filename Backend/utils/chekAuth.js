@@ -12,8 +12,6 @@ let NODE_ENV = process.env.NODE_ENV ;
 const checkUser = async (req , res , next) => {
     try {
         let token = req.cookies.accessToken ;
-        console.log('checking');
-        
         if(token){
             return jwt.verify(token , process.env.ACCESS_TOKEN_SECRET , async(err , decoded) => {
                 if(err){

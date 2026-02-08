@@ -44,13 +44,23 @@ export const deleteLiveStreamService = async (id, user) => {
   await deleteLiveStreamRepo(id);
 };
 
-export const updateLiveStreamService = async (id, user, updates, io) => {
-  const stream = await findLiveStreamById(id);
+export const updateLiveStreamService = async (id, user, updates) => {
+  console.log("Updating live stream with ID:", id , updates);
+  const { title, description, startedAt, endedAt, videoId, audioId } = updates;
+
+  let stream = await findLiveStreamById(id);
   if (!stream) throw { statusCode: 404, message: "Live stream not found" };
   if (!stream.host.equals(user._id))
     throw new ApiError(403, "Not stream host");
 
-  Object.assign(stream, updates);
+  
+  if (title !== undefined) stream.title = title;
+  if (description !== undefined) stream.description = description;
+  if (startedAt !== undefined) stream.startedAt = startedAt;
+  if (endedAt !== undefined) stream.endedAt = endedAt;
+  if (videoId !== undefined) stream.producers.videoId = videoId;
+  if (audioId !== undefined) stream.producers.audioId = audioId;
+
   socketIo.to(`liveStream:${stream._id}`).emit("RECEIVE_LIVE_STREAM_DATA", stream);
 
   return updateLiveStreamRepo(stream);
