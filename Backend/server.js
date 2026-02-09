@@ -3,6 +3,7 @@ import { configDotenv } from "dotenv";
 import * as mediasoup from "mediasoup";
 import connectDB from "./utils/connectDB.js";
 import { v2 as cloudinary } from 'cloudinary' ;
+import { RateLimiterMemory } from "rate-limiter-flexible";
 
 import messageListener from "./utils/listners/message.listener.js";
 import { MediaSoupCleanup, MediaSoupListener } from "./utils/listners/medisaoup.listeners.js";
@@ -47,6 +48,10 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 })
 
+const rateLimiter = new RateLimiterMemory({
+  points: 10, // 10 points
+  duration: 1, // 1 second
+});
 
 async function StartServer(){
   try {
@@ -60,6 +65,17 @@ async function StartServer(){
     io.on("connection", async (socket) => {
       console.log(`New client connected: ${socket.id}`);
       if(!socket.user) return ;
+      
+      socket.use(async( packet , next) => {
+        try {
+          rateLimiter.consume(socket.user._id)
+          next() ;
+        } catch (error) {
+          io.to(socket.id).emit('RATE_LIMIT_EXCEEDED') ;
+        }
+        
+      })
+
       // join rooms 
       if (socket.user) {
         const communities = await Following.find({

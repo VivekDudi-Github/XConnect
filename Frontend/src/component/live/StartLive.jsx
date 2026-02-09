@@ -104,7 +104,9 @@ export default function StartLive() {
     if(isLive && !isRoomAvailable) socket.emit('ADD_LIVE_HOST' , {roomId : streamData._id}) ;
   }
   useEffect(() => {
-    AddHost() ;
+    if(isLive === true){
+      AddHost() ;
+    }
   } , [isLive])
 
   useEffect(() => {
@@ -140,6 +142,11 @@ export default function StartLive() {
     }
   }, [isRoomAvailable] )
   
+  const endBroadcast = async() => {
+    if(socket) socket.emit('END_BROADCAST' , {roomId : streamData._id}) ;
+    setIsLive(false) ;
+  }
+
   return (
     <>
       {!isLive ? (
@@ -232,7 +239,7 @@ export default function StartLive() {
           )}
         </div>
       ) : (
-        <WatchLive localStreamRef={localStreamRef} stopBroadcast={() => setIsLive(false)} isProducer={true} streamData={streamData} />
+        <WatchLive localStreamRef={localStreamRef} stopBroadcast={() => endBroadcast()} isProducer={true} streamData={streamData} />
       )}
     </>
   );

@@ -129,20 +129,16 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
   useEffect(() => {
     if(isError){
       console.log('error fetching live stream data' , error);
-      toast.error(error?.data?.message || 'Error fetching live stream data') ;
+      toast.error(error?.data?.message || 'Error fetching live stream data');
     }
   } , [isError , error])
 
   const leaveStream = async() => {
-    if(socket) socket.emit('LEAVE_SOCKET_ROOM' , {roomId : data?.data?._id , room : 'liveStream'}) ; 
+    if(socket) socket.emit('LEAVE_SOCKET_ROOM' , {roomId : data?.data?._id , room : 'liveStream'}) ;
   } 
   const copyStreamId = () => {
     toast.info('Stream ID copied to clipboard') ;
     navigator.clipboard.writeText(SData._id) ;
-  }
-
-  const stopBroadcast = () => {
-    setIsBroadcasting(false);
   }
 
   return (

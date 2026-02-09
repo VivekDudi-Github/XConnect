@@ -37,6 +37,10 @@ export const StreamListener = (socket , io) => {
   socket.on('REMOVE_LIVE_HOST' , () => {
     liveHosts.delete(socket.user._id) ;
   })
+  socket.on('END_BROADCAST' , ({roomId}) => {
+    liveHosts.delete(socket.user._id) ;
+    socket.delete(`liveStream:${roomId}`) ;
+  })
 
 }
 

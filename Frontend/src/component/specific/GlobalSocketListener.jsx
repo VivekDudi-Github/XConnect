@@ -5,7 +5,7 @@ import { addMultipleNotifications, addNotification, changeIsNotificationfetched,
 import {  useLazyGetMyNotificationsQuery } from '../../redux/api/api';
 import { matchPath, useLocation, useNavigate } from 'react-router-dom';
 import { setUnreadMessage } from '../../redux/reducer/messageSlice';
-
+import { toast } from 'react-toastify';
 
 function GlobalSocketListener() {
 const dispatch = useDispatch() ;
@@ -42,10 +42,12 @@ useEffect(() => {
       console.log(data);
       dispatch(removeNotification(data))
     } ;
+    let rateLimitError = () => {
+      toast.error('You are sending too many requests, please slow down.') ;
+    }
 
     if(!socket) {
       console.log('socket not available');
-      
       return ;
     };
     
@@ -55,11 +57,13 @@ useEffect(() => {
       socket.on('notification:receive' , notification_recieve) ;
       socket.on('RECEIVE_MESSAGE' , Receive_Message_Listener) ;
       socket.on('notification:retract' , notification_retract ) ;
+      socket.on('RATE_LIMIT_EXCEEDED' , rateLimitError) ;
 
       return () => {
         socket.off('notification:receive', notification_recieve) ;
         socket.off('RECEIVE_MESSAGE' , Receive_Message_Listener);
         socket.off('notification:retract' , notification_retract);
+        socket.off('RATE_LIMIT_EXCEEDED' , rateLimitError) ;
       }
     }
   } , [socket])
