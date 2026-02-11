@@ -7,7 +7,7 @@ import Notification from '../component/notification/Notification'
 function HomePage() {
   return (
     <Layout>
-      <div className='dark:bg-black bg-white dark:text-white'>
+      <div className='dark:bg-black bg-white dark:text-white '>
         <CreatePost/>
         <Feed/>
       </div>

@@ -130,7 +130,6 @@ console.log(isLoading , isFetching);
   useEffect(() => {
     if(isError ) toast.error(error?.message || 'something went wrong') ;
   } , [isError ,error]) ;
-  console.log(pageEnd , currPage);
   
   useEffect(() => {
     return () => {
@@ -140,7 +139,7 @@ console.log(isLoading , isFetching);
       setSearchResults({}) ;
     }
   }, [])
-
+console.log('totalpost pages' , searchResults)
   return (
     <div className="w-full mx-auto px-4 py-6  gap-6">
 
@@ -200,12 +199,13 @@ console.log(isLoading , isFetching);
                 <SearchUserCard username={userDetails?.username} bio={userDetails?.bio} avatar={userDetails?.avatar} fullname={userDetails?.fullname} isFollowing={userDetails?.isFollowing} totalFollowers={userDetails?.followers}  />  
               </div>
             )})}
-          </div> ): (
-            <div>
-              <ShowResultUsers data={searchResults?.user?.results || []} totalPages={searchResults?.user?.total || 1} q={queryUsed} />   
-              <ShowResultCommunities data={searchResults?.communities?.results || []} totalPages={searchResults?.communities?.total || 1} q={queryUsed} />
-              <ShowResultPosts data={searchResults?.post?.results || []} totalPages={searchResults?.post?.total || 1} q={queryUsed} />
-            </div>
+          </div> 
+          ) : (
+          <div>
+            <ShowResultUsers data={searchResults?.user?.results || []} totalPages={searchResults?.user?.total || 1} q={queryUsed} />   
+            <ShowResultCommunities data={searchResults?.community?.results || []} totalPages={searchResults?.community?.total || 1} q={queryUsed} />
+            <ShowResultPosts data={searchResults?.post?.results || []} totalPages={searchResults?.post?.total || 1} q={queryUsed} />
+          </div>
           )
         }
       </div>

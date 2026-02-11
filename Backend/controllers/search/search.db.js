@@ -45,14 +45,27 @@ export const searchPosts = (q, skip, limit, userId) =>
     {
       $search: {
         index: 'post',
-        text: {
-          query: q,
-          path: 'content',
-          fuzzy: { maxEdits: 2, prefixLength: 2 }
-        }
+        compound: {
+        must: [
+          {
+            text: {
+              query: q,
+              path: 'content',
+              fuzzy: { maxEdits: 2, prefixLength: 2 }
+            }
+          } ,
+        ],
+        mustNot: [
+          {
+            equals: {
+              path: "isDeleted",
+              value: true
+            }
+          }
+        ]
+      }
       }
     },
-    { $match: { isDeleted: false } },
     { $skip: skip },
     { $limit: limit },
 
@@ -76,7 +89,7 @@ export const searchPosts = (q, skip, limit, userId) =>
               $expr: {
                 $and: [
                   { $eq: ['$post', '$$postId'] },
-                  { $eq: ['$user', new ObjectId(userId)] }
+                  { $eq: ['$user', new ObjectId(`${userId}`)] }
                 ]
               }
             }
@@ -253,7 +266,7 @@ export const searchCommunities = (q, skip, limit, userId) =>
             $match: {
               $expr: {
                 $and: [
-                  { $eq: ['$followedBy', new ObjectId(userId)] },
+                  { $eq: ['$followedBy', new ObjectId(`${userId}`)] },
                   { $eq: ['$followingCommunity', '$$cid'] }
                 ]
               }
@@ -265,8 +278,18 @@ export const searchCommunities = (q, skip, limit, userId) =>
     },
 
     {
+      $lookup : {
+        from : 'followings' ,
+        foreignField : 'followingCommunity' ,
+        localField : '_id' ,
+        as : 'followings' ,
+      }
+    } ,
+
+    {
       $addFields: {
-        isFollowing: { $gt: [{ $size: '$followings' }, 0] }
+        isFollowing: { $gt: [{ $size: '$followings' }, 0] } ,
+        totalFollowers : {$size : '$followings'} ,
       }
     },
 
@@ -275,7 +298,8 @@ export const searchCommunities = (q, skip, limit, userId) =>
         name: 1,
         avatar: 1,
         description: 1,
-        isFollowing: 1
+        isFollowing: 1,
+        totalFollowers : 1
       }
     }
   ]);

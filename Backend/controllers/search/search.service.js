@@ -9,9 +9,9 @@ export const autocompleteSearch = async (q) => {
   return { users, communities };
 };
 
-export const normalSearch = async ({ q, page, userId }) => {
+export const normalSearch = async ({ q, userId }) => {
   const limit = 5;
-  const skip = (page - 1) * limit;
+  const skip = 0 ; 
 
   const [users, posts, communities] = await Promise.all([
     repo.searchUsers(q, skip, limit, userId),
@@ -19,13 +19,17 @@ export const normalSearch = async ({ q, page, userId }) => {
     repo.searchCommunities(q, skip, limit, userId)
   ]);
 
-  const [totalUsers , totalPosts , totalCommunities] = await Promise.all([
-    skip ? repo.searchUsersAggregates(q) : undefined ,
-    skip ? repo.searchPostsAggregates(q) : undefined ,
-    skip ? repo.searchCommunitiesAggregates(q) : undefined ,
+  let [totalUsers , totalPosts , totalCommunities] = await Promise.all([
+    repo.searchUsersAggregates(q) ,
+    repo.searchPostsAggregates(q) ,
+    repo.searchCommunitiesAggregates(q)  ,
   ]);
 
+  totalCommunities = Math.ceil(totalCommunities[0].count.lowerBound / limit) ;
+  totalPosts = Math.ceil(totalPosts[0].count.lowerBound / limit) ;
   totalUsers = Math.ceil(totalUsers[0].count.lowerBound / limit) ;
+
+  console.log(totalCommunities , totalPosts , totalUsers) ;
 
   return {
     user: { results: users , total : totalUsers } ,
@@ -37,6 +41,8 @@ export const normalSearch = async ({ q, page, userId }) => {
 export const continueSearch = async ({ q, tab, page, userId }) => {
   const limit = 5;
   const skip = (page - 1) * limit;
+  console.log(q, tab, page);
+  
 
   switch (tab) {
     case 'post':

@@ -22,7 +22,8 @@ export default function VideoPlayer({ src , type }) {
 
       const player = videojs(videoRef.current, {
         controls: true,
-        fluid: true,
+        fluid: false,
+        fill : true ,
         aspectRatio: "16:9",
         responsive: true,
         sources: [{

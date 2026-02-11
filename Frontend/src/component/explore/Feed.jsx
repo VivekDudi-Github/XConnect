@@ -73,7 +73,7 @@ function Feed() {
 
   
   return (
-    <div className="max-w-3xl mx-auto mt-4 px-2 sm:px-0 dark:bg-black  rounded-xl ">
+    <div className="max-w-3xl mx-auto mt-4 px-2 sm:px-0 dark:bg-black overflow-hidden rounded-xl ">
       <h1 className="text-2xl font-semibold mb-4">Your Feed</h1>
 
       <div className="flex border-b overflow-y-clip overflow-x-auto pb-1 pl-2 mb-2">

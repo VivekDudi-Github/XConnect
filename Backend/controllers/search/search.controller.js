@@ -11,11 +11,10 @@ export const searchBarSearch = TryCatch(async (req, res) => {
 }, 'searchBarSearch');
 
 export const normalSearch = TryCatch(async (req, res) => {
-  validate(schema.searchQuerySchema , req ) 
+  validate(schema.searchQuerySchema , req )
 
   const result = await searchService.normalSearch({
     q: req.query.q,
-    page: req.query.page,
     userId: req.user._id
   });
 

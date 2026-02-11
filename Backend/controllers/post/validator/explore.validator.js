@@ -3,7 +3,7 @@ import {exploreQuerySchema} from '../validator_Schema/Post.schema.js';
 
 export const validateExploreQuery = (req, res) => {
   try {
-    req.query = exploreQuerySchema.parse(req.query);
+    req.queries = exploreQuerySchema.parse(req.query);
     return true;
   } catch (err) {
     throw err ;

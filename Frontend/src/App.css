@@ -103,12 +103,13 @@
 
 
 /* webkit scrollbar styling */
+
 ::-webkit-scrollbar {
     width: 0px;
-    background: transparent; /* make scrollbar transparent */
+    background: transparent; 
 }
 .root {
-  scrollbar-width: none; /* for Firefox */
+  scrollbar-width: none; 
 }
 
 

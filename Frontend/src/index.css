@@ -2,12 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+
+
 .video-js .vjs-tech {
   object-fit: contain !important;
   width: 100% !important;
   height: 100% !important;
   /* position: static !important; removes absolute positioning */
-  object-fit: contain !important;
 }
 .video-js .vjs-control-bar {
   background-color: rgba(0,0,0, 0.3) !important;

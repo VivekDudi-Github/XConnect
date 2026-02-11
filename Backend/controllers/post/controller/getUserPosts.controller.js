@@ -1,7 +1,7 @@
 import { ResError , ResSuccess , TryCatch } from '../../../utils/extra.js';
 import { validateGetUserPosts } from '../validator/getUserPosts.validator.js'; 
 import { getUserPostsService } from '../services/getUserPosts.services.js';
-
+let limit = 5;
 
 export const getUserPosts = TryCatch(async (req, res) => {
   const valid = await validateGetUserPosts(req, res);
@@ -9,7 +9,6 @@ export const getUserPosts = TryCatch(async (req, res) => {
 
   const {
     page = 1,
-    limit = 2,
     tab = 'Posts',
   } = req.query;
 

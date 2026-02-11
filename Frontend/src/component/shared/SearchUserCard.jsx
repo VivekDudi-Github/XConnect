@@ -1,14 +1,46 @@
-import { UserRoundCheck, UserPlus } from "lucide-react";
+import { UserRoundCheck, UserPlus, Loader2Icon } from "lucide-react";
+import { useToggleFollowMutation } from "../../redux/api/api";
+import { useEffect } from "react";
+import { toast } from "react-toastify";
+import { useState } from "react";
 
 function SearchUserCard({
-  username,
-  fullname,
-  avatar,
-  bio ,
-  isFollowing,
-  totalFollowers,
-  onToggleFollow,
+  user , onToggleFollow
 }) {
+  const {  
+    _id ,
+    username,
+    fullname,
+    avatar,
+    bio ,
+    isFollowing,
+    totalFollowers,
+  } = user ; 
+  
+  const [followerCount , setFollowerCount] = useState(totalFollowers) ;
+  const [isFollowingState, setIsFollowing] = useState(isFollowing); 
+  const [trigger , {isLoading , isSuccess , isError , error}] = useToggleFollowMutation() ;
+
+  const toggleFollow = async() => {
+    try {
+      let res = await trigger({id : _id}).unwrap();
+      if(res?.data?.operation) {
+        setIsFollowing(true);
+        setFollowerCount(prev => prev +1); 
+      }else 
+        setFollowerCount(prev => prev -1);
+        setIsFollowing(false);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  useEffect(() => {
+    if(isError){
+      toast.error(error.data.message || 'Failed to update follow status. Please try again.');
+    }
+  } , [isError , error])
+
   return (
     <div className="p-4 border rounded-xl bg-white shadow-sm hover:shadow-md transition flex flex-col gap-2 w-full min-w-[200px] max-w-sm custom-box">
       
@@ -23,14 +55,14 @@ function SearchUserCard({
         <div className="flex flex-col flex-1 min-w-0" title={'@' +username}>
           <span className="text-base font-semibold truncate">{fullname}</span>
           <span className="text-sm text-cyan-600 font-semibold truncate">@{username}</span>
-          <span className="text-xs ">{totalFollowers} followers</span>
+          <span className="text-xs ">{followerCount} followers</span>
           {bio && <p className="text-sm text-gray-400 mt-1 truncate">{bio}</p>}
         </div>
       </div>
 
       {/* Bottom Section — Follow Button */}
-      <button
-        onClick={onToggleFollow}
+      <button onClick={toggleFollow}
+        disabled={isLoading}
         className={`flex items-center justify-center gap-2 w-full py-2 text-sm rounded-lg border transition
           ${
             isFollowing
@@ -38,17 +70,23 @@ function SearchUserCard({
               : "border-white text-white bg-cyan-400 dark:bg-transparent hover:bg-blue-50 hover:text-black"
           }`}
       >
-        {isFollowing ? (
+        {isLoading ? (
           <>
-            <UserRoundCheck className="w-4 h-4" />
-            Following
+            <Loader2Icon className="animate-spin duration-200" />
           </>
         ) : (
-          <>
-            <UserPlus className="w-4 h-4" />
-            Follow
-          </>
-        )}
+          isFollowingState ? (
+            <>
+              <UserRoundCheck className="w-4 h-4" />
+              Following
+            </>
+          ) : (
+            <>
+              <UserPlus className="w-4 h-4" />
+              Follow
+            </>
+          )
+        )} 
       </button>
     </div>
   );

@@ -58,15 +58,16 @@ useEffect(() => {
 }, [])
 
 
-  if(isAuthLoading ) return (
-    <div className='h-screen w-screen dark:bg-black bg-white'>
+  let loading = (
+    <div className='min-h-screen w-screen dark:bg-black bg-white flex items-center justify-center'>
       <Loader message={'Loading..'} />
     </div>
   )
+  if(isAuthLoading ) return loading ;
   
   return (
     <>
-      <Suspense fallback={<Loader message={'Loading..'} />}>
+      <Suspense fallback={loading}>
         <Routes>
           <Route path='/login' element={!user ?  <Auth/> : <Navigate to={'/'} /> } />
 

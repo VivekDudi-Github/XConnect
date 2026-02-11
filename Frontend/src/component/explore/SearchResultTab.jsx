@@ -10,7 +10,7 @@ import PostCard from "../post/PostCard"
 
 const ShowResultPosts = ({ data , totalPages , q}) => {
   const observer = useRef() ;
-  
+  console.log('totalPages' , totalPages, data , q) ;
   const [page ,setPage] = useState(2) ;
   const [posts , setPosts] = useState([...data]) ;
 
@@ -98,7 +98,7 @@ const observer = useRef() ;
       <div className="flex items-center gap-2 pb-3 mt-2 overflow-y-auto overflow-x-auto flex-shrink-0">
         {communities.map((com , i) => (
           <div key={com._id} ref={i === communities.length - 1 ? fetchNew : null}>
-            <SearchCommunityCard key={com.id} name={com.name} avatar={com.avatar} banner={com.banner} isFollowing={com.isFollowing} totalFollowers={com.followers} description={com.description} onToggleFollow={() => console.log('follow')} />
+            <SearchCommunityCard key={com._id} _id={com._id} name={com.name} avatar={com.avatar} banner={com.banner} isFollowing={com.isFollowing} totalFollowers={com.totalFollowers} description={com.description} />
           </div>
         ))}
       </div>
@@ -149,7 +149,7 @@ const ShowResultUsers = ({ data , totalPages ,q }) => {
       <div className="flex items-center gap-2 pb-3 mt-2 overflow-y-auto overflow-x-auto flex-shrink-0">
         {users.map((user , i) => (
           <div key={user._id} ref={i === users.length - 1 ? fetchNew : null}>
-            <SearchUserCard key={user.id} username={user.username} fullname={user.fullname} avatar={user.avatar} isFollowing={user.isFollowing} totalFollowers={user.totalFollowers} onToggleFollow={() => console.log('follow')} />
+            <SearchUserCard key={user._id} user={user} />
           </div>
         ))}
         {(isLoading || isFetching) && Array(4).map((_ ,i) => <SearchUserCardSkeleton key={i} />) }

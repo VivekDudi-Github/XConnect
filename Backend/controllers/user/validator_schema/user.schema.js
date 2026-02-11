@@ -75,7 +75,9 @@ export const changePasswordSchema = z.object({
 
 export const toggleFollowSchema = z.object({
   params: z.object({
-    id: z.string().min(1, "User id is required"),
+    id:  z.string().refine(
+    (id) => Types.ObjectId.isValid(id),
+    'Invalid user id')
   }),
 });
 

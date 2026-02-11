@@ -145,6 +145,12 @@ useEffect(() => {
         </div>
       ) }
       
+      {isFetching && (
+        Array.from({length : 6}).map((_  , i) => (
+            <PostCardSkeleton key={i}/>
+          ))
+      )}
+
       {isDeleteDialog?.isOpen ?
         (<DialogBox message='Are you sure you want to delete this post?' 
           onClose={() => dispatch(setisDeleteDialog({isOpen : false , postId : null}))}
