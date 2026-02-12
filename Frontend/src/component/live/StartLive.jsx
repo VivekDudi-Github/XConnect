@@ -11,6 +11,7 @@ import DialogBox from "../shared/DialogBox";
 import { CameraIcon, Loader2Icon, ScreenShare } from "lucide-react";
 import moment from "moment";
 import 'moment-duration-format';
+import VideoPlayer from "../specific/videPlayer/LiveVideoPlayer";
 
 export default function StartLive() {
   const socket = useSocket();

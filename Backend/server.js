@@ -49,7 +49,7 @@ cloudinary.config({
 })
 
 const rateLimiter = new RateLimiterMemory({
-  points: 10, // 10 points
+  points: 50, // 50 points
   duration: 1, // 1 second
 });
 
@@ -68,7 +68,7 @@ async function StartServer(){
       
       socket.use(async( packet , next) => {
         try {
-          rateLimiter.consume(socket.user._id)
+          await rateLimiter.consume(socket.user._id)
           next() ;
         } catch (error) {
           io.to(socket.id).emit('RATE_LIMIT_EXCEEDED') ;
@@ -131,3 +131,7 @@ async function StartServer(){
   }
 }
 StartServer() ;
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise);
+  console.error("Reason:", reason);
+});

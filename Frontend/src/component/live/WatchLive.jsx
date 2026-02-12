@@ -23,6 +23,8 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
 
   const [isJoined , setIsJoined] = useState(true) ;
   const [SData , setStreamData] = useState(streamData || {}) ;
+  const [isBroadcastEnded , setIsBroadcastEnded] = useState(false) ;
+ 
 
   const [collapse , setCollapse] = useState(false) ;
   const [viewersCount , setViewersCount] = useState(0) ;
@@ -30,7 +32,7 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
     videoStream : localStreamRef?.current?.videoStream || null ,
     audioStream : localStreamRef?.current?.audioStream || null ,
   }) ;
-  
+   
   const {data , error , isError , isLoading} = useGetLiveStreamQuery({id : id ?? SData._id} ) ;
   const  { streams, rtcCapabilities, transportRef, init, cleanup , consumersRef } = useMediasoupConsumers(null , socket , true ) ;
 
@@ -105,10 +107,16 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
         init(videoId , audioId , socket) ;
       }
     }
-    socket.on('RECEIVE_LIVE_STREAM_DATA' , getNewStreamData) ;
+    const endStreamHandler = () => {
+      setIsBroadcastEnded(true) ;
+      toast.info('The live stream has ended.' , {autoClose : 7000}) ;
+    }
 
+    socket.on('RECEIVE_LIVE_STREAM_DATA' , getNewStreamData) ;
+    socket.on('BROADCAST_ENDED' , endStreamHandler)
     return () => {
       socket.off('RECEIVE_LIVE_STREAM_DATA' , getNewStreamData) ;
+      socket.off('BROADCAST_ENDED' , endStreamHandler) ;
     }
   } , [socket , init])
 
@@ -148,7 +156,15 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
         {activeStream && (activeStream.audioStream || activeStream.videoStream) && (
           <div className="w-full h-full flex-grow  overflow-y-scroll ">
             <div className="flex-1">
-              <VideoPlayer stream={activeStream?.videoStream} audioStream={activeStream?.audioStream}  />
+              {isBroadcastEnded ? 
+              <div className="relative">
+                <div className=" absolute h-full w-full duration-500 flex items-center justify-center bg-black aspect-video  z-50 ">
+                  <span className=" fade-in text-white bg-black/50 rounded-md p-2 text-md">The live stream has ended.</span>
+                </div>
+                <VideoPlayer />
+              </div>  
+              : 
+              <VideoPlayer stream={activeStream?.videoStream} audioStream={activeStream?.audioStream}  />}
             </div>
 
             {/* Stream Info Section */}
