@@ -15,14 +15,15 @@ const checkUser = async (req , res , next) => {
         if(token){
             return jwt.verify(token , process.env.ACCESS_TOKEN_SECRET , async(err , decoded) => {
                 if(err){
-                    if(NODE_ENV !== 'PRODUCTION' ) console.log('error in verifying access token' , err);
+                    console.log('error in verifying access token' , err);
                     return await checkRefreshToken() ;
                 }else {
                     req.user = decoded;
+                    if(!req?.user?._id) return ResError(res , 403 , "Unauthenticated request, please re-login") ;
                     return next();
                 }
             });
-        }
+        } console.log('no access token found') ;
         return await checkRefreshToken() ;
 
         async function checkRefreshToken() {
@@ -43,7 +44,7 @@ const checkUser = async (req , res , next) => {
                             const accessToken = user.generateAccessToken();
                             const refreshToken = user.generateRefreshToken();
 
-                            const isValid = bcrypt.compareSync(token , user.refreshToken); 
+                            const isValid = await bcrypt.compare(token , user.refreshToken); 
                             if(!isValid) return ResError(res , 403 , "Unauthenticated request, please re-login") ;
                             
                             let newHashedToken = await bcrypt.hash(refreshToken ,11); 
@@ -62,6 +63,7 @@ const checkUser = async (req , res , next) => {
                             res
                             .cookie('refreshToken', refreshToken, {...cookieOptions , maxAge: 30 * 24 * 60 * 60 * 1000})
                             .cookie('accessToken', accessToken, {...cookieOptions , maxAge: 30 * 60 * 1000});
+                            if(!req?.user?._id) return ResError(res , 403 , "Unauthenticated request, please re-login") ;
                             return next();
                         }
                     })

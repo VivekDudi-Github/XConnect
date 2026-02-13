@@ -85,6 +85,7 @@ export default function VideoPlayer({ src , type }) {
         className="video-js vjs-big-play-centered w-full h-full rounded-lg"
         playsInline
         muted
+        preload='none'
       />
     </div>
   );

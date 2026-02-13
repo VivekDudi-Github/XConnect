@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { Types } from 'mongoose';
 
 export const createPostSchema = z.object({
-  content: z.string().optional(),
+  content: z.string().min(1).max(1200),
 
   hashtags: z.array(z.string()).default([]),
   mentions: z.array(z.string()).default([]),

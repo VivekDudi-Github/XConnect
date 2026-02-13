@@ -33,15 +33,16 @@ export default function PostCard({ post }) {
   const [pinStatus , setPinStatus] = useState(post.isPinned) ;
   const [bookmarkStatus , setBookmarkStatus] = useState(post.isBookmarked) ;
 
-  const [toggleMutation] = useToggleOnPostMutation() ;
+  const [toggleMutation , {isLoading : isToggleLoading}] = useToggleOnPostMutation() ;
   const [deleteMutation] = useDeletePostMutation() ;
   const [increaseView] = useIncreasePostViewsMutation() ;
   const [ref, isVisible] = useOnScreen({threshold : 0.5 }) ;
 
   const toggleLiketFunc = async(option) => {
+    if(isToggleLoading) return ;
     try {
       const data  = await toggleMutation({id :post._id , option : option }).unwrap() ;
-      if(data.data.operation){
+      if(data.data.operation){ 
         setLikeStatus(true)
         setTotalLikes(prev => prev + 1)
       }else {
@@ -53,6 +54,7 @@ export default function PostCard({ post }) {
     }
   }
   const togglePostFunc = async(option) => {
+    if(isToggleLoading) return ;
     try {
       const data  = await toggleMutation({id :post._id , option : option }).unwrap() ;
       if(data.data.operation){
@@ -167,7 +169,7 @@ useEffect(() => {
         maxHeight : textExpended ? '800px' : '48px' ,
       }}
       > 
-      {postScheduledAt && <div className='text-xs text-gray-500 mt-2'>Scheduled for {moment(postScheduledAt).format('MMMM Do YYYY , h:mm a')}</div>}
+      {postScheduledAt && new Date(postScheduledAt).getTime() > Date.now()  && <div className='text-xs text-gray-500 mt-2'>Scheduled for {moment(postScheduledAt).format('MMMM Do YYYY , h:mm a')}</div>} 
         <pre ref={renderPreRef} className="dark:text-gray-300 mb-2 font-sans text-wrap"><RenderPostContent text={post?.content}/></pre>
       </div>
       <button 

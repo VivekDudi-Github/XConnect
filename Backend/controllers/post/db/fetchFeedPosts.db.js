@@ -81,7 +81,7 @@ export const fetchFeedPostsDB = async ({
             ...filter,
             {
               $or: [
-                { $gte: ['$createdAt', timeAgo] },
+                // { $gte: ['$createdAt', timeAgo] },
                 { $in: ['$author', '$userFollowIds'] },
                 { $in: ['$community', '$communityFollowIds'] },
                 { $in: ['$hashtags', hashtags] },
@@ -92,7 +92,7 @@ export const fetchFeedPostsDB = async ({
       },
     },
     { $skip: skip },
-    { $sample: { size: limit } },
+    { $limit: limit },
     
     //author details
     { $lookup : {

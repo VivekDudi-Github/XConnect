@@ -3,14 +3,13 @@ import VideoPlayer from '../specific/videPlayer/VideoPlayer';
 
 function InPostImages({imagesArray}) {
   const length = imagesArray.length ;
-     console.log(import.meta.env.VITE_SERVE_HSL_URL);
      
   return (
-      <div className={`w-full sm:max-h-96 max-h-60 grid gap-2 mx-auto 
+      <div className={`w-full sm:max-h-96 max-h-60 grid gap-2 mx-auto overflow-auto
         ${length > 1 && ' grid-cols-2 grid-flow-col grid-rows-2'}`}>
         {length >0 && length <5 && imagesArray.map(({url , type}, index) => 
              type === 'video' ? (
-                <div className='w-full h-full rounded-lg mb-2 object-cover ' key={index}>
+                <div className='w-full h-full rounded-lg mb-2 object-cover' key={index}>
                   <VideoPlayer src={import.meta.env.VITE_SERVE_HSL_URL+url} />
                 </div>
             ) : (
@@ -50,9 +49,9 @@ function InPostImages({imagesArray}) {
               >See more+
             </div>
             {imagesArray[3].type === 'video' ? (
-              <VideoPlayer
-              src={imagesArray[3].url}  
-              />
+              <div className='w-full h-full rounded-lg mb-2 object-cover ' key={index}>
+                <VideoPlayer src={import.meta.env.VITE_SERVE_HSL_URL+imagesArray[3].url} />
+              </div>
             ) : (
               <img 
               src={imagesArray[3].url}  

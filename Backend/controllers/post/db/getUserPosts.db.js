@@ -8,8 +8,11 @@ import { WatchHistory } from "../../../models/watchHistory.model.js";
 
 
 const fetchUserPosts = async ({viewerId, authorId , limit, skip }) => {
-  const total = await Post.countDocuments({ author: authorId });
-  const totalPages = Math.ceil(total / limit);
+  let totalPages ;
+  if (skip === 0) {
+    const total = await Post.countDocuments({ author: authorId , isDeleted : false });
+    totalPages = Math.ceil(total / limit);
+  }
 
   const isMe = authorId.equals(viewerId);
 
@@ -170,9 +173,11 @@ const fetchUserPosts = async ({viewerId, authorId , limit, skip }) => {
 };
 
 const fetchReplies = async( { viewerId ,authorId , limit , skip}) => {
-  const totalPost  = await Comment.countDocuments({user : authorId}) ;
-  const totalPages = Math.ceil(totalPost/limit) ;
-  
+  let totalPages ;
+  if (skip === 0) {
+   const totalPost  = await Comment.countDocuments({user : authorId , isDeleted : false}) ;
+   totalPages = Math.ceil(totalPost/limit) ;
+  }
 
 const posts = await Comment.aggregate([
   {$match : {
@@ -441,9 +446,14 @@ const posts = await Comment.aggregate([
 }
 
 const fetchHistory = async({authorId ,viewerId , limit , skip}) => {
-  const totalPost  = await WatchHistory.countDocuments({ user : authorId}) ;
-  const totalPages = Math.ceil(totalPost/limit) ;
-  
+  let totalPages ;
+  if (skip === 0) {
+    let result  = await countPipeline(WatchHistory , authorId) ;
+    let totalPost = result[0]?.total || 0 ;
+
+    totalPages = Math.ceil(totalPost/limit) ;
+  }
+
   const posts = await WatchHistory.aggregate([
     {$match : {
       user : new ObjectId(`${authorId}`) ,
@@ -600,8 +610,12 @@ const fetchHistory = async({authorId ,viewerId , limit , skip}) => {
 }
 
 const fetchLikes = async({authorId, viewerId , limit , skip}) => {
-  const totalPost  = await Likes.countDocuments({user : authorId}) ; 
-  const totalPages = Math.ceil(totalPost/limit) ;
+  let totalPages ;
+  if (skip === 0) {
+    let result  = await countPipeline(Likes , authorId) ;
+    let totalPost = result[0]?.total || 0 ;
+    totalPages = Math.ceil(totalPost/limit) ;
+  }
   
   const posts = await Likes.aggregate([
     {$match : {
@@ -762,9 +776,12 @@ const fetchLikes = async({authorId, viewerId , limit , skip}) => {
 }
 
 const fetchBookmarkedPosts = async({ authorId, viewerId , limit , skip}) => { 
-  const totalPost  = await Bookmark.countDocuments({ user : authorId}) ;
-  const totalPages = Math.ceil(totalPost/limit) ;
-  
+  let totalPages ;
+  if (skip === 0) {
+    let result  = await countPipeline(Bookmark , authorId) ;
+    let totalPost = result[0]?.total || 0 ;  
+    totalPages = Math.ceil(totalPost/limit) ;
+  }
   const posts = await Bookmark.aggregate([
     {$match : {
       user : new ObjectId(`${authorId}`) ,
@@ -921,10 +938,11 @@ const fetchBookmarkedPosts = async({ authorId, viewerId , limit , skip}) => {
 }
 
 const fetchMediaPosts = async({authorId , viewerId , limit , skip}) => {
-
-  const total = await Post.countDocuments({ author: authorId });
-  const totalPages = Math.ceil(total / limit);
-
+  let totalPages ;
+  if (skip === 0) {
+      const total = await Post.countDocuments({ author: authorId , isDeleted: false , media : {$exists : true , $ne : []}}) ;
+      totalPages = Math.ceil(total / limit);    
+  }
   const isMe = authorId.equals(viewerId);
 
   const scheduleFilter = isMe
@@ -1094,3 +1112,22 @@ export const TAB_HANDLERS = {
   BookMarks: fetchBookmarkedPosts,
   Media : fetchMediaPosts  ,
 };
+
+async function countPipeline(model , authorId){
+  return model.aggregate([
+    {$match : {
+      user : new ObjectId(`${authorId}`) ,
+    }} ,
+    {$lookup : {
+      from : 'posts' ,
+      foreignField : '_id' ,
+      localField : 'post' ,
+      as : 'postData'
+    }} ,
+    {$unwind : '$postData'} ,
+    {$match : {
+      'postData.isDeleted' : false ,
+    }} ,
+    {$count : 'total'}
+  ])
+}

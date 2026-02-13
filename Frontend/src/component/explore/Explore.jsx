@@ -194,9 +194,10 @@ console.log('totalpost pages' , searchResults)
             )})}
             {activeTab === 'People' &&!isLoading && !isFetching && tabContent.map(({userDetails} , i) => {
               if(!userDetails ) return Array(4).map( (_, idx) => ( <SearchUserCardSkeleton key={idx} /> )) ;
+              console.log(userDetails);
               return (
               <div key={userDetails._id} ref={(i === tabContent.length - 1 && !pageEnd)? fetchMoreFunc : null} className="break-inside-avoid"> 
-                <SearchUserCard username={userDetails?.username} bio={userDetails?.bio} avatar={userDetails?.avatar} fullname={userDetails?.fullname} isFollowing={userDetails?.isFollowing} totalFollowers={userDetails?.followers}  />  
+                <SearchUserCard user={userDetails}  />  
               </div>
             )})}
           </div> 

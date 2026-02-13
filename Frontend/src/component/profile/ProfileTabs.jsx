@@ -31,7 +31,7 @@ function ProfileTabs() {
   const [posts , setPosts] = useState([]);
   const [page , setPage] = useState(1) ;
   const [totalPages , setTotalPages] = useState(1) ;
-
+  console.log(page , totalPages)
   
 
   const [deleteMutation] = useDeletePostMutation() ;
@@ -52,7 +52,6 @@ function ProfileTabs() {
     })
   } , [fetchMorePost , page , isLoading ,totalPages , activeTab]
 )
-
 
 useEffect(() =>{ return () => observer.current?.disconnect()} , [])
 
@@ -78,7 +77,7 @@ useEffect(() => {
 useEffect(() => {
   if(data && data.data){
     setPosts(prev => [...prev , ...data.data.posts]) ;
-    setTotalPages(data.data.totalPages)
+    if(data.data.totalPages) setTotalPages(data.data.totalPages)
     setPage(prev => prev + 1)
   }
 } , [data])
