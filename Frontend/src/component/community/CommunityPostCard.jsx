@@ -116,15 +116,9 @@ const CommunityPostCard = ({ post , heading }) => {
 
         {/* Action Buttons */}
         <div className="flex justify-between items-center py-2 border-b border-gray-700 mt-3 text-sm text-gray-400  font-semibold"> 
-          <button className="dark:hover:text-white hover:text-gray-800 flex items-center gap-1 duration-200">
+          <Link to={`/communities/post/${post._id}`} className="dark:hover:text-white hover:text-gray-800 flex items-center gap-1 duration-200">
            <MessageCircleIcon size={17} /> <span>{post?.commentCount ?? ''} Comment</span>
-          </button>
-          {/* <button className="dark:hover:text-white hover:text-gray-800 flex items-center gap-1 duration-200">
-           <Share2Icon size={17} className='fill-blue-500 text-blue-500'/> <span></span>
-          </button>
-          <button className="dark:hover:text-white hover:text-gray-800 flex items-center gap-1 duration-200">
-            <BookmarkIcon size={17} className='fill-yellow-500 text-yellow-500' /> <span></span>
-          </button> */}
+          </Link>
           <button className="dark:hover:text-white hover:text-gray-800 flex items-center gap-1 duration-200">
             <BarChart2Icon size={17} className=' text-cyan-500 '/><span>{post?.views ?? 0} Views</span> 
           </button>

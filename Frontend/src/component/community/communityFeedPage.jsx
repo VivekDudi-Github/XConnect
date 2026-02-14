@@ -9,6 +9,7 @@ import { useGetFollowingCommunityQuery, useLazyGetCommunityFeedQuery } from '../
 import lastRefFunc from '../specific/LastRefFunc';
 import { EllipsisVerticalIcon } from 'lucide-react';
 import SearchBar from '../specific/search/SearchBar';
+import PostCardSkeleton from '../shared/PostCardSkeleton';
 
 
 
@@ -28,8 +29,9 @@ function CommunityHome() {
   ]);
 
   const [posts , setPosts] = useState([]) ;
-
+  
   const [page, setPage] = useState(1);
+  const [EndPage , setEndPage] = useState(false) ;
 
   const [refetchCommunities, {data , isFetching , isLoading , error ,isError}] = useLazyGetCommunityFeedQuery();
   const {data : followings , isLoading : isFollowingLoading , isError : isFollowingError} = useGetFollowingCommunityQuery();
@@ -53,6 +55,7 @@ function CommunityHome() {
 
   useEffect(() => {
     if(data && data.data){
+      if(data.data.length === 0) return setEndPage(true) ;
       setPosts(prev => [...prev , ...data.data]) ;
       setPage(prev => prev + 1)
     }
@@ -61,59 +64,10 @@ function CommunityHome() {
   
   useEffect(() => {
     if(isError , error){
-      toast.error(error.data.message || 'Something went wrong. Please try again.')
+      toast.error(error?.data?.message || 'Something went wrong. Please try again.')
     }
   } , [error , isError])
 
-  // const [posts , setPosts] = useState([
-  //    {
-  //     _id : 1 ,
-  //     community: 'AI & ML',
-  //       username: 'neural_guy',
-  //       title: 'How do transformers handle long sequences?',
-  //       description:
-  //         'Transformers work well with fixed-size input, but when sequence length increases, performance issues arise. What techniques are used to optimize?',
-  //       image: [
-  //       {url : 'https://cdn.britannica.com/37/189837-050-F0AF383E/New-Delhi-India-War-Memorial-arch-Sir.jpg'} ,
-  //       {url : 'https://cdn.britannica.com/37/189837-050-F0AF383E/New-Delhi-India-War-Memorial-arch-Sir.jpg' } , 
-  //     ],
-  //       time: '2 hours ago',
-  //     } ,
-  //   {
-  //     _id : 2 ,
-  //     community: 'AI & ML',
-  //     username: 'neural_guy',
-  //     title: 'How do transformers handle long sequences?',
-  //     description:
-  //       'Transformers work well with fixed-size input, but when sequence length increases, performance issues arise. What techniques are used to optimize?',
-  //     image: [],
-  //     time: '2 hours ago',
-  //   } ,
-  //   {
-  //     _id : 3 ,
-  //     community: 'AI & ML',
-  //       username: 'neural_guy',
-  //       title: 'How do transformers handle long sequences?',
-  //       description:
-  //         'Transformers work well with fixed-size input, but when sequence length increases, performance issues arise. What techniques are used to optimize?',
-  //       image: [
-  //       {url : 'https://cdn.britannica.com/37/189837-050-F0AF383E/New-Delhi-India-War-Memorial-arch-Sir.jpg'} ,
-  //       {url : 'https://cdn.britannica.com/37/189837-050-F0AF383E/New-Delhi-India-War-Memorial-arch-Sir.jpg' } , 
-  //     ],
-  //       time: '2 hours ago',
-  //     } ,
-  //   {
-  //     _id : 4 ,
-  //     community: 'AI & ML',
-  //     username: 'neural_guy',
-  //     title: 'How do transformers handle long sequences?',
-  //     description:
-  //       'Transformers work well with fixed-size input, but when sequence length increases, performance issues arise. What techniques are used to optimize?',
-  //     image: [],
-  //     time: '2 hours ago',
-  //   } ,
-  // ]);
-  console.log(followings);
   
   return (
     
@@ -164,12 +118,15 @@ function CommunityHome() {
         {/* Main Content */}
         <main className=" sm:col-span-4 space-y-6 pb-8 max-h-screen overflow-y-scroll pr-3">
           {posts.map((post , i) => (
-            <div key={post._id} ref={i === posts.length - 1 ? lastPostRef : null}> 
+            <div key={post._id} ref={i === posts.length - 1 && !EndPage ? lastPostRef : null}> 
               <CommunityPostCard
                 heading={true}
                 post={post}
               />
             </div>
+          ))}
+          {isFetching && Array.from({length : 4}).map((_ , i) => (
+            <PostCardSkeleton key={i}/>
           ))}
         </main>
         {/* Sidebar */}

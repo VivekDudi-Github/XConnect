@@ -9,6 +9,6 @@ export const fetchFeedPost = TryCatch(async (req, res) => {
     user: req.user,
     ...req.query,
   });
-
+  
   return ResSuccess(res, 200, posts);
 }, 'FetchFeedPosts');

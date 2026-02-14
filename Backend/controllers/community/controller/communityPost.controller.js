@@ -6,13 +6,11 @@ export const GetCommunityPosts = TryCatch(async (req, res) => {
   const valid = validateGetCommunityPosts(req, res);
   if (valid !== true) return;
 
-  const { id } = req.params;
-  const { page, limit } = req.query;
-
+  const { id } = req.parsedParams;
+  const { page } = req.parsedQuery;
   const result = await getCommunityPostsService({
     communityId: id,
     page,
-    limit,
   });
 
   return ResSuccess(res, 200, result);

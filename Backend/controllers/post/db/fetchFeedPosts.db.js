@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
 import { Preferance } from '../../../models/prefrence.model.js';
 import { Post } from '../../../models/post.model.js';
-
+import { Following} from '../../../models/following.model.js';
 
 export const getUserPreferences = (userId) => {
   return Preferance.find({ user: userId })
@@ -32,46 +32,14 @@ export const fetchFeedPostsDB = async ({
     filter.push({ $in: ['$author', '$userFollowIds'] });
   }
 
+    const getFollowings = await Following.find({ followedBy: userId }).select('followedTo followingCommunity -_id').lean(); 
+  
+    const followingUserIds = getFollowings.map(f => f.followedTo).filter(Boolean) ;
+    const followingCommunityIds = getFollowings.map(f => f.followingCommunity).filter(Boolean) ;
+  
+
+
   return Post.aggregate([
-    {
-      $lookup: {
-        from: 'followings',
-        let: { userId: new ObjectId(`${userId}`) },
-        pipeline: [
-          {
-            $match: {
-              $expr: { $eq: ['$followedBy', '$$userId'] },
-            },
-          },
-          {
-            $project: {
-              _id: 0,
-              followedTo: 1,
-              followingCommunity: 1,
-            },
-          },
-        ],
-        as: 'UsersFollowing',
-      },
-    },
-    {
-      $addFields: {
-        communityFollowIds: {
-          $map: {
-            input: '$UsersFollowing',
-            as: 'u',
-            in: '$$u.followingCommunity',
-          },
-        },
-        userFollowIds: {
-          $map: {
-            input: '$UsersFollowing',
-            as: 'u',
-            in: '$$u.followedTo',
-          },
-        },
-      },
-    },
     {
       $match: {
         $expr: {
@@ -81,9 +49,9 @@ export const fetchFeedPostsDB = async ({
             ...filter,
             {
               $or: [
-                // { $gte: ['$createdAt', timeAgo] },
-                { $in: ['$author', '$userFollowIds'] },
-                { $in: ['$community', '$communityFollowIds'] },
+                { $gte: ['$createdAt',timeAgo] },
+                { $in: ['$author', followingUserIds] },
+                { $in: ['$community', followingCommunityIds] },
                 { $in: ['$hashtags', hashtags] },
               ],
             },
@@ -91,6 +59,7 @@ export const fetchFeedPostsDB = async ({
         },
       },
     },
+    { $sort: { createdAt: -1 } },
     { $skip: skip },
     { $limit: limit },
     

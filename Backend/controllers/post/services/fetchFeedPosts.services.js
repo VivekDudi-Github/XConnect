@@ -10,8 +10,8 @@ export const fetchFeedService = async ({ user ,page , tab }) => {
   const hashtags = preferences.map(p => p.hashtags);
 
   const timeAgo = new Date();
-  timeAgo.setDate(timeAgo.getDate() - 7);
-
+  timeAgo.setDate(timeAgo.getDate() - 60);
+  console.log('Fetching feed posts with the following parameters:' ,page , skip);
   return fetchFeedPostsDB({
     userId,
     hashtags,

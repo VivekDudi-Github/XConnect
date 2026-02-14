@@ -29,7 +29,7 @@ const DashboardMain = lazy(() => import('./component/dashboard/DashboardMain'));
 const DashboardPage = lazy(() => import('./pages/DashboradPage'));
 
 const CommunitiesPage = lazy(() => import('./pages/CommunitiesPage'));
-const CommunityHome = lazy(() => import('./component/community/communityHome'));
+const CommunityHome = lazy(() => import('./component/community/communityFeedPage'));
 const CommunityHomePage = lazy(() => import('./component/community/CommunityHomePage'))
 const CommunityPostPage = lazy(() => import('./component/community/CommunityPostPage'))
 

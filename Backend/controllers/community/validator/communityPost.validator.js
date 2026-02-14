@@ -7,8 +7,8 @@ export const validateGetCommunityPosts = (req, res) => {
       query: req.query,
     });
 
-    req.params = parsed.params;
-    req.query = parsed.query;
+    req.parsedParams = parsed.params;
+    req.parsedQuery = parsed.query;
 
     return true;
   } catch (err) {

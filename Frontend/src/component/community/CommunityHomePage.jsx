@@ -13,9 +13,9 @@ import { Search } from 'lucide-react';
 import SearchBar from '../specific/search/SearchBar';
 import InviteMods from './InviteMods';
 
-const tabs = ['General' , 'Help' ,'FeedBack' , 'Highlights'];  
+const tabs = ['General'];  
 
-//tabs in community home page , pins and highlights ,
+
 export default function CommunityHomePage() {
   const location = useLocation();
   const params = new URLSearchParams(location.search);

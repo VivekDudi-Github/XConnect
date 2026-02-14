@@ -8,7 +8,7 @@ export const communityFeed = TryCatch(async (req, res) => {
 
   const posts = await communityFeedService({
     userId: req.user._id,
-    limit: parsed.data.query.limit,
+    page : parsed.data.query.page,
   });
 
   return ResSuccess(res, 200, posts);
