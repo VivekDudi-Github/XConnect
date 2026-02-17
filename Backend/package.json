@@ -16,6 +16,7 @@
     "dev": "cross-env NODE_ENV=DEV nodemon server.js"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.95.3",
     "bcryptjs": "^3.0.2",
     "body-parser": "^2.2.0",
     "cloudinary": "^2.6.1",
