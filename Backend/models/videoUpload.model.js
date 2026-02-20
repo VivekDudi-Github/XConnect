@@ -10,7 +10,10 @@ const videoUploadSchema = new mongoose.Schema({
     ref : 'users' ,
     required : true , 
   } ,
-  
+  url : {
+    type : String ,
+  } ,
+
   uploadedChunks : {type : [Number] , default : []} ,
   totalChunks : {type : Number , default : 0 } ,
   fileSize : {type : Number , required : true} ,

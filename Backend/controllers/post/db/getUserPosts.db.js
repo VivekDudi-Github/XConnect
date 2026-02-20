@@ -9,12 +9,13 @@ import { WatchHistory } from "../../../models/watchHistory.model.js";
 
 const fetchUserPosts = async ({viewerId, authorId , limit, skip }) => {
   let totalPages ;
+  const isMe = authorId.equals(viewerId);
+  
   if (skip === 0) {
-    const total = await Post.countDocuments({ author: authorId , isDeleted : false });
+    let filter = isMe ? null : {isAnonymous : {$ne : true}} ;
+    const total = await Post.countDocuments({ author: authorId , isDeleted : false , ...filter });
     totalPages = Math.ceil(total / limit);
   }
-
-  const isMe = authorId.equals(viewerId);
 
   const scheduleFilter = isMe
     ? [{ scheduledAt: { $exists: true } }, { scheduledAt: null }]
@@ -24,13 +25,23 @@ const fetchUserPosts = async ({viewerId, authorId , limit, skip }) => {
         { scheduledAt: { $lt: new Date() } },
       ];
 
+
+  const matchConditions = {
+    author: new ObjectId(`${authorId}`),
+    isDeleted: false,
+    };
+
+  if (!isMe) {
+    matchConditions.isAnonymous = { $ne: true };
+  }
+
+  if (scheduleFilter?.length) {
+    matchConditions.$or = scheduleFilter;
+  }
+
   const posts = await Post.aggregate([
     {
-      $match: {
-        author: new ObjectId(`${authorId}`),
-        isDeleted: false,
-        $or: scheduleFilter,
-      },
+      $match: matchConditions,
     },
     { $sort: { createdAt: -1 } },
     { $skip: skip },

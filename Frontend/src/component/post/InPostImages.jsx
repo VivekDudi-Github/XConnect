@@ -5,7 +5,7 @@ function InPostImages({imagesArray}) {
   const length = imagesArray.length ;
      
   return (
-      <div className={`w-full sm:max-h-96 max-h-60 grid gap-2 mx-auto overflow-auto
+      <div className={`w-full sm:max-h-[460px] max-h-[460px] grid gap-2 mx-auto 
         ${length > 1 && ' grid-cols-2 grid-flow-col grid-rows-2'}`}>
         {length >0 && length <5 && imagesArray.map(({url , type}, index) => 
              type === 'video' ? (
@@ -45,7 +45,7 @@ function InPostImages({imagesArray}) {
           )}
           <div className='relative'>
             <div 
-            className='absolute w-full h-full bg-black/60 text-white rounded-lg z10 flex justify-center items-center z-20'
+            className='absolute w-full h-full bg-black/60 text-white rounded-lg flex justify-center items-center z-20'
               >See more+
             </div>
             {imagesArray[3].type === 'video' ? (

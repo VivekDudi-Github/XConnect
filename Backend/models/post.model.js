@@ -80,11 +80,6 @@ const postSchema = new mongoose.Schema({
     type : Boolean ,
     default : false
   } , 
-  advertisement : {
-    type : mongoose.Types.ObjectId ,
-    ref : 'Advertisement' ,
-    default : null
-  } ,
   title : {
     type : String ,
     default : null ,
@@ -100,10 +95,6 @@ const postSchema = new mongoose.Schema({
   engagements : {
     type : Number ,
     default : 0 ,
-  } ,
-  isAdvertisment : {
-    type : Boolean ,
-    default : false,
   } ,
   scheduledAt : {
     type : Date ,

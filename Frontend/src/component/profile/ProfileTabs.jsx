@@ -22,6 +22,7 @@ function ProfileTabs() {
   const observer = useRef(null) ;
  
   const {username} =  useParams() ;
+  const PostIdSet = useRef(new Set()) ;
 
   const {isDeleteDialog} = useSelector(state => state.misc);
   const {user} = useSelector(state => state.auth) ;
@@ -61,7 +62,7 @@ useEffect(() => {
   setPage(1);
   setPosts([]) ;
   setTotalPages(1);
-  
+  PostIdSet.current =  new Set() ;
   fetchMorePost({page : 1 , tab : activeTab , username : username ?? user?.username} , preferCached) ; 
   
 }, [activeTab , username])
@@ -76,12 +77,14 @@ useEffect(() => {
 
 useEffect(() => {
   if(data && data.data){
-    setPosts(prev => [...prev , ...data.data.posts]) ;
+    console.log(PostIdSet.current) ;
+    setPosts(prev => [...prev , ...data.data.posts.filter(post => !PostIdSet.current.has(post._id))]) ;
+
     if(data.data.totalPages) setTotalPages(data.data.totalPages)
     setPage(prev => prev + 1)
   }
 } , [data])
-
+console.log(posts.length) ;
 
   return (
     <div className="mt-8 dark:bg-black bg-white overflow-y-auto h-full pb-14 sm:pb-0">
@@ -110,7 +113,9 @@ useEffect(() => {
 
       {posts && activeTab === 'Replies' && (
         <div className="mt-6 mx-2 gap-4 max-w-6xl">
-          {posts.map((post , i) => (
+          {posts.map((post , i) => {
+            PostIdSet.current.add(post._id) ;
+            return(
             <div ref={ i === posts.length - 1 ? lastPostRef : null }  key={post._id}
               className=' mb-3 border-b- dark:border-gray-700 border-gray-600 '
             >
@@ -122,17 +127,21 @@ useEffect(() => {
                 <div className='w-full scale-90'><CommentItem data={post} showReply={false} replyButton={null}/></div>
               </div>
             </div>
-          ))}
+            )}
+          )}
         </div>
       )}
 
       {posts && activeTab !== 'Replies' && (
         <div className="mt-6 mx-2  gap-4 max-w-4xl">
-          {posts.map((post, i) => (
-            <div ref={ i === posts.length - 1 ? lastPostRef : null }  key={i} >
-              <PostCard post={post}  />
-            </div>
-          ))}
+          {posts.map((post, i) => {
+            PostIdSet.current.add(post._id) ;
+            return(
+              <div ref={ i === posts.length - 1 ? lastPostRef : null }  key={post._id} >
+                <PostCard post={post}  />
+              </div>
+            )}
+          )}
         </div>
       )}
       

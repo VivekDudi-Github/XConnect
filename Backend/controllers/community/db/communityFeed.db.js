@@ -1,5 +1,6 @@
 import { Post } from '../../../models/post.model.js';
 import { ObjectId } from 'mongodb';
+import { Following } from '../../../models/following.model.js';
 
 export const getCommunityFeedAggregation = async ({
   userId,

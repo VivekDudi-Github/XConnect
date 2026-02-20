@@ -23,12 +23,11 @@ const checkUser = async (req , res , next) => {
                     return next();
                 }
             });
-        } console.log('no access token found') ;
+        } 
         return await checkRefreshToken() ;
 
         async function checkRefreshToken() {
             token = req.cookies.refreshToken;
-            console.log('refresh token' , token);
             try {
                 if(token){
                     return jwt.verify(token , process.env.REFRESH_TOKEN_SECRET , async (err , decoded) => {

@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import {VideoUpload} from '../../models/videoUpload.model.js' ;
 import { fileTypeFromFile } from 'file-type';
+import { uploadHLSFolder } from '../supabase.js';
 
 
 const STORAGE_DIR = path.resolve('uploads/storage') ;
@@ -85,8 +86,14 @@ async function mergeUploadAsync(public_id) {
         fs.unlinkSync(path.join(uploadDir, `part-${i}`));
       }
       console.time(':: ffmpeg worker time') ;
+      
       await startFFmpegWorker(public_id) ;
       console.timeEnd(':: ffmpeg worker time') ;
+
+      
+      let masterPlaylist = await uploadHLSFolder(public_id) ;
+      await VideoUpload.findOneAndUpdate({public_id : public_id}  , {url : masterPlaylist}) ;
+
     } catch (err) {
       console.error("Merge failed:", err);
       await VideoUpload.updateOne(
@@ -196,7 +203,7 @@ async function startFFmpegWorker(public_id ){
   
   const uploadDir = path.join(STORAGE_DIR, public_id);
   const inputPath = path.join(uploadDir, "final.mp4");
-  const hlsDir = path.join(uploadDir, "hsl");
+  const hlsDir = path.join(uploadDir, "hls");
   
   
   fs.mkdirSync(hlsDir , {recursive: true}) ;
@@ -227,7 +234,7 @@ async function startFFmpegWorker(public_id ){
 
       await VideoUpload.updateOne(
         { public_id },
-        { status: "completed", finalPath: `/${public_id}/hsl/master.m3u8` }
+        { status: "completed", finalPath: `/${public_id}/hls/master.m3u8` }
       );
     } else {
       console.log('ffmpeg error:' , code);

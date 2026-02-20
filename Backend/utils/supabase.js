@@ -2,14 +2,14 @@ import fs from "fs";
 import path from "path";
 import { createClient } from "@supabase/supabase-js";
 import { configDotenv } from "dotenv";
+import ApiError from "./ApiError.js";
 
 configDotenv();
 
 
 const supabase = createClient((process.env.SUPABASE_URL, process.env.SUPABASE_KEY)) ;
 
-
-// MIME helper
+// a helper to create a supportive mime type
 function getMimeType(filePath) {
   if (filePath.endsWith(".m3u8"))
     return "application/vnd.apple.mpegurl";
@@ -38,8 +38,7 @@ function walkDir(dirPath) {
 
 // Upload full HLS folder
 export async function uploadHLSFolder(fileId) {
-  const bucketName = "hsl";
-
+  const bucketName = [process.env.SUPABASE_VIDEO_BUCKET];
   // local folder where HLS is stored
   const localRoot = path.join("storage", fileId);
 
@@ -67,13 +66,12 @@ export async function uploadHLSFolder(fileId) {
 
     if (error) {
       console.error("Upload failed:", error.message);
-      throw error;
+      throw ApiError("Upload failed: " + error.message , 500);
     }
   }
 
   console.log("HLS Upload Complete");
 
-  // return master playlist URL
   return `${process.env.SUPABASE_URL}/storage/v1/object/public/${bucketName}/${fileId}/master.m3u8`;
 }
 
@@ -83,14 +81,14 @@ export async function uploadHLSFolder(fileId) {
 
 
 export async function deleteHLSVideo(fileId) {
-  const bucket = "hls";
+  const bucket = process.env.SUPABASE_VIDEO_BUCKET;
 
   // This is the folder/prefix where all segments exist
-  const prefix = `${fileId}/hsl`;
+  const prefix = `${fileId}/hls`;
 
   console.log("Deleting video folder:", prefix);
 
-  // Step 1: List files inside prefix
+  // List files inside prefix
   const { data: files, error: listError } =
     await supabase.storage.from(bucket).list(prefix, {
       limit: 1000,
@@ -98,7 +96,7 @@ export async function deleteHLSVideo(fileId) {
     });
 
   if (listError) {
-    throw new Error("List failed: " + listError.message);
+    throw new ApiError("List failed: " + listError.message , 500);
   }
 
   if (!files || files.length === 0) {
@@ -106,20 +104,20 @@ export async function deleteHLSVideo(fileId) {
     return;
   }
 
-  // Step 2: Build full paths for removal
+  // Build full paths for removal
   const pathsToDelete = files.map((file) => {
     return `${prefix}/${file.name}`;
   });
 
   console.log("Deleting files:", pathsToDelete.length);
 
-  // Step 3: Remove all
+  // Remove all
   const { error: deleteError } =
     await supabase.storage.from(bucket).remove(pathsToDelete);
 
   if (deleteError) {
-    throw new Error("Delete failed: " + deleteError.message);
+    throw new ApiError("Delete failed: " + deleteError.message , 500); 
   }
 
-  console.log("✅ Video deleted successfully");
+  console.log("Video deleted successfully");
 }

@@ -5,7 +5,7 @@ export const getMeDB = async (userId) => {
   const result = await User.aggregate([
     {
       $match: {
-        _id: new ObjectId(userId),
+        _id: new ObjectId(`${userId}`),
       },
     },
     {
