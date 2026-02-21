@@ -117,6 +117,7 @@ export default function CreatePost() {
       if(videoUploaded.find(vid => vid.name === v.file.name)) continue ;
       const res = await InitUpload(v) ;
       if(!res?.public_id) {
+        toast.error('Video upload failed::'+ v.file.name) ;
         throw new Error('Video upload failed') ;
       } ;
       

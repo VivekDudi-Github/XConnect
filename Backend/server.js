@@ -13,6 +13,7 @@ import { UserListener } from "./utils/listners/user.listener.js";
 import { Following } from "./models/following.model.js";
 import { LiveStreamCleanup, StreamListener } from "./utils/listners/liveStream.listeners.js";
 
+
 const transportsBySocket = new Map();  // socket.id → array of transports
 const participants = new Map(); // roomId → array of userIds
 
@@ -58,7 +59,7 @@ async function StartServer(){
     console.log('starting server');
     await connectDB() ;
     
-    newServer.listen(process.env.PORT, () => {
+    newServer.listen(process.env.PORT, async() => {
       console.log("Server is running on port "+process.env.PORT);
     });
 
@@ -92,7 +93,8 @@ async function StartServer(){
       messageListener(socket, io);
       UserListener(socket, io);
       MediaSoupListener(socket , io , roomMap, participants , transportsBySocket , router); 
-      StreamListener(socket , io ) ;
+      StreamListener(socket , io ) ; 
+
 
       socket.on('JOIN_SOCKET_ROOM' , async({roomId , room}) => {
         if(!room || !roomId) return ;

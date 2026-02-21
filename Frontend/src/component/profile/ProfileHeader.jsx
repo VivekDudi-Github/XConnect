@@ -31,7 +31,7 @@ function ProfileHeader() {
       setFollowStatus(data?.data?.isFollowing)
     }
   } , [data ,username])
-console.log(user)
+  
   useEffect(() => {
     if(!username) setUser(userProfile) ;
   } , [userProfile] )

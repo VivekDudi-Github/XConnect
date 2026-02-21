@@ -10,7 +10,7 @@ function InPostImages({imagesArray}) {
         {length >0 && length <5 && imagesArray.map(({url , type}, index) => 
              type === 'video' ? (
                 <div className='w-full h-full rounded-lg mb-2 object-cover' key={index}>
-                  <VideoPlayer src={import.meta.env.VITE_SERVE_HSL_URL+url} />
+                  <VideoPlayer src={url} />
                 </div>
             ) : (
               <img
@@ -32,7 +32,7 @@ function InPostImages({imagesArray}) {
           { imagesArray.slice(0 ,3).map(({url , type} ,index) => {
             return type === 'video' ? (
                 <div className='w-full h-full rounded-lg mb-2 object-cover ' key={index}>
-                  <VideoPlayer src={import.meta.env.VITE_SERVE_HSL_URL+url} />
+                  <VideoPlayer src={url} />
                 </div>
               ) : (
                 <img 

@@ -17,7 +17,7 @@ export const getValidVideos = async (videoIds, userId) => {
   .filter(id => videos.some(v => v.public_id === id))
   .map(id => ({
     type: 'video',
-    url: `${process.env.SUPABASE_URL}/storage/v1/object/public/${process.env.SUPABSE_VIDEO_BUCKET}/${id}/master.m3u8`,
+    url: `${process.env.SUPABASE_URL}/storage/v1/object/public/${process.env.SUPABASE_VIDEO_BUCKET}/${id}/hls/master.m3u8`,
     public_id: id,
   }));
   
