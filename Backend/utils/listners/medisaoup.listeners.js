@@ -1,5 +1,6 @@
 import { v4 } from "uuid";
 import {LiveStream} from '../../models/liveStream.model.js'
+import {NEW_MESSAGE_TO_MEETING , NEW_USER_TO_MEETING , REMOVE_USER_FROM_MEETING} from '../constants/meeting.socket.constants.js'
 
 let streamConsumers = new Map() ;
 
@@ -76,7 +77,7 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
       
       room.users.forEach((_) => {
         if(!_.blocked){
-          io.to(_.socketId).emit("NewMessageToMeeting" , { message : newObj , roomId }) ;  
+          io.to(_.socketId).emit(NEW_MESSAGE_TO_MEETING , { message : newObj , roomId }) ;  
         }
       })
       callback() ;
@@ -178,7 +179,7 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
         if(userId !== socket.user._id && !_.blocked){
           console.log(_.username , 'user obj');
           
-          io.to(_.socketId).emit("NewUserToMeeting" , { user : userObj , p : producers }) ;  
+          io.to(_.socketId).emit(NEW_USER_TO_MEETING , { user : userObj , p : producers }) ;  
         }
       })
     
@@ -340,7 +341,7 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
   
       if(room && room?.users?.get(socket.user._id)){  
         room.users.forEach((_ , key) => {
-          if(socket.user._id !== key) io.to(_?.socketId).emit('removeUserFromMeeting' , {userId : socket.user._id} )
+          if(socket.user._id !== key) io.to(_?.socketId).emit(REMOVE_USER_FROM_MEETING , {userId : socket.user._id} )
         })
       }
     
@@ -379,7 +380,7 @@ export const MediaSoupCleanup = (socket , io , roomMap , participants , transpor
 
         if(room && room?.users?.get(socket.user._id)){  
           room.users.forEach((_ , key) => {
-            if(socket.user._id !== key) io.to(_?.socketId).emit('removeUserFromMeeting' , {userId : socket.user._id} )
+            if(socket.user._id !== key) io.to(_?.socketId).emit(REMOVE_USER_FROM_MEETING , {userId : socket.user._id} )
           })
         }
       

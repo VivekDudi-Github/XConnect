@@ -10,7 +10,10 @@ import lastRefFunc from "../specific/LastRefFunc";
 import moment from 'moment';
 import { Elements, useElements, useStripe , CardElement } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
+import {SEND_LIVE_MESSAGE} from '../../constants/message.socket.constant';
+
 const CheckoutForm = lazy(() => import('./CheckOutForm'));
+
 
 const appearance = {
   theme: 'stripe', // Start with a base theme
@@ -71,7 +74,7 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
   const sendMessage = () => {
     if (!input.trim()) return;
     if(!socket) return toast.error('Socket not connected'); 
-    socket.emit("SEND_LIVE_MESSAGE", {
+    socket.emit(SEND_LIVE_MESSAGE, {
       message: input.trim(),
       roomId: streamData._id,
     } , () => setInput(''));

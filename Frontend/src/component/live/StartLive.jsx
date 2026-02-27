@@ -12,6 +12,7 @@ import { CameraIcon, Loader2Icon, ScreenShare } from "lucide-react";
 import moment from "moment";
 import 'moment-duration-format';
 import VideoPlayer from "../specific/videPlayer/LiveVideoPlayer";
+import { REJOIN_LIVE_STREAM, REMOVE_LIVE_HOST , END_BROADCAST , CHECK_AND_UPDATE_LIVE_HOST , ADD_LIVE_HOST } from "../../constants/live.socket.constant";
 
 export default function StartLive() {
   const socket = useSocket();
@@ -93,16 +94,16 @@ export default function StartLive() {
   } , [videoProducer , audioProducer , streamData ])
 
   const removeLiveHost = () => {
-    socket.emit('REMOVE_LIVE_HOST') ;
+    socket.emit(REMOVE_LIVE_HOST) ;
     setIsRoomAvailable(false) ;
   }
   const rejoinLiveStream = () => {
-    socket.emit('REJOIN_LIVE_STREAM' , {roomId : 'temp'} , async(res) => {
+    socket.emit(REJOIN_LIVE_STREAM , {roomId : 'temp'} , async(res) => {
       if(res) setIsRoomAvailable(true) ;
     })
   }
   const AddHost = async() => {
-    if(isLive && !isRoomAvailable) socket.emit('ADD_LIVE_HOST' , {roomId : streamData._id}) ;
+    if(isLive && !isRoomAvailable) socket.emit(ADD_LIVE_HOST , {roomId : streamData._id}) ;
   }
   useEffect(() => {
     if(isLive === true){
@@ -113,7 +114,7 @@ export default function StartLive() {
   useEffect(() => {
     let func = async() => {
       await ensureSocketReady(socket);
-      socket.emit('CHECK_AND_UPDATE_LIVE_HOST' , {roomId : 'temp'} , (res) => {
+      socket.emit(CHECK_AND_UPDATE_LIVE_HOST , {roomId : 'temp'} , (res) => {
         console.log('available' , res);
         if(res.isAvailableTime){
           setIsRoomAvailable(true) ; 
@@ -144,7 +145,7 @@ export default function StartLive() {
   }, [isRoomAvailable] )
   
   const endBroadcast = async() => {
-    if(socket) socket.emit('END_BROADCAST' , {roomId : streamData._id}) ;
+    if(socket) socket.emit(END_BROADCAST , {roomId : streamData._id}) ;
     setIsLive(false) ;
   }
 

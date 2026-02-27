@@ -1,0 +1,14 @@
+const JOIN_MEETING =  'joinMeeting' ;
+const CREATE_MEETING = 'createMeeting' ;
+
+const NEW_USER_TO_MEETING = "NewUserToMeeting" ;
+const NEW_MESSAGE_TO_MEETING = "newMessageToMeeting" ;
+const REMOVE_USER_FROM_MEETING = "removeUserFromMeeting" ;
+
+export {
+  JOIN_MEETING ,
+  CREATE_MEETING ,
+  NEW_USER_TO_MEETING ,
+  NEW_MESSAGE_TO_MEETING ,
+  REMOVE_USER_FROM_MEETING ,
+}

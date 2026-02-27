@@ -1,0 +1,18 @@
+const SEND_MESSAGE = 'addMessage' ;
+const SEND_LIVE_MESSAGE = "SEND_LIVE_MESSAGE" ;
+const RECEIVE_MESSAGE =  "RECEIVE_MESSAGE" 
+
+const ERROR_MESSAGE = 'ERROR_MESSAGE' ;
+const USER_ROOM_META_UPDATE = "User_Room_Meta_Update" ;
+
+const GET_ALL_MESSAGES = 'getAllMessages' ;
+
+
+export {
+  SEND_MESSAGE ,
+  SEND_LIVE_MESSAGE ,
+  RECEIVE_MESSAGE ,
+  USER_ROOM_META_UPDATE ,
+  GET_ALL_MESSAGES ,
+  ERROR_MESSAGE ,
+}

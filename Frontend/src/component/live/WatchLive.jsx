@@ -1,18 +1,22 @@
 import {  useEffect, useRef , useState } from "react";
-import LiveCard from "./LiveCard";
 import LiveChat from "./LiveChats";
-import { useGetLiveStreamQuery, useGetProfileQuery } from "../../redux/api/api";
+import { useGetLiveStreamQuery } from "../../redux/api/api";
 import { useSocket } from "../specific/socket";
 import { useMediasoupConsumers } from "../specific/broadcast/RecieveBroadcast";
 import { NavLink, useParams } from "react-router-dom";
 import VideoPlayer from "../specific/videPlayer/LiveVideoPlayer";
-import { StopCircle , UserPlus2Icon , UserRoundCheckIcon , BookmarkCheckIcon , BookmarkIcon , Share2Icon, SidebarOpenIcon } from "lucide-react";
+import { BookmarkCheckIcon , Share2Icon, SidebarOpenIcon } from "lucide-react";
 import { ensureSocketReady } from "../shared/SharedFun";
-import LastRefFunc from '../specific/LastRefFunc'
-import DialogBox from "../shared/DialogBox";
 import { useDispatch } from "react-redux";
-import { setisDeleteDialog } from "../../redux/reducer/miscSlice";
 import { toast } from "react-toastify";
+import {
+  REJOIN_LIVE_STREAM ,
+  RECEIVE_LIVE_STREAM_DATA ,
+  LEAVE_SOCKET_ROOM ,
+  BROADCAST_ENDED , 
+  CHECK_ROOM_ACTIVE , 
+  CHECK_ROOM_JOINED , 
+} from "../../constants/live.socket.constant";
 
 export default function WatchLive({localStreamRef , stopBroadcast , isProducer , streamData = null}) {
   const {id} = useParams() ;
@@ -58,12 +62,12 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
     if(intervalRef.current) clearInterval(intervalRef.current) ;
     if(socket){
       interval = setInterval(() => {
-        socket.emit('CHECK_ROOM_ACTIVE' , {room : 'liveStream' , roomId : data?.data?._id} , (res) => {
+        socket.emit(CHECK_ROOM_ACTIVE , {room : 'liveStream' , roomId : data?.data?._id} , (res) => {
           setViewersCount(res.active) ;
           if(!isProducer && !res.isRoom ){setActiveStream(null) } ;
         }) ;
         if(isProducer){
-          socket.emit('CHECK_ROOM_JOINED', {room : 'liveStream' , roomId : data?.data?._id} , (res) => {
+          socket.emit(CHECK_ROOM_JOINED, {room : 'liveStream' , roomId : data?.data?._id} , (res) => {
             if(!res) toast.info('You are currently got disconnected from the stream , rejoining...');
             if(!res) setIsJoined(false) ;
           }) ;
@@ -76,7 +80,7 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
         setStreamData(data.data) ;
         console.log(data.data);
         await ensureSocketReady(socket);
-        socket.emit('JOIN_SOCKET_ROOM' , {roomId : data.data._id , room : 'liveStream'}) ;
+        socket.emit(JOIN_SOCKET_ROOM , {roomId : data.data._id , room : 'liveStream'}) ;
         
         const videoId = data.data?.producers?.videoId ;
         const audioId = data.data?.producers?.audioId ;
@@ -86,7 +90,7 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
     }
     func() ;
     return () => {
-      if(socket) socket.emit('LEAVE_SOCKET_ROOM' , {roomId : data?.data?._id , room : 'liveStream'}) ;
+      if(socket) socket.emit(LEAVE_SOCKET_ROOM , {roomId : data?.data?._id , room : 'liveStream'}) ;
       if(intervalRef.current) clearInterval(intervalRef.current) ;
     }
   } , [data , socket])
@@ -112,17 +116,17 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
       toast.info('The live stream has ended.' , {autoClose : 7000}) ;
     }
 
-    socket.on('RECEIVE_LIVE_STREAM_DATA' , getNewStreamData) ;
-    socket.on('BROADCAST_ENDED' , endStreamHandler)
+    socket.on(RECEIVE_LIVE_STREAM_DATA , getNewStreamData) ;
+    socket.on(BROADCAST_ENDED , endStreamHandler)
     return () => {
-      socket.off('RECEIVE_LIVE_STREAM_DATA' , getNewStreamData) ;
-      socket.off('BROADCAST_ENDED' , endStreamHandler) ;
+      socket.off(RECEIVE_LIVE_STREAM_DATA , getNewStreamData) ;
+      socket.off(BROADCAST_ENDED , endStreamHandler) ;
     }
   } , [socket , init])
 
   useEffect(() => {
     if(!isJoined){
-      socket.emit('REJOIN_LIVE_STREAM' , {roomId : data?.data?._id} , async(res) => {
+      socket.emit(REJOIN_LIVE_STREAM , {roomId : data?.data?._id} , async(res) => {
         if(res) setIsJoined(true) ;
     })
   }} , [isJoined , socket]) ;
@@ -142,7 +146,7 @@ export default function WatchLive({localStreamRef , stopBroadcast , isProducer ,
   } , [isError , error])
 
   const leaveStream = async() => {
-    if(socket) socket.emit('LEAVE_SOCKET_ROOM' , {roomId : data?.data?._id , room : 'liveStream'}) ;
+    if(socket) socket.emit(LEAVE_SOCKET_ROOM , {roomId : data?.data?._id , room : 'liveStream'}) ;
   } 
   const copyStreamId = () => {
     toast.info('Stream ID copied to clipboard') ;

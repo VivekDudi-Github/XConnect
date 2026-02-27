@@ -49,6 +49,8 @@ function Feed() {
 
   useEffect(() => {
     if(data && data.data){
+      console.log(data.data);
+      
       if(data.data.length === 0) setPause(true) ;
       
       setPosts(prev => [...prev , ...data.data]) ;
@@ -66,7 +68,7 @@ function Feed() {
 
   useEffect(() => {
     if(isError){
-      toast.error(error.data.message || 'Something went wrong while fetching posts. Please try again.')
+      toast.error(error?.data?.message || 'Something went wrong while fetching posts. Please try again.')
       console.log('error in fetching feed posts' , error);
     }
   } , [isError , error])

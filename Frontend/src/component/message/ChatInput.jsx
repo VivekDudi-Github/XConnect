@@ -3,6 +3,7 @@ import {  SendIcon , PaperclipIcon } from "lucide-react";
 import TextareaAutosize from "react-textarea-autosize";
 import { useSocket } from "../specific/socket";
 import {v4 as uuidv4} from 'uuid';
+import { SEND_MESSAGE, USER_ROOM_META_UPDATE } from "../../constants/message.socket.constant";
 
 
 export default function ChatInput({members ,user , setLiveMessages , room_id}) {
@@ -14,8 +15,8 @@ export default function ChatInput({members ,user , setLiveMessages , room_id}) {
 
   const handleSend = () => {
     if (!message.trim()) return;
-    socket.emit('SEND_MESSAGE' , {message , memberIds : members , room_id }); 
-    socket?.emit('User_Room_Meta_Update' , {room_id}) ;
+    socket.emit(SEND_MESSAGE , {message , memberIds : members , room_id });  
+    socket.emit(USER_ROOM_META_UPDATE , {room_id}) ;
     setLiveMessages(prev => [...prev , 
       {
         _id : uuidv4() ,

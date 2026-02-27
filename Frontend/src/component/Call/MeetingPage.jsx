@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 import moment from 'moment' ;
 import {useSelector} from 'react-redux'
 import Textarea from 'react-textarea-autosize'
+import { SEND_MESSAGE } from '../../constants/message.socket.constant';
 
 export default function MeetingPage({roomId , stopBroadcast , audioproducer ,videoProducer ,localStreamRef}) {  
   const socket = useSocket();
@@ -35,7 +36,7 @@ export default function MeetingPage({roomId , stopBroadcast , audioproducer ,vid
   const { streams, chats , rtcCapabilities, transportRef, init , cleanup , consumersRef} = useMediasoupConsumers(roomId, socket);
   
   const handleAddMessage = () => {
-    socket.emit('addMessage' , { message , roomId } , ({error}) => {
+    socket.emit(SEND_MESSAGE , { message , roomId } , ({error}) => {
       if(error) return toast.error(error);
       setMessage('');
     })}

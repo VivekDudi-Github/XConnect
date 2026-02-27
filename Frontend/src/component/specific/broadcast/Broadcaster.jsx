@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect , useCallback } from "react";
 import { Device } from "mediasoup-client";
 import { toast } from "react-toastify";
+import { GET_RTP_CAPABILITIES , CONNECT_PRODUCER_TRANSPORT , CREATE_WEBRTC_TRANSPORT , PRODUCE , PRODUCE_STREAM } from "../../../constants/mediasoup.socket.constant";
 
 
 
@@ -39,7 +40,7 @@ export function useBroadcast(socket , isStream = false ) {
         console.log(cameraOn , localStreamRef.current);
         
         // 2) Get router RTP caps & load device
-        socket.emit("getRtpCapabilities", async (routerRtpCapabilities) => {
+        socket.emit(GET_RTP_CAPABILITIES, async (routerRtpCapabilities) => {
           const device = new Device();
           await device.load({ routerRtpCapabilities });
           deviceRef.current = device;
@@ -47,14 +48,14 @@ export function useBroadcast(socket , isStream = false ) {
           
 
           // 3) Ask server for send transport
-          socket.emit("createWebRtcTransport", async (params) => {
+          socket.emit(CREATE_WEBRTC_TRANSPORT, async (params) => {
             const producerTransport = device.createSendTransport(params);
             producerTransportRef.current = producerTransport;
 
             // Transport connect
             producerTransport.on("connect", ({ dtlsParameters }, callback, errback) => {
               socket.emit(
-                "connectProducerTransport",
+                CONNECT_PRODUCER_TRANSPORT,
                 { dtlsParameters, transportId: producerTransport.id },
                 () => callback() 
               );
@@ -62,10 +63,10 @@ export function useBroadcast(socket , isStream = false ) {
 
             // Transport produce
             
-            producerTransport.on("produce", async ({ kind, rtpParameters }, callback) => {
+            producerTransport.on(PRODUCE, async ({ kind, rtpParameters }, callback) => {
               if(!isStream){
                 socket.emit( // used for creating live meetings 
-                  "produce",
+                  PRODUCE,
                   { kind, rtpParameters, roomId, transportId: producerTransport.id },
                   ({ id, error }) => {
                     if (error) {
@@ -77,7 +78,7 @@ export function useBroadcast(socket , isStream = false ) {
                 )
               }else { // used for creating live streams 
                 socket.emit(
-                  "produce_stream" ,
+                  PRODUCE_STREAM ,
                   { kind, rtpParameters, transportId: producerTransport.id },
                   ({ id , error }) => {
                     if(error){
@@ -173,42 +174,3 @@ export function useBroadcast(socket , isStream = false ) {
     localStreamRef,
   };
 }
-
-// export function useLiveBroadcast(socket){
-// // this hook is for creating the live stream setup
-// // this will handle the 
-
-//   const localStreamRef = useRef(null);
-//   const producerTransportRef = useRef(null);
-//   const producersRef = useRef([]); // all producers (audio + video)
-//   const deviceRef = useRef(null);
-
-//   const [isLive, setIsLive] = useState(false);
-//   const [videoProducer, setVideoProducer] = useState(null);
-//   const [audioProducer, setAudioProducer] = useState(null);
-
-//   //start live
-
-//   const startLive = async() => {
-//     if(!socket) {
-//       console.error('Socket not connected');
-//       return ;
-//     }
-//     try {
-//       // 1) Capture media
-//       localStreamRef.current = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      
-//       // 2) Get router RTP caps & load device
-//       socket.emit('getRtpCapabilities' , async (routerRtpCapabilities) => {
-//         const device = new Device();
-//         await device.load({ routerRtpCapabilities });
-//         deviceRef.current = device;
-//       });
-//     } catch (error) {
-//       console.error('startLive error:' , error);
-//       toast.error(error || 'Something went wrong. Please try again.')
-//     }
-//   }
-
-// }
-

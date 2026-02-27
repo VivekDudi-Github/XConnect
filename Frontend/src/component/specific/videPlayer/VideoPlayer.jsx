@@ -111,6 +111,12 @@ class QualityMenuItem extends MenuItem {
         levels[i].enabled = levels[i].height === this.height;
       }
     }
+    const items = this.player()
+    .controlBar
+    .getChild('QualityMenuButton')
+    .items;
+
+    items.forEach(item => item.selected(item.height === this.height)) ;
   }
 }
 
@@ -131,7 +137,7 @@ class QualityMenuButton extends MenuButton {
         label: "Auto",
         height: "auto",
         selectable: true,
-        selected: true,
+        selected : true
       })
     );
 

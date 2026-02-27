@@ -4,6 +4,7 @@ import { useBroadcast } from '../specific/broadcast/Broadcaster';
 import { useSocket } from '../specific/socket';
 import { KeyRound, LoaderCircleIcon, LockKeyhole } from "lucide-react";
 import { toast } from 'react-toastify';
+import { CREATE_MEETING, JOIN_MEETING } from '../../constants/meeting.socket.constant';
 
 export default function MeetLayout() {
   const [page, setPage] = useState(true);
@@ -17,7 +18,7 @@ export default function MeetLayout() {
   const joinMeeting = async (roomId , password = '' ) => {
     try {
       setLoading(true) ;
-      socket.emit('joinMeeting' , { roomId , password } , async ({success , error , }) => {
+      socket.emit(JOIN_MEETING , { roomId , password } , async ({success , error , }) => {
         if(success) {
           setRoomId(roomId);
           startBroadcast(false , roomId) ;
@@ -31,7 +32,7 @@ export default function MeetLayout() {
   const createMeeting = async (password = '') => {
     try {
       setLoading(true) ;
-      socket.emit('createMeeting' , { password } , async ({roomId }) => {
+      socket.emit(CREATE_MEETING , { password } , async ({roomId }) => {
       setRoomId(roomId);
       startBroadcast(true , roomId) ;
     });

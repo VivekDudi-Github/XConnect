@@ -11,6 +11,8 @@ import {
   getFollowStatsRepo,
 } from "./liveStream.db.js";
 import ApiError from "../../utils/ApiError.js";
+import {RECEIVE_LIVE_STREAM_DATA , LIVESTREAM_ROOM} from '../../utils/constants/livestrream.socket.constant.js'
+import { emitEvent } from "../../utils/socket.js";
 
 export const createLiveStreamService = async ({
   user,
@@ -61,7 +63,7 @@ export const updateLiveStreamService = async (id, user, updates) => {
   if (videoId !== undefined) stream.producers.videoId = videoId;
   if (audioId !== undefined) stream.producers.audioId = audioId;
 
-  socketIo.to(`liveStream:${stream._id}`).emit("RECEIVE_LIVE_STREAM_DATA", stream);
+  emitEvent(RECEIVE_LIVE_STREAM_DATA , LIVESTREAM_ROOM , stream._id , stream);
 
   return updateLiveStreamRepo(stream);
 };

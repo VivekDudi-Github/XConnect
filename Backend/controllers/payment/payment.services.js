@@ -2,6 +2,9 @@ import Stripe from "stripe";
 import { paymentRepo } from "./payment.db.js";
 import { io } from "../../app.js";
 import dotenv from "dotenv";
+import { emitEvent } from "../../utils/socket.js";
+import { RECEIVE_LIVE_MESSAGE } from "../../utils/constants/messages.socket.constant.js";
+import { LIVESTREAM_ROOM } from "../../utils/constants/livestrream.socket.constant.js";
 
 dotenv.config();
 
@@ -45,13 +48,13 @@ export const paymentService = {
       amount: Number(amount),
     });
 
-    io.to(`liveStream:${streamId}`).emit("RECEIVE_LIVE_MESSAGE", {
+    emitEvent(RECEIVE_LIVE_MESSAGE , LIVESTREAM_ROOM , streamId , {
       ...superChat.toObject(),
       sender: {
         _id,
         username,
         avatar: { url: avatar },
       },
-    });
+    })
   },
 };

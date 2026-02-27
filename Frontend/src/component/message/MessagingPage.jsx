@@ -13,6 +13,7 @@ import { clearUnreadMessage, storeSocketMessage } from '../../redux/reducer/mess
 import api, { useGetMessagesQuery } from '../../redux/api/api';
 import lastRefFunc from '../specific/LastRefFunc';
 import { toast } from 'react-toastify';
+import { ERROR_MESSAGE, RECEIVE_MESSAGE, USER_ROOM_META_UPDATE } from '../../constants/message.socket.constant';
 
 
 const dummyMessages = [
@@ -175,7 +176,7 @@ export default function MessagingPage({username}) {
       if(data.room === room_id){
 
         setLiveMessages(prev => [...prev , data]) ; 
-        socket.emit('User_Room_Meta_Update' , {room_id}) ; // update user meta
+        socket.emit(USER_ROOM_META_UPDATE , {room_id}) ; // update user meta
       }
     }
     const errorMessageToast = (data) => {
@@ -183,14 +184,14 @@ export default function MessagingPage({username}) {
         toast.error(data.error ,`failed message: ${data.content}`) ;
       }
     }
-    socket.on('RECEIVE_MESSAGE' , receiveMessageListener ) ;
-    socket.emit('User_Room_Meta_Update' , {room_id}) ; // update user meta
-    socket.on('ERROR_MESSAGE' , errorMessageToast) ;
+    socket.on(RECEIVE_MESSAGE , receiveMessageListener ) ;
+    socket.emit(USER_ROOM_META_UPDATE , {room_id}) ; // update user meta
+    socket.on(ERROR_MESSAGE , errorMessageToast) ;
 
     return () => {
-      socket.off('ERROR_MESSAGE' , errorMessageToast) ;
-      socket.off('RECEIVE_MESSAGE' , receiveMessageListener);
-      socket?.emit('User_Room_Meta_Update' , {room_id}) ; // update user meta
+      socket.off(ERROR_MESSAGE , errorMessageToast) ;
+      socket.off(RECEIVE_MESSAGE , receiveMessageListener);
+      socket?.emit(USER_ROOM_META_UPDATE , {room_id}) ; // update user meta
     }
   } , [room_id , socket]) ;
 

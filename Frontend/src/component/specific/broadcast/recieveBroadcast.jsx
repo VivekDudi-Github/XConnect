@@ -6,6 +6,9 @@ import Videojs from "video.js"
 import VideoPlayer from "../videPlayer/LiveVideoPlayer";
 import { toast } from "react-toastify";
 import { ensureSocketReady } from "../../shared/SharedFun";
+import { CONNECT_PRODUCER_TRANSPORT, CONSUME, CONSUME_STREAM, CREATE_WEBRTC_TRANSPORT, GET_PRODUCERS, GET_RTP_CAPABILITIES, RESUME_CONSUMER } from "../../../constants/mediasoup.socket.constant";
+import { GET_ALL_MESSAGES } from "../../../constants/message.socket.constant";
+import { NEW_USER_TO_MEETING , NEW_MESSAGE_TO_MEETING, REMOVE_USER_FROM_MEETING } from "../../../constants/meeting.socket.constant";
 
 
 export function useMediasoupConsumers(roomId ,socket , isBroadcast = false) {
@@ -34,7 +37,7 @@ export function useMediasoupConsumers(roomId ,socket , isBroadcast = false) {
       // 1. Get RTP capabilities
       console.log('rtp tried' );
       
-      socket.emit("getRtpCapabilities", async (routerRtpCapabilities) => {
+      socket.emit(GET_RTP_CAPABILITIES, async (routerRtpCapabilities) => {
         const dev = new mediasoupClient.Device();
         await dev.load({ routerRtpCapabilities });
         deviceRef.current = dev;
@@ -42,12 +45,12 @@ export function useMediasoupConsumers(roomId ,socket , isBroadcast = false) {
         console.log('rtp connected');
         
         // 2. Create consumer transport
-        socket.emit("createConsumerTransport", async (params) => {
+        socket.emit(CREATE_WEBRTC_TRANSPORT, async (params) => {
           const transport = dev.createRecvTransport(params);
 
           transport.on("connect", ({ dtlsParameters }, callback, errback) => {
             socket.emit(
-              "connectConsumerTransport",
+              CONNECT_PRODUCER_TRANSPORT,
               { transportId: transport.id, dtlsParameters },
               callback
             );
@@ -58,13 +61,13 @@ export function useMediasoupConsumers(roomId ,socket , isBroadcast = false) {
           
           // 3. Fetch producers
           if(!isBroadcast){// broadcast means one way live stream
-              socket.emit("getProducers", roomId, async (producers) => {
+              socket.emit(GET_PRODUCERS, roomId, async (producers) => {
               for (const p_ of producers) {
                 let obj = { user: p_.user, producers: [] };
 
                 for (const p of p_.p) {
                   socket.emit(
-                    "consume",
+                    CONSUME,
                     {
                       rtpCapabilities: dev.rtpCapabilities,
                       producerId: p.id,
@@ -91,7 +94,7 @@ export function useMediasoupConsumers(roomId ,socket , isBroadcast = false) {
                       });
 
                       await consumer.resume();
-                      socket.emit("resumeConsumer", { consumerId: id, roomId });
+                      socket.emit(RESUME_CONSUMER, { consumerId: id, roomId });
 
                       setStreams((prev) => {
                         const userExists = prev.some(
@@ -120,7 +123,7 @@ export function useMediasoupConsumers(roomId ,socket , isBroadcast = false) {
             console.log(videoId , audioId);
             
             if(videoId){
-              socket.emit('consumeStream' ,{
+              socket.emit(CONSUME_STREAM,{
                 rtpCapabilities: dev.rtpCapabilities,
                 producerId: videoId,
                 transportId: transport.id,
@@ -132,7 +135,7 @@ export function useMediasoupConsumers(roomId ,socket , isBroadcast = false) {
                   console.log(consumer);
                   
                   consumersRef.current.set(consumer.id , consumer);
-                  socket.emit("resumeConsumer", { consumerId: id });
+                  socket.emit(RESUME_CONSUMER, { consumerId: id });
                   obj = {
                     track : consumer.track ,
                     id : consumer.id ,
@@ -146,7 +149,7 @@ export function useMediasoupConsumers(roomId ,socket , isBroadcast = false) {
             }
             if(audioId){
               obj = {} ;
-              socket.emit('consumeStream' ,{
+              socket.emit(CONSUME_STREAM ,{
                 rtpCapabilities: dev.rtpCapabilities,
                 producerId: audioId,
                 transportId: transport.id,
@@ -158,7 +161,7 @@ export function useMediasoupConsumers(roomId ,socket , isBroadcast = false) {
                   console.log(consumer);
                   
                   consumersRef.current.set(consumer.id , consumer);
-                  socket.emit("resumeConsumer", { consumerId: id , roomId });
+                  socket.emit(RESUME_CONSUMER, { consumerId: id , roomId });
                   obj = {
                     track : consumer.track ,
                     id : consumer.id ,
@@ -174,7 +177,7 @@ export function useMediasoupConsumers(roomId ,socket , isBroadcast = false) {
         });
       });
       if(!isBroadcast){
-        socket.emit('getAllMessages' , { roomId } , ({chat , error}) => {
+        socket.emit(GET_ALL_MESSAGES , { roomId } , ({chat , error}) => {
         if(error) return toast.error(error);
         setChats(chat);
       }) ;
@@ -184,7 +187,7 @@ export function useMediasoupConsumers(roomId ,socket , isBroadcast = false) {
     }
   }, [roomId, socket]);
 
-  // ✅Cleanup function
+  // Cleanup function
   const cleanup = useCallback(() => {
     // Close all consumers
     consumersRef.current.forEach((c) => {
@@ -210,7 +213,7 @@ export function useMediasoupConsumers(roomId ,socket , isBroadcast = false) {
     setStreams([]);
   }, []);
 
-  // 🧹Run cleanup on unmount
+  // Run cleanup on unmount
   useEffect(() => {
     return () => cleanup();
   }, [cleanup]);
@@ -223,7 +226,7 @@ export function useMediasoupConsumers(roomId ,socket , isBroadcast = false) {
       console.log('new User added' , roomId);
       
       for( const p  of p_){
-        socket.emit("consume", {
+        socket.emit(CONSUME, {
           rtpCapabilities: rtcCapabilities.current,
           producerId: p.id,
           transportId: transportRef.current.id,
@@ -244,7 +247,7 @@ export function useMediasoupConsumers(roomId ,socket , isBroadcast = false) {
           // stream.addTrack(consumer.track);
           await consumer.resume();
           consumersRef.current.set(consumer.id , consumer);
-          socket.emit("resumeConsumer", { consumerId: id , roomId });
+          socket.emit(RESUME_CONSUMER, { consumerId: id , roomId });
 
           setStreams(prev => {
             // check if user already exists
@@ -313,14 +316,14 @@ export function useMediasoupConsumers(roomId ,socket , isBroadcast = false) {
       
     } 
 
-    socket.on("NewMessageToMeeting" , newMessageMeeting)
-    socket.on("removeUserFromMeeting", removeOldUser ) 
-    socket.on("NewUserToMeeting", AddNewUser)
+    socket.on(NEW_MESSAGE_TO_MEETING , newMessageMeeting)
+    socket.on(REMOVE_USER_FROM_MEETING, removeOldUser ) 
+    socket.on(NEW_USER_TO_MEETING, AddNewUser)
 
     return () => {
-      socket.off("removeUserFromMeeting" , removeOldUser);
-      socket.off('newMessageMeeting' , newMessageMeeting) ;
-      socket.off("NewUserToMeeting" , AddNewUser);
+      socket.off(REMOVE_USER_FROM_MEETING , removeOldUser);
+      socket.off(NEW_MESSAGE_TO_MEETING, newMessageMeeting) ;
+      socket.off(NEW_USER_TO_MEETING , AddNewUser);
 
     } 
   } , [socket , init , roomId])

@@ -2,11 +2,13 @@ import { LiveChat } from "../../models/liveChats.model.js";
 import { Message } from "../../models/messages.model.js";
 import {Types} from 'mongoose' ;
 import { v4 as uuidv4 } from 'uuid';
+import { LIVESTREAM_ROOM } from "../constants/livestrream.socket.constant.js";
+import { RECEIVE_LIVE_MESSAGE, RECEIVE_MESSAGE , SEND_LIVE_MESSAGE , SEND_MESSAGE } from "../constants/messages.socket.constant.js";
 
 const ObjectId = Types.ObjectId ;
 const MessageListener = (socket , io) => {
   
-  socket.on('SEND_MESSAGE' ,  async({message , memberIds = [] , room_id}) => {
+  socket.on(SEND_MESSAGE ,  async({message , memberIds = [] , room_id}) => {
     console.log(message , memberIds , room_id);
     const {_id , username , avatar} = socket.user ;
 
@@ -27,7 +29,7 @@ const MessageListener = (socket , io) => {
       try {
         await Message.create(messageObj) ;
         memberIds.forEach(member => {
-          io.to(`user:${member}`).emit('RECEIVE_MESSAGE' ,messageObj )
+          io.to(`user:${member}`).emit(RECEIVE_MESSAGE ,messageObj )
         })
       } catch (error) {
         console.log('error while saving the message in socket' , error);
@@ -42,7 +44,7 @@ const MessageListener = (socket , io) => {
 
     }) ;
 
-  socket.on('SEND_LIVE_MESSAGE' , async({message , isSuperChat = false, roomId , amount = 0 } , cb) => {  
+  socket.on(SEND_LIVE_MESSAGE , async({message , isSuperChat = false, roomId , amount = 0 } , cb) => {  
 
     const Obj = await new LiveChat({
       sender :  socket.user._id ,
@@ -53,7 +55,7 @@ const MessageListener = (socket , io) => {
     }).save() ;
     console.log(socket?.rooms , 'rooms');
     
-    io.to(`liveStream:${roomId}`).emit('RECEIVE_LIVE_MESSAGE' , {
+    io.to(`${LIVESTREAM_ROOM}:${roomId}`).emit(RECEIVE_LIVE_MESSAGE, {
       ...Obj._doc , 
       sender : {
         _id : socket.user._id , 

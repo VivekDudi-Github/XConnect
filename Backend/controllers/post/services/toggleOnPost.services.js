@@ -8,6 +8,7 @@ import {
   deleteLikeNotification,
 } from '../db/toggleOnPost.db.js';
 import { emitEvent } from '../../../utils/socket.js';
+import { NOTIFICATION_RECEIVE, NOTIFICATION_RETRACT } from '../../../utils/constants/notification.socketEvent.js';
 
 export const togglePinService = async ({ post }) => {
   const status = await togglePinDB(post);
@@ -37,7 +38,7 @@ export const toggleLikeService = async ({ post, user }) => {
 
     if (deleted) {
       emitEvent(
-        'notification:retract',
+        NOTIFICATION_RETRACT,
         'user',
         [`${authorId}`],
         { type: 'like', _id: deleted._id.toString() }
@@ -61,7 +62,7 @@ export const toggleLikeService = async ({ post, user }) => {
     });
 
     emitEvent(
-      'notification:receive',
+      NOTIFICATION_RECEIVE,
       'user',
       [`${authorId}`],
       {
