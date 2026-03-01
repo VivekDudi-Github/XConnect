@@ -4,6 +4,7 @@ import fs from 'fs';
 import {VideoUpload} from '../../models/videoUpload.model.js' ;
 import { fileTypeFromFile } from 'file-type';
 import { uploadHLSFolder } from '../supabase.js';
+import { uploadFilesTOCloudinary } from '../cloudinary.js';
 
 
 const STORAGE_DIR = path.resolve('uploads/storage') ;
@@ -108,7 +109,7 @@ function probeVideo(inputPath) {
       [
         "-v", "error",
         "-select_streams", "v:0",
-        "-show_entries", "stream=width,height",
+        "-show_entries", "stream=width,height:format=duration",
         "-of", "json",
         inputPath
       ],
@@ -116,7 +117,8 @@ function probeVideo(inputPath) {
         if (err) return reject(err);
         const data = JSON.parse(stdout);
         const { width, height } = data.streams[0];
-        resolve({ width, height });
+        const { duration } = data.format;
+        resolve({ width, height , duration });
       }
     );
   });
@@ -192,7 +194,25 @@ function buildFfmpegArgs(inputPath, hlsDir, probe) {
 
   return args;
 }
-
+function getVideoPoster(inputPath , posterPath , duration){
+  return new Promise((resolve, reject) => {
+    execFile(
+      "ffmpeg",
+      [
+        "-v", "error",
+        "-ss", duration.toString(),
+        "-i", inputPath,
+        "-frames:v", "1",
+        "-q:v", "2",
+        posterPath
+      ],
+      (err) => {
+        if (err) return console.error(err);
+        resolve(posterPath);
+      }
+    );
+  });
+}
 
 async function startFFmpegWorker(public_id ){
   console.log('FFmpeg worker started for public_id:', public_id);
@@ -224,18 +244,38 @@ async function startFFmpegWorker(public_id ){
   ffmpeg.on("close", async (code) => {
     if (code === 0) {
       console.log('creating master playlist');
-      
+      const posterPath = path.join(uploadDir , "poster.jpg") ;
+      await getVideoPoster(inputPath , posterPath , probe.duration);
+
+      let uploadedPoster ;
+      try {
+        uploadedPoster = await uploadFilesTOCloudinary([{path : posterPath , type : 'image'}]) 
+      } catch (err) {
+        uploadedPoster = null ;
+      };
+
+
       // Create master playlist manually
       createMasterPlaylist(hlsDir , probe);
       fs.unlinkSync(inputPath) ;
       console.log("Uploading HLS folder");
       
       let masterPlaylist = await uploadHLSFolder(public_id) ;
-      await VideoUpload.findOneAndUpdate({public_id : public_id}  , {url : masterPlaylist}) ;
+      await VideoUpload.findOneAndUpdate({public_id : public_id}  , {
+        url : masterPlaylist , 
+        poster : uploadedPoster?.[0] ? {
+          url : uploadedPoster[0].url ,
+          public_id : uploadedPoster[0].public_id ,
+        } : null 
+      }) ;
       console.log("HLS folder uploaded");
+    
     } else {
       console.log('ffmpeg error:' , code);
-      
+      let posterPath = path.join(uploadDir , "poster.jpg") ;
+
+      fs.unlinkSync(inputPath) ;
+      fs.existsSync(posterPath) ? fs.unlinkSync(posterPath) : null;
       await VideoUpload.updateOne(
         { public_id },
         { status: "failed" }

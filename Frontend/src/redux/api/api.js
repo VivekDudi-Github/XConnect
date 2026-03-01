@@ -6,7 +6,7 @@ import { messagesApi } from './messages.api';
 import { communityApi } from './community.api';
 import { liveApi } from './live.api';
 import { searchApi } from './search.api.';
-import { videoUploadApi } from './videoUpload.api';
+import { videoApi } from './video.api';
 
 
 const api = createApi({
@@ -37,7 +37,7 @@ const api = createApi({
     ...searchApi(builder) ,
 
 //video-upload
-    ...videoUploadApi(builder) ,
+    ...videoApi(builder) ,
   
 //notification 
     getMyNotifications : builder.query({
@@ -154,4 +154,6 @@ export const {
 
   useUploadVideoChunksMutation ,
   useVerifyUploadVideoMutation ,
+  //poster
+  useLazyGetVideoPosterQuery ,
 } = api ;

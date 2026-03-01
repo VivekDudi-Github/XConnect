@@ -13,7 +13,14 @@ const videoUploadSchema = new mongoose.Schema({
   url : {
     type : String ,
   } ,
-
+  poster : {
+    url : {
+      type : String ,
+    } ,
+    public_id : {
+      type : String ,
+    } ,
+  } ,
   uploadedChunks : {type : [Number] , default : []} ,
   totalChunks : {type : Number , default : 0 } ,
   fileSize : {type : Number , required : true} ,

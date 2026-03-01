@@ -1,12 +1,8 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import io from "socket.io-client";
+import { useCallback, useEffect, useRef, useState } from "react";
 import * as mediasoupClient from "mediasoup-client";
-import { useSocket } from "../socket";
-import Videojs from "video.js"
-import VideoPlayer from "../videPlayer/LiveVideoPlayer";
 import { toast } from "react-toastify";
 import { ensureSocketReady } from "../../shared/SharedFun";
-import { CONNECT_PRODUCER_TRANSPORT, CONSUME, CONSUME_STREAM, CREATE_WEBRTC_TRANSPORT, GET_PRODUCERS, GET_RTP_CAPABILITIES, RESUME_CONSUMER } from "../../../constants/mediasoup.socket.constant";
+import { CONNECT_CONSUMER_TRANSPORT, CONSUME, CONSUME_STREAM, CREATE_CONSUMER_TRANSPORT, GET_PRODUCERS, GET_RTP_CAPABILITIES, RESUME_CONSUMER } from "../../../constants/mediasoup.socket.constant";
 import { GET_ALL_MESSAGES } from "../../../constants/message.socket.constant";
 import { NEW_USER_TO_MEETING , NEW_MESSAGE_TO_MEETING, REMOVE_USER_FROM_MEETING } from "../../../constants/meeting.socket.constant";
 
@@ -45,12 +41,12 @@ export function useMediasoupConsumers(roomId ,socket , isBroadcast = false) {
         console.log('rtp connected');
         
         // 2. Create consumer transport
-        socket.emit(CREATE_WEBRTC_TRANSPORT, async (params) => {
+        socket.emit(CREATE_CONSUMER_TRANSPORT, async (params) => {
           const transport = dev.createRecvTransport(params);
 
           transport.on("connect", ({ dtlsParameters }, callback, errback) => {
             socket.emit(
-              CONNECT_PRODUCER_TRANSPORT,
+              CONNECT_CONSUMER_TRANSPORT,
               { transportId: transport.id, dtlsParameters },
               callback
             );

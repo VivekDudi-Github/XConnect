@@ -20,7 +20,7 @@ import communityRouter from './routes/community.routes.js' ;
 import analyticsRouter from './routes/analytics.routes.js' ;
 import stripeRouter from './routes/stripePayment.routes.js' ;
 import stripeWebhook from './routes/stripeWebhook.routes.js' ;
-import videoUploadRouter from './routes/videoUpload.routes.js' ;
+import videoUploadRouter from './routes/video.routes.js' ;
 
 import { checkSocketUser } from "./utils/chekAuth.js";
 
@@ -72,7 +72,7 @@ app.use('/api/v1/live' , liveRouter) ;
 app.use('/api/v1/stripe/payment' , stripeRouter) ;
 app.use('/api/v1/search' , searchRouter) ;
 app.use('/api/v1/analytics' , analyticsRouter) ;
-app.use('/api/v1/videoUpload' , videoUploadRouter) ;
+app.use('/api/v1/video' , videoUploadRouter) ;
 
 console.log('run');
 

@@ -16,6 +16,6 @@ export const uploadChunkSchema = z.object({
 
 export const publicIdParamSchema = z.object({
   params: z.object({
-    public_id: z.string().uuid()
+    public_id: z.uuid()
   })
 });

@@ -7,10 +7,10 @@ function InPostImages({imagesArray}) {
   return (
       <div className={`w-full sm:max-h-[460px] max-h-[460px] grid gap-2 mx-auto 
         ${length > 1 && ' grid-cols-2 grid-flow-col grid-rows-2'}`}>
-        {length >0 && length <5 && imagesArray.map(({url , type}, index) => 
+        {length >0 && length <5 && imagesArray.map(({url ,public_id , type}, index) => 
              type === 'video' ? (
                 <div className='w-full h-full rounded-lg mb-2 object-cover' key={index}>
-                  <VideoPlayer src={url} />
+                  <VideoPlayer src={url} public_id={public_id} />
                 </div>
             ) : (
               <img
@@ -29,10 +29,10 @@ function InPostImages({imagesArray}) {
         {
         length >= 5 && (
           <>
-          { imagesArray.slice(0 ,3).map(({url , type} ,index) => {
+          { imagesArray.slice(0 ,3).map(({url , public_id , type} ,index) => {
             return type === 'video' ? (
                 <div className='w-full h-full rounded-lg mb-2 object-cover ' key={index}>
-                  <VideoPlayer src={url} />
+                  <VideoPlayer src={url} public_id={public_id} />
                 </div>
               ) : (
                 <img 
@@ -50,7 +50,7 @@ function InPostImages({imagesArray}) {
             </div>
             {imagesArray[3].type === 'video' ? (
               <div className='w-full h-full rounded-lg mb-2 object-cover ' key={index}>
-                <VideoPlayer src={import.meta.env.VITE_SERVE_HSL_URL+imagesArray[3].url} />
+                <VideoPlayer public_id={imagesArray[3].public_id} src={imagesArray[3].url} />
               </div>
             ) : (
               <img 

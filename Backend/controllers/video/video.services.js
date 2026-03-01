@@ -120,3 +120,13 @@ export const verifyUpload = async (public_id) => {
     missingChunks: [...missingChunks]
   };
 };
+
+export const getVideoPoster = async (public_id) => {
+  const uploadDoc = await videoRepo.findByPublicId(public_id);
+
+  if (!uploadDoc || !uploadDoc.poster) {
+    throw new ApiError(404 ,'No poster found');
+  }
+
+  return uploadDoc.poster;
+};

@@ -2,16 +2,19 @@ import { useEffect, useRef, useState } from 'react' ;
 
 import videojs from 'video.js' ;
 import 'video.js/dist/video-js.css' ;
-
+import {useLazyGetVideoPosterQuery} from '../../../redux/api/api';
 
 
 const MenuButton = videojs.getComponent("MenuButton");
 const MenuItem = videojs.getComponent("MenuItem");
 const Button = videojs.getComponent("Button");
 
-export default function VideoPlayer({ src , type }) {
+export default function VideoPlayer({ src , type , public_id }) {
   const videoRef = useRef(null);
   const playerRef = useRef(null);
+  const poster = useRef(null);
+
+  const [fetch] = useLazyGetVideoPosterQuery();
 
   useEffect(() => {
     if (!playerRef.current && videoRef.current) {
@@ -78,6 +81,24 @@ export default function VideoPlayer({ src , type }) {
     };
   }, [src]);
 
+  useEffect(() => {
+    const getPoster = async() => {
+      try {
+        const res = await fetch({public_id}).unwrap();
+        console.log(res);
+        if(res?.data?.poster){
+          poster.current(res.data.poster.url); 
+        } 
+      } catch (error) {
+        console.log(error); 
+      }
+    }
+
+    if(public_id){
+      getPoster();
+    }
+  } , [public_id ])
+
   return (
     <div className="w-full h-fit bg-black overflow-hidden rounded-md">
       <video
@@ -86,6 +107,7 @@ export default function VideoPlayer({ src , type }) {
         playsInline
         muted
         preload='none'
+        poster={poster.current ? poster.current : null}
       />
     </div>
   );

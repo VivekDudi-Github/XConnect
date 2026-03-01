@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect , useCallback } from "react";
 import { Device } from "mediasoup-client";
 import { toast } from "react-toastify";
 import { GET_RTP_CAPABILITIES , CONNECT_PRODUCER_TRANSPORT , CREATE_WEBRTC_TRANSPORT , PRODUCE , PRODUCE_STREAM } from "../../../constants/mediasoup.socket.constant";
+import { USER_LEFT_FROM_MEETING } from "../../../constants/meeting.socket.constant";
 
 
 
@@ -154,7 +155,7 @@ export function useBroadcast(socket , isStream = false ) {
 
     setIsLive(false);
     setVideoProducer(null);
-    if(socket) socket.emit('userLeftFromMeeting' , { roomId });
+    if(socket) socket.emit(USER_LEFT_FROM_MEETING , { roomId });
     console.log("Broadcast stopped");
   }, [socket ]);
 

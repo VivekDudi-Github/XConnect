@@ -4,6 +4,7 @@ const CREATE_MEETING = 'createMeeting' ;
 const NEW_USER_TO_MEETING = "NewUserToMeeting" ;
 const NEW_MESSAGE_TO_MEETING = "newMessageToMeeting" ;
 const REMOVE_USER_FROM_MEETING = "removeUserFromMeeting" ;
+const USER_LEFT_FROM_MEETING = 'userLeftFromMeeting' ;
 
 export {
   JOIN_MEETING ,
@@ -11,4 +12,5 @@ export {
   NEW_USER_TO_MEETING ,
   NEW_MESSAGE_TO_MEETING ,
   REMOVE_USER_FROM_MEETING ,
+  USER_LEFT_FROM_MEETING ,
 }

@@ -1,12 +1,14 @@
 import { v4 } from "uuid";
 import {LiveStream} from '../../models/liveStream.model.js'
-import {NEW_MESSAGE_TO_MEETING , NEW_USER_TO_MEETING , REMOVE_USER_FROM_MEETING} from '../constants/meeting.socket.constants.js'
+import {CREATE_MEETING, JOIN_MEETING, NEW_MESSAGE_TO_MEETING , NEW_USER_TO_MEETING , REMOVE_USER_FROM_MEETING, USER_LEFT_FROM_MEETING} from '../constants/meeting.socket.constants.js'
+import { CONNECT_CONSUMER_TRANSPORT, CONNECT_PRODUCER_TRANSPORT, CONSUME, CONSUME_STREAM, CREATE_CONSUMER_TRANSPORT, CREATE_WEBRTC_TRANSPORT, GET_PRODUCERS, GET_RTP_CAPABILITIES, PRODUCE, PRODUCE_STREAM, RESUME_CONSUMER } from "../constants/mediasoup.socket.constant.js";
+import {ADD_MESSAGE, GET_ALL_MESSAGES} from '../constants/messages.socket.constant.js' ;
 
 let streamConsumers = new Map() ;
 
 export const MediaSoupListener = (socket , io , roomMap, participants , transportsBySocket , router) => {
   
-    socket.on('joinMeeting', async ({roomId , password = ''} , callback) => {
+    socket.on(JOIN_MEETING, async ({roomId , password = ''} , callback) => {
       const room = roomMap.get(roomId);
       
       if (!room) return callback({error : 'Room not found'});
@@ -31,7 +33,7 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
       callback({success : true});
     })
   
-    socket.on("createMeeting", async ({password} , callback) => {
+    socket.on(CREATE_MEETING, async ({password} , callback) => {
       const roomId = v4() ;
       roomMap.set(roomId , { 
         users : new Map() ,      
@@ -56,7 +58,7 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
   
     })
   
-    socket.on('addMessage' , async({message , roomId } , callback) => {
+    socket.on(ADD_MESSAGE , async({message , roomId } , callback) => {
       const room = roomMap.get(roomId) ;
       if(!room) return callback({error : "Room doesn't exist"}) ;
 
@@ -83,7 +85,7 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
       callback() ;
     })
 
-    socket.on('getAllMessages' , async({roomId} , callback) => {
+    socket.on(GET_ALL_MESSAGES , async({roomId} , callback) => {
       const room = roomMap.get(roomId) ;
       if(!room) return callback({error : "Room doesn't exist"})
         
@@ -93,13 +95,13 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
       return callback({chat : room.chat}) ;
     })
 
-    socket.on("getRtpCapabilities", (callback) => {
+    socket.on(GET_RTP_CAPABILITIES, (callback) => {
       console.log('rtp connection tried');
       
       callback(router.rtpCapabilities);
     });
   
-    socket.on("createWebRtcTransport", async (callback) => {
+    socket.on(CREATE_WEBRTC_TRANSPORT, async (callback) => {
       const transport = await router.createWebRtcTransport({
         listenIps: [{ ip: '0.0.0.0' , announcedIp: process.env.IP_ADDRESS }],
         enableUdp: true,
@@ -119,8 +121,8 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
         dtlsParameters: transport.dtlsParameters
       });
     });
-  
-    socket.on("connectProducerTransport", async ({ dtlsParameters, transportId }, callback) => {
+
+    socket.on(CONNECT_PRODUCER_TRANSPORT, async ({ dtlsParameters, transportId }, callback) => {
       const transports = transportsBySocket.get(socket.id) || [];
       const transport = transports.find(t => t.id === transportId);
       if (transport) {
@@ -128,12 +130,8 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
       }
       callback();
     });
-  
-    // fix the error handling here , missing room 
-    socket.on("produce", async ({ kind, rtpParameters, transportId , roomId }, callback) => {
-      console.log('producing meeting');
-      
-      
+   
+    socket.on(PRODUCE, async ({ kind, rtpParameters, transportId , roomId }, callback) => {    
       const transports = transportsBySocket.get(socket.id) || [];
       
       const transport = transports.find(t => t.id === transportId);
@@ -185,7 +183,7 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
     
     });
 
-    socket.on("produce_stream", async ({ kind, rtpParameters, transportId  }, callback) => {
+    socket.on(PRODUCE_STREAM, async ({ kind, rtpParameters, transportId  }, callback) => {
       const transports = transportsBySocket.get(socket.id) || [];
 
       const transport = transports.find(t => t.id === transportId);
@@ -200,7 +198,7 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
 
     })
   
-    socket.on("getProducers", (roomId, callback) => {
+    socket.on(GET_PRODUCERS, (roomId, callback) => {
       const list = [];
       let room = roomMap.get(roomId) ;
       if(!room) return callback(list);
@@ -218,7 +216,7 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
       callback(list);
     });
   
-    socket.on("createConsumerTransport", async (callback) => {
+    socket.on(CREATE_CONSUMER_TRANSPORT, async (callback) => {
       const transport = await router.createWebRtcTransport({
         listenIps: [{ ip: "0.0.0.0", announcedIp: process.env.IP_ADDRESS  }],
         enableUdp: true,
@@ -239,7 +237,7 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
       });
     });
   
-    socket.on("connectConsumerTransport", async ({ dtlsParameters, transportId }, callback) => {
+    socket.on( CONNECT_CONSUMER_TRANSPORT, async ({ dtlsParameters, transportId }, callback) => {
       const transports = transportsBySocket.get(socket.id) || [];
       const transport = transports.find(t => t.id === transportId);
       
@@ -257,7 +255,7 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
       callback();
     });
   
-    socket.on("consume", async ({ rtpCapabilities, producerId, transportId , roomId }, callback) => {
+    socket.on(CONSUME, async ({ rtpCapabilities, producerId, transportId , roomId }, callback) => {
       if (!router.canConsume({ producerId, rtpCapabilities })) {
         return callback({ error: "Cannot consume" });
       }
@@ -291,7 +289,7 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
       });
     });
 
-    socket.on('consumeStream' , async({rtpCapabilities , producerId , transportId } , callback) => {
+    socket.on(CONSUME_STREAM , async({rtpCapabilities , producerId , transportId } , callback) => {
       if (!router.canConsume({ producerId, rtpCapabilities })) {
         return callback({ error: "Cannot consume" });
       }
@@ -319,7 +317,7 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
 
     })
   
-    socket.on("resumeConsumer", async ({ consumerId , roomId }) => {
+    socket.on(RESUME_CONSUMER, async ({ consumerId , roomId }) => {
       let consumer = roomMap.get(roomId)?.consumers?.get(socket.user._id)?.find(c => c.id === consumerId);
       
       if(!consumer){
@@ -331,7 +329,7 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
       }
     });
   
-    socket.on('userLeftFromMeeting' , async ({ roomId}) => {
+    socket.on(USER_LEFT_FROM_MEETING , async ({ roomId}) => {
       const room = roomMap.get(roomId);
       if(!room) return ;
       

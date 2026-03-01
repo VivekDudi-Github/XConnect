@@ -1,8 +1,14 @@
-export function videoUploadApi(builder){
+export function videoApi(builder){
   return {
+    getVideoPoster : builder.query({
+      query : ({public_id}) => ({
+        url : `/video/poster/${public_id}` ,
+        credentials : 'include'
+      })
+    }) ,
     intializeVideoUpload : builder.mutation({
       query : ({fileSize , fileType}) => ({
-        url : '/videoUpload/session' ,
+        url : '/video/session' ,
         method : 'POST' ,
         body : {fileSize , fileType} ,
         credentials : 'include'
@@ -10,13 +16,13 @@ export function videoUploadApi(builder){
     }) ,
     uploadStatusCheck : builder.query({
       query : ({public_id}) => ({
-        url : `/videoUpload/status/${public_id}` ,
+        url : `/video/status/${public_id}` ,
         credentials : 'include'
       })
     }) ,
     uploadVideoChunks : builder.mutation({
       query : ({form}) => ({
-        url : '/videoUpload/chunk' ,
+        url : '/video/chunk' ,
         method : 'POST' ,
         body : form ,
         credentials : 'include'
@@ -24,7 +30,7 @@ export function videoUploadApi(builder){
     }) ,
     verifyUploadVideo : builder.mutation({
       query : ({public_id}) => ({
-        url : '/videoUpload/verify/'+public_id ,
+        url : '/video/verify/'+public_id ,
         method : 'POST' ,
         credentials : 'include'
       })
