@@ -12,7 +12,7 @@ const Button = videojs.getComponent("Button");
 export default function VideoPlayer({ src , type , public_id }) {
   const videoRef = useRef(null);
   const playerRef = useRef(null);
-  const poster = useRef(null);
+  const [poster , setPoster] = useState(null);
 
   const [fetch] = useLazyGetVideoPosterQuery();
 
@@ -86,8 +86,8 @@ export default function VideoPlayer({ src , type , public_id }) {
       try {
         const res = await fetch({public_id}).unwrap();
         console.log(res);
-        if(res?.data?.poster){
-          poster.current(res.data.poster.url); 
+        if(res?.data){
+          setPoster(res?.data?.url); 
         } 
       } catch (error) {
         console.log(error); 
@@ -95,6 +95,7 @@ export default function VideoPlayer({ src , type , public_id }) {
     }
 
     if(public_id){
+      console.log(public_id);
       getPoster();
     }
   } , [public_id ])
@@ -107,7 +108,7 @@ export default function VideoPlayer({ src , type , public_id }) {
         playsInline
         muted
         preload='none'
-        poster={poster.current ? poster.current : null}
+        poster={poster}
       />
     </div>
   );

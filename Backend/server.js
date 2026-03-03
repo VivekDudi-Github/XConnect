@@ -13,7 +13,10 @@ import { UserListener } from "./utils/listners/user.listener.js";
 import { Following } from "./models/following.model.js";
 import { LiveStreamCleanup, StreamListener } from "./utils/listners/liveStream.listeners.js";
 
+import path from "path";
+import { execFile } from "child_process";
 
+const STORAGE_DIR = path.resolve('uploads/storage') ;
 const transportsBySocket = new Map();  // socket.id → array of transports
 const participants = new Map(); // roomId → array of userIds
 
@@ -61,7 +64,12 @@ async function StartServer(){
     
     newServer.listen(process.env.PORT, async() => {
       console.log("Server is running on port "+process.env.PORT);
+      // let inputPath = path.join(STORAGE_DIR ,'702f7348-650b-4d7f-9dc4-7cc0ae873550' , 'final.mp4') ;
+      // let posterPath = path.join(STORAGE_DIR ,'702f7348-650b-4d7f-9dc4-7cc0ae873550' , 'poster.jpg') ;
+      // await getVideoPoster(inputPath , posterPath , 4) ;
     });
+
+
 
     io.on("connection", async (socket) => {
       console.log(`New client connected: ${socket.id}`);
@@ -137,3 +145,31 @@ process.on("unhandledRejection", (reason, promise) => {
   console.error("Unhandled Rejection at:", promise);
   console.error("Reason:", reason);
 });
+
+
+function getVideoPoster(inputPath , posterPath , duration){
+
+  return new Promise((resolve, reject) => {
+    execFile(
+      "ffmpeg",
+      [
+        "-v", "error",
+        "-ss", duration.toString(),
+        "-i", inputPath,
+        "-strict", "unofficial",
+        "-frames:v", "1",
+        "-q:v", "2",
+        posterPath
+      ],
+      (err , stdout, stderr) => {
+        console.log('POSTER STDOUT' , stdout);
+        console.log('POSTER STDERR' , stderr);
+        if (err) {
+          console.error('error in generating poster from video' ,err);
+          return reject(null);
+        } ;
+        resolve(posterPath);
+      }
+    );
+  });
+}

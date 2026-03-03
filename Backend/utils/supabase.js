@@ -20,7 +20,7 @@ function getMimeType(filePath) {
   return "application/octet-stream";
 }
 
-function walkDir(dirPath) {
+export function walkDir(dirPath) {
   let fileList = [];
 
   for (const file of fs.readdirSync(dirPath)) {
@@ -66,7 +66,7 @@ export async function uploadHLSFolder(fileId) {
 
     if (error) {
       console.error("Upload failed:", error.message);
-      throw ApiError("Upload failed: " + error.message , 500);
+      throw new ApiError("Upload failed: " + error.message , 500);
     }
     fs.unlinkSync(filePath);
   }
@@ -101,10 +101,7 @@ export async function supabaseDeleteHLSVideo(files) {
       throw new ApiError(500 ,"List failed: " + listError.message );
     }
 
-    if (!files || files.length === 0) {
-      console.log("No files found");
-      return;
-    }
+    if (!files || files.length === 0) return;
 
     // Build full paths for removal
     let PathNames = files.map((file) => {
@@ -136,7 +133,10 @@ export async function supabaseDeleteHLSVideo(files) {
     console.log("Deleting video folder:", basePrefix);
     await getAllFiles(basePrefix) ;
   }
-
+  if(pathsToDelete.length === 0){
+    console.log("No files to delete");
+    return;
+  }
   console.log("Deleting files:", pathsToDelete.length );
 
   // Remove all
