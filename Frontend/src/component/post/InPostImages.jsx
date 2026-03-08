@@ -10,7 +10,7 @@ function InPostImages({imagesArray}) {
         {length >0 && length <5 && imagesArray.map(({url ,public_id , type}, index) => 
              type === 'video' ? (
                 <div className='w-full h-full rounded-lg mb-2 object-cover' key={index}>
-                  <VideoPlayer src={url} public_id={public_id} />
+                  <VideoPlayer src={url} public_id={public_id} type={'application/x-mpegURL'} />
                 </div>
             ) : (
               <img
@@ -32,7 +32,7 @@ function InPostImages({imagesArray}) {
           { imagesArray.slice(0 ,3).map(({url , public_id , type} ,index) => {
             return type === 'video' ? (
                 <div className='w-full h-full rounded-lg mb-2 object-cover ' key={index}>
-                  <VideoPlayer src={url} public_id={public_id} />
+                  <VideoPlayer src={url} public_id={public_id} type={"application/x-mpegURL"} />
                 </div>
               ) : (
                 <img 
@@ -50,7 +50,7 @@ function InPostImages({imagesArray}) {
             </div>
             {imagesArray[3].type === 'video' ? (
               <div className='w-full h-full rounded-lg mb-2 object-cover ' key={index}>
-                <VideoPlayer public_id={imagesArray[3].public_id} src={imagesArray[3].url} />
+                <VideoPlayer public_id={imagesArray[3].public_id} src={imagesArray[3].url} type={"application/x-mpegURL"} />
               </div>
             ) : (
               <img 

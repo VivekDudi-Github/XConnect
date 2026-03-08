@@ -9,6 +9,10 @@ export const createPost = TryCatch(async (req, res) => {
   media.forEach(file => req.CreateMediaForDelete.push(file));
 
   const valid = await validateCreatePost(req, res);
+
+  if((media?.length ?? 0) + (req?.body?.videoIds?.length ?? 0) > 5)  
+    return ResError(res, 400, 'You can only upload up to 5 media files per post.'); 
+  
   if (valid !== true ) return;
 
   const post = await createPostService({

@@ -1,8 +1,8 @@
 export function videoApi(builder){
   return {
-    getVideoPoster : builder.query({
+    getVideoDetails : builder.query({
       query : ({public_id}) => ({
-        url : `/video/poster/${public_id}` ,
+        url : `/video/details/${public_id}` ,
         credentials : 'include'
       })
     }) ,

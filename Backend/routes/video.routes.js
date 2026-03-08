@@ -1,12 +1,12 @@
 import express from 'express' ;
 import multer from 'multer';
 import {checkUser} from '../utils/chekAuth.js'
-import { uploadVideoChunk , InitVideoUpload , uploadStatusCheck, verifyUpload , getVideoPoster } from '../controllers/video/video.controller.js';
+import { uploadVideoChunk , InitVideoUpload , uploadStatusCheck, verifyUpload , getVideoDetails } from '../controllers/video/video.controller.js';
 
 const router = express.Router() ;
 const upload = multer({storage : multer.memoryStorage()})
 
-router.get('/poster/:public_id' , checkUser , getVideoPoster );
+router.get('/details/:public_id' , checkUser , getVideoDetails ) ;
 router.get('/status/:public_id' ,checkUser , uploadStatusCheck ) ;
 router.post('/verify/:public_id' , checkUser , verifyUpload) ;
 

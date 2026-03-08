@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react' ;
+import {LoaderPinwheelIcon} from 'lucide-react'
 
 import videojs from 'video.js' ;
 import 'video.js/dist/video-js.css' ;
-import {useLazyGetVideoPosterQuery} from '../../../redux/api/api';
+import {useLazyGetVideoDetailsQuery} from '../../../redux/api/api';
 
 
 const MenuButton = videojs.getComponent("MenuButton");
@@ -14,7 +15,10 @@ export default function VideoPlayer({ src , type , public_id }) {
   const playerRef = useRef(null);
   const [poster , setPoster] = useState(null);
 
-  const [fetch] = useLazyGetVideoPosterQuery();
+  const [loading , setLoading] = useState(true) ;
+  const [videoStatus , setVideoStatus] = useState('') ;
+
+  const [fetch] = useLazyGetVideoDetailsQuery();
 
   useEffect(() => {
     if (!playerRef.current && videoRef.current) {
@@ -75,33 +79,57 @@ export default function VideoPlayer({ src , type , public_id }) {
 
     return () => {
       if (playerRef.current) {
-        playerRef.current.dispose();
-        playerRef.current = null;
+        // playerRef.current.dispose();
+        // playerRef.current = null;
       }
     };
   }, [src]);
 
   useEffect(() => {
-    const getPoster = async() => {
+    const getDetails = async() => {
       try {
         const res = await fetch({public_id}).unwrap();
         console.log(res);
         if(res?.data){
-          setPoster(res?.data?.url); 
+            if(res?.data?.status === 'failed') throw new Error('Video upload had an error') ;
+            res?.data?.status === 'processing' ? setVideoStatus('The video is processing') : null ;
+            res?.data?.status === 'completed' ? setVideoStatus('Completed') : null ;
+            res?.data?.status === 'uploading' ? setVideoStatus('The video is uploading') : null ;
+
+          setPoster(res?.data?.poster?.url);  
         } 
       } catch (error) {
         console.log(error); 
+        if(type !== 'application/x-mpegURL' ) return ;
+        if(playerRef.current) playerRef.current.dispose();
+        playerRef.current = null ;
+        
+        if(error.status === 404  ) {
+          setVideoStatus('Video not found');
+        } else {
+          setVideoStatus('There was an error in fetching video details.');
+        }
+      
+      } finally {
+        setLoading(false);
       }
     }
 
     if(public_id){
       console.log(public_id);
-      getPoster();
+      getDetails();
     }
   } , [public_id ])
 
   return (
-    <div className="w-full h-fit bg-black overflow-hidden rounded-md">
+    <div className="w-full h-fit bg-black overflow-hidden rounded-md min-h-fit">
+      <span className='relative left-1 top-1  bg-white rounded-lg font-bold text-sm text-black z-10  ' >
+        {loading ? (
+          <LoaderPinwheelIcon className='animate-spin' size={15} />
+        ) : (
+          videoStatus !== 'Completed' ? videoStatus : null
+        )}
+      </span>
       <video
         ref={videoRef}
         className="video-js vjs-big-play-centered w-full h-full rounded-lg"

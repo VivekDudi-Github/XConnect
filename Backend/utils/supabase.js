@@ -39,8 +39,10 @@ export function walkDir(dirPath) {
 // Upload full HLS folder
 export async function uploadHLSFolder(fileId) {
   const bucketName = [process.env.SUPABASE_VIDEO_BUCKET];
+  
   // local folder where HLS is stored
-  const localRoot = path.join("uploads/storage", fileId);
+  let folder = path.resolve('uploads/storage') ;
+  const localRoot = path.join(folder, fileId);
 
   // collect all files recursively
   const allFiles = walkDir(localRoot);
@@ -65,8 +67,8 @@ export async function uploadHLSFolder(fileId) {
       });
 
     if (error) {
-      console.error("Upload failed:", error.message);
-      throw new ApiError("Upload failed: " + error.message , 500);
+      console.error("Upload failed:", error);
+      throw new Error ("Upload failed: " + error.message);
     }
     fs.unlinkSync(filePath);
   }

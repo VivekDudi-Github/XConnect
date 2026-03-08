@@ -28,7 +28,7 @@ const ImageSlider = ({ images = [] }) => {
           if(m.type === 'video'){
             return (
             <div className="max-h-80 h-fit w-full mx-auto flex-shrink-0 flex justify-center items-center px-2" key={i} >
-              <VideoPlayer src={m?.url} public_id={m?.public_id} key={i} />
+              <VideoPlayer src={m?.url} type={"application/x-mpegURL"} public_id={m?.public_id} key={i} />
             </div>
           )
           }else{

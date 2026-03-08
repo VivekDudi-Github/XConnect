@@ -52,12 +52,14 @@ export const uploadFilesTOCloudinary = async(files =[]) => {
 
 export const deleteFilesFromCloudinary = async(files =[]) => {
   const promise =  files.map((f) => {
-    if(f.type === 'video') return ;
+    if(f?.type === 'video' || !f?.public_id) return ;
+    console.log('public_id:' ,f.public_id);
     return cloudinary.uploader.destroy(f.public_id )
   })
 
   try {
-    await Promise.all(promise) ;
+    const awaitedPromise = await Promise.all(promise) ;
+    console.log('cloudinary awaitedPromise' , awaitedPromise); 
   } catch (error) {
     console.log('---error-- while deleting file from the cloudinary' ,error);
     throw new ErrorHandler("Error while deleting files in cloudinary" , 500);

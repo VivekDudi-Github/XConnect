@@ -37,8 +37,8 @@ export const verifyUpload = TryCatch(async (req, res) => {
   return ResSuccess(res, 200, result);
 }, 'verifyUpload');
 
-export const getVideoPoster = TryCatch(async (req, res) => {
+export const getVideoDetails = TryCatch(async (req, res) => {
   validate(schema.publicIdParamSchema, req);
-  const result = await videoService.getVideoPoster(req.params.public_id);
+  const result = await videoService.getVideoDetails(req.params.public_id);
   return ResSuccess(res, 200, result);
 }, 'getVideoPoster');

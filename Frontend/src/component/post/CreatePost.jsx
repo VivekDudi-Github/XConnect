@@ -41,6 +41,10 @@ export default function CreatePost() {
 
   
   const onDrop = (acceptedFiles) => {
+    if(media.length + acceptedFiles.length > 5) {
+      toast.error('You can only upload up to 5 media files per post.');
+      return;
+    }
     const newMedia = acceptedFiles.map(file => {
     if(file.type.startsWith('video/')) checkPendingUpload(file) ;
     

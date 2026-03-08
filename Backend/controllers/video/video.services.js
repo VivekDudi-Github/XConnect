@@ -121,12 +121,10 @@ export const verifyUpload = async (public_id) => {
   };
 };
 
-export const getVideoPoster = async (public_id) => {
+export const getVideoDetails = async (public_id) => {
   const uploadDoc = await videoRepo.findByPublicId(public_id);
+  
+  if(!uploadDoc) throw new ApiError(404 ,'Video not found'); 
 
-  if (!uploadDoc || !uploadDoc.poster) {
-    throw new ApiError(404 ,'No poster found');
-  }
-
-  return uploadDoc.poster;
+  return uploadDoc;
 };

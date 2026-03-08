@@ -126,7 +126,7 @@ useEffect(() => {
 
       <div 
       onClick={() => openOptionsHandler(post._id)}
-      className=' absolute top-4 right-2 dark:hover:bg-slate-700 hover:bg-gray-300 rounded-full p-2 duration-200'>
+      className=' absolute top-4 right-2 dark:hover:bg-slate-700 hover:bg-gray-300 rounded-full p-2 duration-200 z-20'>
       
       {/* Options */}
         <EllipsisVerticalIcon size={17}/>

@@ -155,5 +155,5 @@ export const {
   useUploadVideoChunksMutation ,
   useVerifyUploadVideoMutation ,
   //poster
-  useLazyGetVideoPosterQuery ,
+  useLazyGetVideoDetailsQuery ,
 } = api ;

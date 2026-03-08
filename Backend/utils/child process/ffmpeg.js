@@ -275,6 +275,7 @@ async function startFFmpegWorker(public_id ){
         let masterPlaylist = await uploadHLSFolder(public_id) ;
         await VideoUpload.findOneAndUpdate({public_id : public_id}  , {
           url : masterPlaylist , 
+          status : "completed" ,
           poster : uploadedPoster?.[0] ? {
             url : uploadedPoster[0].url ,
             public_id : uploadedPoster[0].public_id ,
@@ -286,16 +287,36 @@ async function startFFmpegWorker(public_id ){
           console.log('ffmpeg catch block error :' ,error);     
           let paths = walkDir(uploadDir) ;
 
+          await VideoUpload.updateOne(
+            { public_id },
+            { status: "failed" }
+          );
+
           for(const path of paths){
             fs.unlinkSync(path) ;
           }
           let posterPath = path.join(uploadDir , "poster.jpg") ;
           fs.existsSync(inputPath) ? fs.unlinkSync(inputPath) : null ; 
           fs.existsSync(posterPath) ? fs.unlinkSync(posterPath) : null;
+          fs.existsSync(uploadDir) ? fs.rmSync(uploadDir , {recursive : true}) : null ;
         }
         
     } else {
       console.log('ffmpeg error:' , code);
+      let paths = walkDir(uploadDir) ;
+
+      await VideoUpload.updateOne(
+        { public_id },
+        { status: "failed" }
+      );
+
+      for(const path of paths){
+        fs.unlinkSync(path) ;
+      }
+      let posterPath = path.join(uploadDir , "poster.jpg") ;
+      fs.existsSync(inputPath) ? fs.unlinkSync(inputPath) : null ; 
+      fs.existsSync(posterPath) ? fs.unlinkSync(posterPath) : null;
+      fs.existsSync(uploadDir) ? fs.rmSync(uploadDir , {recursive : true}) : null ;
 
       await VideoUpload.updateOne(
         { public_id },
