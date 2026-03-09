@@ -3,12 +3,15 @@ import { setisDeleteDialog } from '../../redux/reducer/miscSlice';
 
 
 
-const deletePostFunc = async(id , deleteMutation , dispatch ) => {
+const deletePostFunc = async(id , deleteMutation , dispatch , setDeletePostIds , Idsset ) => { 
   const toastId = toast.loading('Deleting post..');
   try {
     const data = await deleteMutation(id).unwrap() ;
-    if(data.success){
+    if(data?.success) {
       toast.update(toastId, {render : "Post deleted successfully!" , type : 'success' , isLoading : false , autoClose: 5000 , hideProgressBar: false })
+      let set = new Set(Idsset) ;
+      set.add(id) ;
+      setDeletePostIds(set);
     } 
   } catch (error) {
     console.log(error , 'errror in deleting the post');

@@ -27,6 +27,8 @@ function ProfileTabs() {
   const {isDeleteDialog} = useSelector(state => state.misc);
   const {user} = useSelector(state => state.auth) ;
 
+  const [deletePostIds , setDeletePostIds] = useState(new Set()) ; 
+
   const [activeTab, setActiveTab] = useState('Posts');
   
   const [posts , setPosts] = useState([]);
@@ -137,7 +139,7 @@ console.log(posts.length) ;
           {posts.map((post, i) => {
             PostIdSet.current.add(post._id) ;
             return(
-              <div ref={ i === posts.length - 1 ? lastPostRef : null }  key={post._id} >
+              <div ref={ i === posts.length - 1 ? lastPostRef : null }  key={post._id} className={ deletePostIds.has(post._id) ? ' h-0 overflow-hidden' : ''} > 
                 <PostCard post={post}  />
               </div>
             )}
@@ -162,7 +164,7 @@ console.log(posts.length) ;
       {isDeleteDialog?.isOpen ?
         (<DialogBox message='Are you sure you want to delete this post?' 
           onClose={() => dispatch(setisDeleteDialog({isOpen : false , postId : null}))}
-          mainFuction={() => deletePostFunc(isDeleteDialog?.postId , deleteMutation , dispatch)}
+          mainFuction={() => deletePostFunc(isDeleteDialog?.postId , deleteMutation , dispatch , setDeletePostIds , deletePostIds)}
           />) : null }
     </div>
   );

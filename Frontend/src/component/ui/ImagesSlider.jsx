@@ -1,10 +1,12 @@
 import { StepBackIcon, StepForwardIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import VideoPlayer from "../specific/videPlayer/VideoPlayer";
+import FullScreenImage from "./FullScreenImage";
 
 const ImageSlider = ({ images = [] }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const divRef = useRef() ;
+  const [url , setUrl] = useState(null) ;
 
   if (!images.length) return null;
 
@@ -16,8 +18,13 @@ const ImageSlider = ({ images = [] }) => {
     setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
 
+  const openFullImage = () => {
+    setUrl(images[currentIndex]?.url) ;
+  }
+
   return (
     <div className="mt-4 w-full relative overflow-hidden rounded-lg">
+      {url && <FullScreenImage onClose={() => setUrl(null)} url={images[currentIndex]?.url} />}  
       {/* Image */}
       <div ref={divRef} className="w-full aspect-video transition-transform rounded-lg flex -translate-x-full duration-200 ease-in-out" 
         style={{
@@ -34,7 +41,7 @@ const ImageSlider = ({ images = [] }) => {
           }else{
             return (
             <div className="max-h-80 h-full  m-auto w-full flex-shrink-0 flex justify-center items-center px-2" key={i} >
-              <img 
+              <img onClick={openFullImage} 
                 src={m.url}
                 alt={`Slide ${i}`}
                 className="max-h-80 h-full  mx-auto object-cover rounded-lg"

@@ -92,14 +92,13 @@ export default function VideoPlayer({ src , type , public_id }) {
         console.log(res);
         if(res?.data){
             if(res?.data?.status === 'failed') throw new Error('Video upload had an error') ;
-            res?.data?.status === 'processing' ? setVideoStatus('The video is processing') : null ;
+            res?.data?.status === 'processing' ? setVideoStatus('The video is still in processing') : null ;
             res?.data?.status === 'completed' ? setVideoStatus('Completed') : null ;
-            res?.data?.status === 'uploading' ? setVideoStatus('The video is uploading') : null ;
+            res?.data?.status === 'uploading' ? setVideoStatus('The video is still in uploading') : null ;
 
           setPoster(res?.data?.poster?.url);  
         } 
       } catch (error) {
-        console.log(error); 
         if(type !== 'application/x-mpegURL' ) return ;
         if(playerRef.current) playerRef.current.dispose();
         playerRef.current = null ;
@@ -107,7 +106,7 @@ export default function VideoPlayer({ src , type , public_id }) {
         if(error.status === 404  ) {
           setVideoStatus('Video not found');
         } else {
-          setVideoStatus('There was an error in fetching video details.');
+          setVideoStatus('Error: Video upload had an error'); 
         }
       
       } finally {
@@ -123,14 +122,14 @@ export default function VideoPlayer({ src , type , public_id }) {
 
   return (
     <div className="w-full h-fit bg-black overflow-hidden rounded-md min-h-fit">
-      <span className='relative left-1 top-1  bg-white rounded-lg font-bold text-sm text-black z-10  ' >
+      <span className='relative left-1 top-1 bg-white rounded-md font-bold text-sm text-black z-10  ' >
         {loading ? (
           <LoaderPinwheelIcon className='animate-spin' size={15} />
         ) : (
           videoStatus !== 'Completed' ? videoStatus : null
         )}
       </span>
-      <video
+      <video 
         ref={videoRef}
         className="video-js vjs-big-play-centered w-full h-full rounded-lg"
         playsInline
