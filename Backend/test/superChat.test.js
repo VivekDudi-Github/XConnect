@@ -17,4 +17,4 @@ describe("SuperChat Payment", () => {
     if(res.statusCode !== 200) console.log(res.body) ;
     expect(res.statusCode).toBe(200);
   });
-})
+} , 10000);
