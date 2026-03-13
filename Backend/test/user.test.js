@@ -120,4 +120,36 @@ describe('login tries with wrong credentials', () => {
     expect(response.statusCode).toBe(400);
     expect(response.body.success).toBe(false);
   })
+
+  it("shouldn't allow signup with used email" , async() => {
+    let response = await agent
+    .post("/api/v1/user/signup")
+    .send({
+      email : 'test@test.com' ,
+      password : '123456789' ,
+      username : 'test2' ,
+      fullname : 'test' ,
+    })
+
+    if(response.statusCode !== 400) console.log(response.body);
+    expect(response.statusCode).toBe(400);
+    expect(response.body.message).toBe('Email already exists');
+    expect(response.body.success).toBe(false);
+  })
+
+  it("shouldn't allow signup with used username" , async() => {
+    let response = await agent
+    .post("/api/v1/user/signup")
+    .send({
+      email : 'test2@test.com' ,
+      password : '123456789' ,
+      username : 'test' ,
+      fullname : 'test' ,
+    })
+
+    if(response.statusCode !== 400) console.log(response.body);
+    expect(response.statusCode).toBe(400);
+    expect(response.body.message).toBe('Username is not available');
+    expect(response.body.success).toBe(false);
+  })
 }) 
