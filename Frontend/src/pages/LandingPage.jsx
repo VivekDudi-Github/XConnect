@@ -1,0 +1,49 @@
+import { useState } from 'react';
+import LoginForm from '../component/auth/LoginForm';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+const Tab = ['XConnect Api', 'Project Trace' , 'Github' , 'Info']
+
+export default function LandingPage() {
+  const navigate = useNavigate() ;
+
+  const [selectedTab , setSelectedTab] = useState('login') ;
+
+  useEffect(() => {
+    if(selectedTab === 'XConnect Api') {
+      window.open('http://locahost:3000/api-docs' , '_blank') ;
+    } else if(selectedTab === 'Github') {
+      window.open('https://github.com/VivekDudi-Github/XConnect' , '_blank') ;
+    }
+  } , [selectedTab])
+  
+
+
+  return (
+    <div className="min-h-screen bg-black flex items-center md:justify-end justify-center px-4  -z-30">
+      <img className='fixed object-cover h-full inset-0 scale-110 ' src='./login-bg.jpg' />
+      
+      {/* tabs */}
+      <div className=' py-4 w-full flex absolute left-0 px-8 top-0 text-white text-base bg-black justify-between flex-wrap'>
+        <div className='text-base gap- flex flex-wrap'>
+          {Tab.map((t ,i) => 
+            <span 
+            key={i}
+            className={`${selectedTab === t ? 'text-white underline underline-offset-8 ' : 'text-gray-400 '} hover:cursor-pointer duration-200 ml-4`} 
+            onClick={() => setSelectedTab(t)}
+            >{t}</span>
+          )}
+        
+          
+        </div>
+        <div className={`${selectedTab === 'login' ? 'text-white font-[700]' : 'text-gray-300 '} hover:cursor-pointer ml-4`} onClick={() => setSelectedTab('login')}>Login/Signup</div>
+      </div>
+
+      {/* login box */}
+      {selectedTab === 'login' && <LoginForm />}
+    </div>
+  );
+}
+
+

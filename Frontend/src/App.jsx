@@ -13,7 +13,7 @@ import { login, logout } from './redux/reducer/authSlice';
 
 
 
-const Auth = lazy(() => import('./pages/Auth'));
+const LandingPage = lazy(() => import('./pages/LandingPage'));
 const PostPage = lazy(() => import('./pages/PostPage'));
 const HomePage = lazy(() => import('./pages/HomePage'));
 const LivePage = lazy(() => import('./pages/LivePage'));
@@ -69,7 +69,7 @@ useEffect(() => {
     <>
       <Suspense fallback={loading}>
         <Routes>
-          <Route path='/login' element={!user ?  <Auth/> : <Navigate to={'/'} /> } />
+          <Route path='/login' element={!user ?  <LandingPage/> : <Navigate to={'/'} /> } />
 
           <Route element={<ProtectedRoute user={user} /> } >
             <Route path='/' element={<HomePage/>} />

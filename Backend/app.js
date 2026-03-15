@@ -24,6 +24,9 @@ import videoUploadRouter from './routes/video.routes.js' ;
 
 import { checkSocketUser } from "./utils/chekAuth.js";
 
+import { swaggerSpec } from "./swagger.js" ;
+import swaggerUi from "swagger-ui-express" ;
+
 import path from "path";
 
 dotenv.config() ;
@@ -32,8 +35,8 @@ const app = express() ;
 const newServer = createServer(app) ;
 
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 300
+  windowMs: 5 * 60 * 1000,
+  max: 500
 });
 
 app.use('/api/', limiter);
@@ -49,13 +52,14 @@ const io = new Server(newServer, {
 });
 
 io.use(checkSocketUser);
-// Middleware to parse JSON bodies
+
 app.use(cors({
   origin: 'http://localhost:5173', 
   credentials: true, 
   optionsSuccessStatus : 200 
 }));
-app.use('/serve/hls' , express.static(path.resolve("uploads/storage")))
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser()) ;
