@@ -3,6 +3,8 @@ import { registerSchema } from '../validator_schema/user.schema.js' ;
 
 export const validateRegisterBody = (req, res) => {
   try {
+    console.log(req.body);
+    
     req.body = registerSchema.parse(req.body);
     return true;
   } catch (err) {

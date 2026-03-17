@@ -6,8 +6,6 @@ import { useNavigate } from 'react-router-dom';
 const Tab = ['XConnect Api', 'Project Trace' , 'Github' , 'Info']
 
 export default function LandingPage() {
-  const navigate = useNavigate() ;
-
   const [selectedTab , setSelectedTab] = useState('login') ;
 
   useEffect(() => {
@@ -35,7 +33,6 @@ export default function LandingPage() {
             >{t}</span>
           )}
         
-          
         </div>
         <div className={`${selectedTab === 'login' ? 'text-white font-[700]' : 'text-gray-300 '} hover:cursor-pointer ml-4`} onClick={() => setSelectedTab('login')}>Login/Signup</div>
       </div>

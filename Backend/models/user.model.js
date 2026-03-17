@@ -65,10 +65,6 @@ const userSchema = new mongoose.Schema({
         type : Date ,
         default : null ,
     } ,
-    revenue : {
-        type : Number ,
-        default : 0 ,
-    } ,
 } , { timestamps : true})
 
 userSchema.index({ username: 'text', fullname: 'text' });

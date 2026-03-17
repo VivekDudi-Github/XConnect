@@ -19,7 +19,7 @@ const checkUser = async (req , res , next) => {
                     return await checkRefreshToken() ;
                 }else {
                     req.user = decoded;
-                    if(!req?.user?._id) return ResError(res , 403 , "Unauthenticated request, please re-login") ;
+                    if(!req?.user?._id) return ResError(res , 401 , "Unauthenticated request, please re-login") ;
                     return next();
                 }
             });
@@ -44,7 +44,7 @@ const checkUser = async (req , res , next) => {
                             const refreshToken = user.generateRefreshToken();
 
                             const isValid = await bcrypt.compare(token , user.refreshToken); 
-                            if(!isValid) return ResError(res , 403 , "Unauthenticated request, please re-login") ;
+                            if(!isValid) return ResError(res , 401 , "Unauthenticated request, please re-login") ;
                             
                             let newHashedToken = await bcrypt.hash(refreshToken ,11); 
                             
@@ -62,7 +62,7 @@ const checkUser = async (req , res , next) => {
                             res
                             .cookie('refreshToken', refreshToken, {...cookieOptions , maxAge: 30 * 24 * 60 * 60 * 1000})
                             .cookie('accessToken', accessToken, {...cookieOptions , maxAge: 30 * 60 * 1000});
-                            if(!req?.user?._id) return ResError(res , 403 , "Unauthenticated request, please re-login") ;
+                            if(!req?.user?._id) return ResError(res , 401 , "Unauthenticated request, please re-login") ;
                             return next();
                         }
                     })
