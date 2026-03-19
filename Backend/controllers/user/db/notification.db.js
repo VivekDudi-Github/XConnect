@@ -26,10 +26,10 @@ export const findNotificationById = (id) => {
   return Notification.findById(id);
 };
 
-export const markNotificationsAsRead = (ids) => {
+export const markNotificationsAsRead = (ids , userId) => {
   const ops = ids.map((id) => ({
     updateOne: {
-      filter: { _id: id },
+      filter: { _id: id , receiver : userId },
       update: { $set: { isRead: true } },
     },
   }));

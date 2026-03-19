@@ -7,7 +7,7 @@ export const createPostSchema = z.object({
   hashtags: z.array(z.string()).default([]),
   mentions: z.array(z.string()).default([]),
 
-  title: z.string().optional(),
+  title: z.string().max(100).optional(),
   category: z.enum(['general', 'question', 'feedback', 'showcase']).optional(),
 
   isCommunityPost: z.boolean().default(false),

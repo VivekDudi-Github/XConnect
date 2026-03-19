@@ -5,6 +5,8 @@ import { cookieOptions } from '../../../utils/extra.js';
 
 
 export const updateUser = TryCatch(async (req, res) => {
+  const userId = req.user._id;
+  console.log('Updating user with ID:', userId);
   const valid = validateUpdateUser(req, res);
   if (valid !== true) return;
   

@@ -62,12 +62,6 @@ const postSchema = new mongoose.Schema({
     type : mongoose.Types.ObjectId ,
     ref : 'Post' ,
   } ,
-  visiblity : {
-    type : String ,
-    enum : ['public' ,'followers' ,'private' ] ,
-    default : 'public' ,
-    required : true ,
-  } ,
   isEdited : {
     type : Boolean ,
     default : false
