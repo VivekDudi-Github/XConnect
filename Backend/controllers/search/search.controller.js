@@ -10,6 +10,7 @@ export const searchBarSearch = TryCatch(async (req, res) => {
   return ResSuccess(res, 200, { autocomplete: data });
 }, 'searchBarSearch');
 
+
 export const normalSearch = TryCatch(async (req, res) => {
   validate(schema.searchQuerySchema , req )
 
@@ -20,6 +21,7 @@ export const normalSearch = TryCatch(async (req, res) => {
 
   return ResSuccess(res, 200, result);
 }, 'normalSearch');
+
 
 export const continueSearch = TryCatch(async (req, res) => {
   validate(schema.continueSearchSchema , req )
@@ -38,9 +40,9 @@ export const searchUsers = TryCatch( async(req , res) => {
   validate(schema.searchQuerySchema , req )
 
   const result = await searchService.searchUsers({
-    q : req.query.q ,
-    page : req.query.page ,
-    userId : req.user._id ,
+    q : req.query?.q ,
+    page : req.query?.page ,
+    userId : req.user?._id ,
   })
 
   return ResSuccess(res, 200 , result)

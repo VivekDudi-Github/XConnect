@@ -14,7 +14,6 @@ export const InitVideoUpload = TryCatch(async (req, res) => {
 }, 'InitVideoUpload');
 
 export const uploadVideoChunk = TryCatch(async (req, res) => {
-  console.log(req?.body , req?.params , req?.query);
   
   validate(schema.uploadChunkSchema , req)
   await videoService.uploadChunk({

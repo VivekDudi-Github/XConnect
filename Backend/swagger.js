@@ -1,4 +1,5 @@
 import swaggerJSDoc from "swagger-jsdoc";
+import { success } from "zod";
 
 
 const options = {
@@ -62,6 +63,20 @@ const options = {
         },
         ForbiddenError: {
           description: "Access denied"
+        } , 
+        toggleResponse : {
+          type : "object" ,
+          properties : {
+            success : { type : "boolean" } ,
+            data : {
+              type : "object" ,
+              properties : {
+                operation : {
+                  type : "boolean" ,
+                }
+              }
+            }
+          }
         }
       },
       schemas : {
@@ -89,6 +104,20 @@ const options = {
             hobby: {
               type: "string"
             },
+            avatar: {
+              type : "object" ,
+              properties : {
+                url : {type : 'string'} ,
+                public_id : {type : 'string'}
+              }
+            } ,
+            banner: {
+              type : "object" ,
+              properties : {
+                url : {type : 'string'} ,
+                public_id : {type : 'string'}
+              }
+            } ,
             createdAt: {
               type: "string"
             },
@@ -183,100 +212,296 @@ const options = {
           }
         } ,
         Post : {
-          content: {
-            type: "string"
-          } ,
-          media: {
-            type: "array",
-            items: {
-              type: "object" ,
+          type : 'object' ,
+          properties : {
+            _id : {type : 'string'} ,
+            content: {
+              type: "string"
+            } ,
+            media: {
+              type: "array",
+              items: {
+                type: "object" ,
+                properties: {
+                  url: {
+                    type: "string"
+                  } ,
+                  public_id: {
+                    type: "string"
+                  } , 
+                  type: {
+                    type: "string"
+                  }
+                }
+              }
+            } ,
+            hashtags: {
+              type: "array",
+              items: {
+                type: "string"
+              }
+            } ,
+            mentions: {
+              type: "array",
+              items: {
+                type : "string"
+              }
+            },
+            isDeleted: {
+              type: "boolean"
+            },
+            author : {
+              type: "object",
+              properties: {
+                _id: { type : "string" },
+                username: { type : "string" },
+                fullname: { type : "string" },
+                avatar : {
+                  type: "object",
+                  properties: {
+                    url: { type : "string" } ,
+                    public_id : { type : "string" }
+                  }
+                }
+              }
+            } ,
+            likeStatus: {
+              type: "boolean",
+            } ,
+            likeCount : {
+              type: "number"
+            } ,
+            commentCount : {
+              type: "number"
+            } ,
+            commentCount : {
+              type: "number"
+            } ,
+            isBookmarked : {
+              boolean : "boolean"
+            },
+            views : {
+              type : "number"
+            } ,
+            category : {
+              type : "string"
+            } ,
+            title : {
+              type : "string"
+            } ,
+            engagements : {
+              type : "number"
+            } ,
+            isEdited : {
+              type : "boolean"
+            } ,
+            isPinned : {
+              type : "boolean"
+            } ,
+            isAnonymous : {
+              type : "boolean"
+            } ,
+            community : {
+              type : "string",
+            } ,
+            type : {
+              type : "string" ,
+              enum : ['post' , 'community']
+            } ,
+          }
+        },
+        Comment: {
+          type : 'object' ,
+          properties : {
+            _id : {type : 'string'},
+            post : {type : 'string'},
+            replyTo : {
+              type : 'string' , 
+              enum : ['post', 'comment']
+            },
+            comment_id : {type : 'string'},
+            content : {type : 'string'},
+            mentions : {
+              type : 'array' ,
+              items: {
+                type : 'string'
+              }
+            },
+            isEdited : {
+              type : 'boolean'
+            } ,
+            author : {
+              type: "object",
+              properties: {
+                _id: { type : "string" },
+                username: { type : "string" },
+                fullname: { type : "string" },
+                avatar : {
+                  type: "object",
+                  properties: {
+                    url: { type : "string" } ,
+                    public_id : { type : "string" }
+                  }
+                }
+              }
+            } ,
+            dislikeCount : {type : 'number'} ,
+            likeCount : {type : 'number'} ,
+            disLikeStatus : {type : 'boolean'} ,
+            likeStatus : {type : 'boolean'} ,
+            replyCount : {type : 'number'} ,
+          }
+        } ,
+        Video : {
+          type : 'object' ,
+          properties : {
+            public_id : {type : 'string'} ,
+            _id : {type : 'string'} ,
+            url : {type : 'string'} ,
+            poster : {
+              type : 'object' ,
+              properties : {
+                url : {type : 'string'} ,
+                public_id : {type : 'string'}
+              }
+            } ,
+            totalChunks : {type : 'number'} ,
+            status : {
+              type : 'string' ,
+              enum :  ['processing' , 'uploading' , 'failed' , 'completed']
+            } ,
+            fileSize : {type : 'number'} ,
+            fileType : {type : 'string'} ,
+            uploadedChunks : {
+              type : 'array' ,
+              items : {type : 'number'}
+            } ,
+            user : {
+              type : 'string'
+            }
+          }
+        } ,
+        searchResultUser: {
+          type: "object",
+          properties: {
+            _id: {
+              type: "string",
+            },
+            username: {
+              type: "string",
+            },
+            avatar: {
+              type: "object",
               properties: {
                 url: {
-                  type: "string"
-                } ,
+                  type: "string",
+                },
                 public_id: {
-                  type: "string"
-                } , 
-                type: {
-                  type: "string"
-                }
-              }
-            }
-          } ,
-          hashtags: {
-            type: "array",
-            items: {
-              type: "string"
-            }
-          } ,
-          mentions: {
-            type: "array",
-            items: {
-              type : "string"
-            }
+                  type: "string",
+                },
+              },
+            },
+            fullname: {
+              type: "string",
+            },
+            isFollowing: {
+              type: "boolean",
+            },
+            totalFollowers: {
+              type: "integer",
+            },
           },
-          isDeleted: {
-            type: "boolean"
+        },
+
+        searchResultsCommunities: {
+          type: "object",
+          properties: {
+            _id: {
+              type: "string",
+            },
+            name: {
+              type: "string",
+            },
+            description: {
+              type: "string",
+            },
+            isFollowing: {
+              type: "boolean",
+            },
+            totalFollowers: {
+              type: "integer",
+            },
+            avatar: {
+              type: "object",
+              properties: {
+                url: {
+                  type: "string",
+                },
+                public_id: {
+                  type: "string",
+                },
+              },
+            },
           },
-          author : {
-            type: "object",
-            properties: {
-              _id: { type : "string" },
-              username: { type : "string" },
-              fullname: { type : "string" },
-              avatar : {
+        },
+
+        searchResultsPosts: {
+          type: "object",
+          properties: {
+            content: {
+              type: "string",
+            },
+            media: {
+              type: "array",
+              items: {
                 type: "object",
                 properties: {
-                  url: { type : "string" } ,
-                  public_id : { type : "string" }
-                }
-              }
-            }
-          } ,
-          likeStatus: {
-            type: "boolean",
-          } ,
-          likeCount : {
-            type: "number"
-          } ,
-          commentCount : {
-            type: "number"
-          } ,
-          commentCount : {
-            type: "number"
-          } ,
-          isBookmarked : {
-            boolean : "boolean"
+                  url: {
+                    type: "string",
+                  },
+                  public_id: {
+                    type: "string",
+                  },
+                },
+              },
+            },
+            createdAt: {
+              type: "string",
+              format: "date-time",
+            },
+            views: {
+              type: "integer",
+            },
+            likeStatus: {
+              type: "boolean",
+            },
+            likeCount: {
+              type: "integer",
+            },
+            commentCount: {
+              type: "integer",
+            },
+            author: {
+              type: "object",
+              properties: {
+                username: {
+                  type: "string",
+                },
+                avatar: {
+                  type: "object",
+                  properties: {
+                    url: {
+                      type: "string",
+                    },
+                    public_id: {
+                      type: "string",
+                    },
+                  },
+                },
+              },
+            },
           },
-          views : {
-            type : "number"
-          } ,
-          category : {
-            type : "string"
-          } ,
-          title : {
-            type : "string"
-          } ,
-          engagements : {
-            type : "number"
-          } ,
-          isEdited : {
-            type : "boolean"
-          } ,
-          isPinned : {
-            type : "boolean"
-          } ,
-          isAnonymous : {
-            type : "boolean"
-          } ,
-          community : {
-            type : "string",
-          } ,
-          type : {
-            type : "string" ,
-            enum : ['post' , 'community']
-          } ,
-        }
+        },
       }
     },
     servers: [

@@ -14,7 +14,6 @@ export const createCommentSchema = z.object({
   body: z.object({
     content: z.string().min(1),
     comment_id: objectId.optional(),
-    isEdited: z.coerce.boolean().optional(),
     mentions: z.array(z.string()).optional(),
   }),
 });

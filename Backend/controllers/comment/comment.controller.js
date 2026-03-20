@@ -18,10 +18,10 @@ export const createComment = TryCatch(async (req, res) => {
 
   ResSuccess(res, 201, comment);
 } , 'createComment');
- 
+
+
 /* GET COMMENTS */
 export const getComments = TryCatch(async (req, res) => {
-  console.log(req.params.id , 'const-params ');
   validate(schema.getCommentsSchema, req);
 
   let result  = await service.getCommentsService({
@@ -33,12 +33,14 @@ export const getComments = TryCatch(async (req, res) => {
   return ResSuccess(res, 200, result);
 } , 'getComments');
 
+/* GET SINGLE COMMENT */
 export const getAComment = TryCatch(async (req, res) => {
   validate(schema.CheckIdParams, req);
 
   const comment = await service.getACommentService(req.params.id);
   ResSuccess(res, 200, comment);
 } , 'getAComment');
+
 
 /* LIKE */
 export const toggleLikeComment = TryCatch(async (req, res) => {
@@ -52,6 +54,7 @@ export const toggleLikeComment = TryCatch(async (req, res) => {
   ResSuccess(res, 200, { operation: result });
 } , 'toggleLikeComment');
 
+
 /* DISLIKE */
 export const toggleDislikeComment = TryCatch(async (req, res) => {
   validate(schema.CheckIdParams, req);
@@ -63,6 +66,7 @@ export const toggleDislikeComment = TryCatch(async (req, res) => {
 
   ResSuccess(res, 200, { operation: result });
 } , 'toggleDislikeComment');
+
 
 /* DELETE */
 export const deleteComment = TryCatch(async (req, res) => {

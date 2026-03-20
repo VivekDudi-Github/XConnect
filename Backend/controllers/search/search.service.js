@@ -54,7 +54,7 @@ export const continueSearch = async ({ q, tab, page, userId }) => {
   }
 };
 
-export const searchUsers = async ({ q, page, userId }) => {
+export const searchUsers = async ({ q, page=1, userId }) => {
   const limit = 5;
   const skip = (page - 1) * limit;
 

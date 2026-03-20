@@ -8,7 +8,7 @@ const router = express.Router()
  * @swagger
  * /search/searchbar:
  *   post:
- *     summary: search posts
+ *     summary: Search posts
  *     security:
  *       - BearerAuth: []
  *     requestBody:
@@ -17,6 +17,8 @@ const router = express.Router()
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - query
  *             properties:
  *               query:
  *                 type: string
@@ -26,57 +28,84 @@ const router = express.Router()
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Post'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     autocomplete:
+ *                       type: object
+ *                       properties:
+ *                         communities:
+ *                           type: array
+ *                           items:
+ *                             type: object
+ *                             properties:
+ *                               name:
+ *                                 type: string
+ *                         users:
+ *                           type: array
+ *                           items:
+ *                             type: object
+ *                             properties:
+ *                               name:
+ *                                 type: string
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  *       404:
  *         $ref: '#/components/responses/NotFound'
- *       500: 
+ *       500:
  *         description: Internal server error
- * 
  */
 
 /**
  * @swagger
  * /search/n:
- *   post:
- *     summary: search users
+ *   get:
+ *     summary: Search across users, posts, communities
  *     security:
  *       - BearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               query:
- *                 type: string
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         required: true
+ *         schema:
+ *           type: string
  *     responses:
  *       200:
  *         description: Search results
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/User'
+ *               type: object
+ *               properties:
+ *                 users:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/searchResultUser'
+ *                 posts:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/searchResultsPosts'
+ *                 communities:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/searchResultsCommunities'
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  *       404:
  *         $ref: '#/components/responses/NotFound'
- *       500: 
+ *       500:
  *         description: Internal server error
- * 
  */
 
 /**
  * @swagger
  * /search/continue:
  *   post:
- *     summary: continue search
+ *     summary: Continue search
  *     security:
  *       - BearerAuth: []
  *     requestBody:
@@ -85,33 +114,66 @@ const router = express.Router()
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - query
+ *               - page
+ *               - tab
  *             properties:
  *               query:
  *                 type: string
  *               page:
- *                 type: number
+ *                 type: integer
+ *               tab:
+ *                 type: string
+ *                 enum: [post, user, community]
  *     responses:
  *       200:
  *         description: Search results
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Post'
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     results:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/searchResultUser'
+ *                     total:
+ *                       type: integer
+ *                 post:
+ *                   type: object
+ *                   properties:
+ *                     results:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/searchResultsPosts'
+ *                     total:
+ *                       type: integer
+ *                 community:
+ *                   type: object
+ *                   properties:
+ *                     results:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/searchResultsCommunities'
+ *                     total:
+ *                       type: integer
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  *       404:
  *         $ref: '#/components/responses/NotFound'
- *       500: 
- *         description: Internal server error   
+ *       500:
+ *         description: Internal server error
  */
 
 /**
  * @swagger
  * /search/searchUsers:
  *   post:
- *     summary: search users
+ *     summary: Search users
  *     security:
  *       - BearerAuth: []
  *     requestBody:
@@ -120,11 +182,13 @@ const router = express.Router()
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - query
  *             properties:
  *               query:
  *                 type: string
  *               page:
- *                 type: number
+ *                 type: integer
  *     responses:
  *       200:
  *         description: Search results
@@ -133,12 +197,12 @@ const router = express.Router()
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/User'
+ *                 $ref: '#/components/schemas/searchResultUser'
  *       401:
  *         $ref: '#/components/responses/UnauthorizedError'
  *       404:
  *         $ref: '#/components/responses/NotFound'
- *       500:   
+ *       500:
  *         description: Internal server error
  */
 

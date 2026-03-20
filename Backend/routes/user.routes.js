@@ -104,7 +104,7 @@ export default router;
  *         description: Internal server error
  */
 
-/**
+/**param
  * @swagger
  * /user/me:
  *   get:
@@ -230,61 +230,61 @@ export default router;
 */
 
 /**
-//  * @swagger
-//  * /user/me/password:
-//  *   put:
-//  *     summary: change user password
-//  *     security:
-//  *       - BearerAuth: []
-//  *     requestBody:
-//  *       required: true
-//  *       content:
-//  *         application/json:
-//  *           schema:
-//  *             type: object
-//  *             properties:
-//  *               oldPassword:
-//  *                 type: string
-//  *               newPassword:
-//  *                 type: string
-//  *     responses:
-//  *       200:
-//  *         description: Password changed successfully
-//  *       400:
-//  *         $ref: '#/components/responses/BadRequest'
-//  *       401:
-//  *         $ref: '#/components/responses/UnauthorizedError'
-//  *       500:
-//  *         description: Internal server error
-//  */
+ * @swagger
+ * /user/me/password:
+ *   put:
+ *     summary: change user password
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               oldPassword:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password changed successfully
+ *       400:
+ *         $ref: '#/components/responses/BadRequest'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       500:
+ *         description: Internal server error
+ */
 
-/** 
-//  * @swagger
-//  * /user/{username}:
-//  *   get:
-//  *     summary: get user by username
-//  *     security:
-//  *       - BearerAuth: []
-//  *     parameters:
-//  *       - in: path
-//  *         name: username
-//  *         required: true
-//  *         schema:
-//  *           type: string
-//  *     responses:
-//  *       200:
-//  *         description: fetched user profile
-//  *         content:
-//  *           application/json:
-//  *             schema:
-//  *               $ref: '#/components/schemas/User'
-//  *       401:
-//  *         $ref: '#/components/responses/UnauthorizedError'
-//  *       404:
-//  *         $ref: '#/components/responses/NotFound'
-//  *       500:    
-//  *         description: Internal server error
-//  */
+/**
+ * @swagger
+ * /user/{username}:
+ *   get:
+ *     summary: get user by username
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: username
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: fetched user profile
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       404:
+ *         $ref: '#/components/responses/NotFound'
+ *       500:    
+ *         description: Internal server error
+ */
 
 /**
  * @swagger

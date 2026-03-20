@@ -78,7 +78,7 @@ export const verifyUpload = async (public_id) => {
   const uploadDoc = await videoRepo.findByPublicId(public_id);
 
   if (!uploadDoc) throw new ApiError(400, 'Upload not found');
-  if (uploadDoc.status === VIDEO_STATUSES.COMPLETED) return 'Already uploaded';
+  if (uploadDoc.status === VIDEO_STATUSES.COMPLETED) return 'Video verified successfully';
   if (uploadDoc.status !== VIDEO_STATUSES.UPLOADING) {
     throw new ApiError(400, 'Invalid upload state');
   }

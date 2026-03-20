@@ -155,6 +155,7 @@ export const getCommentsAggregate = ({
       totalDislike : 0 ,
       userLike : 0 ,
       userDislike : 0 ,
+      user: 0
      } },
   ]);
 

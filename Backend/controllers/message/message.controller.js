@@ -27,7 +27,7 @@ export const getMessages = TryCatch(async (req, res) => {
   const messages = await service.getMessagesService({
     room: req.query.room,
     lastId: req.query._id,
-    limit: req.query.limit,
+    limit: 15,
   });
 
   ResSuccess(res, 200, messages);

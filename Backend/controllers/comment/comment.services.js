@@ -9,14 +9,12 @@ export const createCommentService = async ({
   postId,
   userId,
   content,
-  isEdited,
   commentId,
 }) => {
   const comment = await repo.createComment({
     post: postId,
     user: userId,
     content,
-    isEdited,
     replyTo: commentId ? "comment" : "post",
     comment_id: commentId || null,
   });

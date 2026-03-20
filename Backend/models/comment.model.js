@@ -1,5 +1,4 @@
 import mongoose from 'mongoose'
-import { de } from 'zod/v4/locales'
 
 const commentSchema = new mongoose.Schema({
   post : {
@@ -45,11 +44,6 @@ const commentSchema = new mongoose.Schema({
     required : true ,
     index : true
   } ,
-  advertisement : {
-    type : mongoose.Types.ObjectId ,
-    ref : 'Advertisement' ,
-    default : null
-  }
 } , { timestamps : true})
 
 export const Comment = mongoose.model('Comment' , commentSchema)
