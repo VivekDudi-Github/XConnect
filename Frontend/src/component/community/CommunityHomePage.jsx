@@ -273,7 +273,7 @@ useEffect(() => {
 
       {/* Create Post */}
       { isCreateCommunityPostDialog && (
-        <div className='fixed bottom-0 left-0 right-0 min-h-screen bg-white dark:bg-black p-4 border-t overflow-y-auto border-gray-200 dark:border-gray-700 z-50'>
+        <div className='fixed bottom-0 left-0 right-0 min-h-screen backdrop-blur-sm p-4 border-t overflow-y-auto border-gray-200 dark:border-gray-700 z-50'>
           <CreateCommunityPost /> 
         </div>
       )}

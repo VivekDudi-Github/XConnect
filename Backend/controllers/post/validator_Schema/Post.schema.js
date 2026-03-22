@@ -8,7 +8,7 @@ export const createPostSchema = z.object({
   mentions: z.array(z.string()).default([]),
 
   title: z.string().max(100).optional(),
-  category: z.enum(['general', 'question', 'feedback', 'showcase']).optional(),
+  category: z.enum(['general', 'question','help' , 'feedback', 'showcase']).optional(),
 
   isCommunityPost: z.boolean().default(false),
   isAnonymous: z.boolean().default(false),
@@ -18,7 +18,7 @@ export const createPostSchema = z.object({
 
   scheduledAt: z.coerce.date().pipe(z.coerce.date()).optional(),
 
-  videoIds: z.array(z.string()).max(5).optional(),
+  videoIds: z.array(z.string()).optional(),
 });
 
 

@@ -26,8 +26,8 @@ const TryCatch = (func , funcName ) => {
       } catch (error) {
           if (error instanceof ZodError) {
             const message = error.issues
-              .map(e => e.message)
-              .join(", ");
+              .map(e => e.path.join('.') + '- ' + e.message)
+              .join("; ");
 
             return ResError(req.res, 400, message);
           } else if (error.statusCode) ResError(res, error.statusCode, error.message);

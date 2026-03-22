@@ -92,7 +92,7 @@ export default function LoginForm (){
         className="space-y-4"
         >  
           <div>
-            <label className="block text-sm  text-gray-300">Email</label>
+            <label className="block text-sm  text-gray-300">Email or Username</label>
             <input
               type="email"
               placeholder="you@example.com"

@@ -4,24 +4,20 @@ import {checkUser} from '../utils/chekAuth.js'
 
 const router = express.Router()
 
-/**
+/**query
  * @swagger
  * /search/searchbar:
  *   post:
- *     summary: Search posts
+ *     summary: autocomplete suggestions search for search bar
  *     security:
  *       - BearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - query
- *             properties:
- *               query:
- *                 type: string
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         required: true
+ *         schema:
+ *           type: string
+ * 
  *     responses:
  *       200:
  *         description: Search results
@@ -63,7 +59,7 @@ const router = express.Router()
 /**
  * @swagger
  * /search/n:
- *   get:
+ *   post:
  *     summary: Search across users, posts, communities
  *     security:
  *       - BearerAuth: []
@@ -209,7 +205,7 @@ const router = express.Router()
 router.post('/searchbar' ,checkUser , searchBarSearch) ;
 router.post('/n', checkUser , normalSearch) ;
 
-router.get('/continue' , checkUser , continueSearch)
+router.post('/continue' , checkUser , continueSearch)
 
 router.get('/searchUsers' , checkUser , searchUsers)
 

@@ -38,15 +38,15 @@ export const toggleOnPost = TryCatch(async (req, res) => {
 }, 'ToggleOnPost');
 
 export const increasePostViews = TryCatch(async (req, res) => {
-  const valid = postIdParamSchema.parse(req.params);
-  if (valid !== true) return;
+  
+  postIdParamSchema.parse(req.params);
 
   const post = await Post.findByIdAndUpdate(
     req.params.id,
     { $inc: { views: 1 } },
     { new: false }
   );
-
+  
   if (!post) return ResError(res, 404, 'Post not found.');
 
   return ResSuccess(res, 200, null);

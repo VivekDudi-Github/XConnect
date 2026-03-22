@@ -384,121 +384,152 @@ const options = {
         searchResultUser: {
           type: "object",
           properties: {
-            _id: {
-              type: "string",
-            },
-            username: {
-              type: "string",
-            },
-            avatar: {
-              type: "object",
-              properties: {
-                url: {
-                  type: "string",
-                },
-                public_id: {
-                  type: "string",
-                },
-              },
-            },
-            fullname: {
-              type: "string",
-            },
-            isFollowing: {
-              type: "boolean",
-            },
-            totalFollowers: {
-              type: "integer",
-            },
-          },
-        },
-
-        searchResultsCommunities: {
-          type: "object",
-          properties: {
-            _id: {
-              type: "string",
-            },
-            name: {
-              type: "string",
-            },
-            description: {
-              type: "string",
-            },
-            isFollowing: {
-              type: "boolean",
-            },
-            totalFollowers: {
-              type: "integer",
-            },
-            avatar: {
-              type: "object",
-              properties: {
-                url: {
-                  type: "string",
-                },
-                public_id: {
-                  type: "string",
-                },
-              },
-            },
-          },
-        },
-
-        searchResultsPosts: {
-          type: "object",
-          properties: {
-            content: {
-              type: "string",
-            },
-            media: {
+            results: {
               type: "array",
               items: {
                 type: "object",
                 properties: {
-                  url: {
+                  _id: {
                     type: "string",
                   },
-                  public_id: {
+                  username: {
                     type: "string",
+                  },
+                  avatar: {
+                    type: "object",
+                    properties: {
+                      url: {
+                        type: "string",
+                      },
+                      public_id: {
+                        type: "string",
+                      },
+                    },
+                  },
+                  fullname: {
+                    type: "string",
+                  },
+                  isFollowing: {
+                    type: "boolean",
+                  },
+                  totalFollowers: {
+                    type: "integer",
+                  },
+                },
+              } ,
+              total: {
+                type: "integer",
+              },
+            },
+          },
+        },
+        searchResultsCommunities: {
+          type: "object",
+          properties: {
+            results: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  _id: {
+                    type: "string",
+                  },
+                  name: {
+                    type: "string",
+                  },
+                  description: {
+                    type: "string",
+                  },
+                  isFollowing: {
+                    type: "boolean",
+                  },
+                  totalFollowers: {
+                    type: "integer",
+                  },
+                  avatar: {
+                    type: "object",
+                    properties: {
+                      url: {
+                        type: "string",
+                      },
+                      public_id: {
+                        type: "string",
+                      },
+                    },
                   },
                 },
               },
             },
-            createdAt: {
-              type: "string",
-              format: "date-time",
-            },
-            views: {
+            total: {
               type: "integer",
             },
-            likeStatus: {
-              type: "boolean",
-            },
-            likeCount: {
-              type: "integer",
-            },
-            commentCount: {
-              type: "integer",
-            },
-            author: {
-              type: "object",
-              properties: {
-                username: {
-                  type: "string",
-                },
-                avatar: {
-                  type: "object",
-                  properties: {
-                    url: {
-                      type: "string",
+          },
+        },
+        searchResultsPosts: {
+          type: "object",
+          properties: {
+            results: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  content: {
+                    type: "string",
+                  },
+                  media: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        url: {
+                          type: "string",
+                        },
+                        public_id: {
+                          type: "string",
+                        },
+                      },
                     },
-                    public_id: {
-                      type: "string",
+                  },
+                  createdAt: {
+                    type: "string",
+                    format: "date-time",
+                  },
+                  views: {
+                    type: "integer",
+                  },
+                  likeStatus: {
+                    type: "boolean",
+                  },
+                  likeCount: {
+                    type: "integer",
+                  },
+                  commentCount: {
+                    type: "integer",
+                  },
+                  author: {
+                    type: "object",
+                    properties: {
+                      username: {
+                        type: "string",
+                      },
+                      avatar: {
+                        type: "object",
+                        properties: {
+                          url: {
+                            type: "string",
+                          },
+                          public_id: {
+                            type: "string",
+                          },
+                        },
+                      },
                     },
                   },
                 },
               },
+            },
+            total: {
+              type: "integer",
             },
           },
         },

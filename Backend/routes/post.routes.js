@@ -1,11 +1,31 @@
 import { uploadFiles} from "../middlewares/multer.js";
 import express from "express";
 import { checkUser } from "../utils/chekAuth.js";
+import parseMultipartFields from "../middlewares/parseMultiPart.js";
 
 import * as routes from '../controllers/post/routes.index.js'
 
 
 const router = express.Router();
+
+router.post('/' , checkUser , uploadFiles ,parseMultipartFields,  routes.createPost);
+
+
+router.get('/user/' , checkUser , routes.getUserPosts);
+router.post('/toggle/:id' , checkUser , routes.toggleOnPost );
+router.post('/increaseViews/:id' , checkUser , routes.increasePostViews );
+router.get('/trending' , checkUser , routes.fetchExplorePost );
+
+router.get('/me/feed/' , checkUser , routes.fetchFeedPost ) ;
+
+router.get('/:id' , checkUser , routes.getPost);
+router.patch('/:id' , checkUser , uploadFiles , routes.editPost); 
+router.delete('/:id' , checkUser , routes.deletePost);
+
+
+
+export default router;
+
 
 /**
  * @swagger
@@ -20,6 +40,8 @@ const router = express.Router();
  *         multipart/form-data:
  *           schema:
  *             $ref: '#/components/schemas/CreatePost'
+ *           encoding:
+ *             $ref: '#/components/encoding'
  *     responses:
  *       201:
  *         description: Post created successfully
@@ -46,6 +68,7 @@ const router = express.Router();
  *          type: array
  *          items: 
  *            type: string
+ *          example: ["fun", "travel", "coding"]
  *        mentions:
  *          type: array
  *          items: 
@@ -78,6 +101,18 @@ const router = express.Router();
  *          format: date-time
  *      required:
  *        - content 
+ *
+ * 
+ *  encoding:
+ *    hashtags:
+ *      explode: true
+ *    mentions:
+ *      explode: true
+ *    videoIds:
+ *      explode: true
+ *    category:
+ *      explode: true
+ *        
  */
 
 /**
@@ -178,7 +213,7 @@ const router = express.Router();
  * @swagger
  * /post/increaseViews/{id}:
  *   post:
- *     summary: increase post views
+ *     summary: increase post views 
  *     security:
  *       - BearerAuth: []
  *     parameters:
@@ -306,7 +341,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /post/{id}/delete:
+ * /post/{id}/:
  *   delete:
  *     summary: delete post
  *     security:
@@ -327,21 +362,3 @@ const router = express.Router();
  *       500: 
  *         description: Internal server error
  */
-
-router.post('/' , checkUser , uploadFiles , routes.createPost);
-
-
-router.get('/user/' , checkUser , routes.getUserPosts);
-router.post('/toggle/:id' , checkUser , routes.toggleOnPost );
-router.post('/increaseViews/:id' , checkUser , routes.increasePostViews );
-router.get('/trending' , checkUser , routes.fetchExplorePost );
-
-router.get('/me/feed/' , checkUser , routes.fetchFeedPost ) ;
-
-router.get('/:id' , checkUser , routes.getPost);
-router.patch('/:id' , checkUser , uploadFiles , routes.editPost); 
-router.delete('/:id' , checkUser , routes.deletePost);
-
-
-
-export default router;

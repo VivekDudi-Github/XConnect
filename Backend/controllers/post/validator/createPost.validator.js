@@ -7,9 +7,12 @@ import { ObjectId } from 'mongodb';
 export const validateCreatePost = async (req, res) => {
 
   try {
+    console.log(req.body);
+    
     req.body = createPostSchema.parse(req.body);
   } catch (err) {
-    return ResError(res, 400, err.issues[0].message); 
+    console.log(err);
+    throw err;
   }
 
   const {
@@ -22,7 +25,7 @@ export const validateCreatePost = async (req, res) => {
   } = req.body;
 
   if (scheduledAt && moment(scheduledAt).isBefore(moment()))
-    return ResError(res, 400, 'Past dates are not allowed.');
+    return ResError(res, 400, 'Past dates are not allowed for scheduled posts.');
 
   if (repost && !ObjectId.isValid(repost))
     return ResError(res, 400, 'Invalid repost id.');
