@@ -4,6 +4,16 @@ import {checkUser} from '../utils/chekAuth.js'
 
 const router = express.Router()
 
+router.post('/searchbar' ,checkUser , searchBarSearch) ;
+router.post('/n', checkUser , normalSearch) ;
+
+router.get('/continue' , checkUser , continueSearch)
+
+router.get('/searchUsers' , checkUser , searchUsers)
+
+export default router ;
+
+
 /**query
  * @swagger
  * /search/searchbar:
@@ -100,28 +110,27 @@ const router = express.Router()
 /**
  * @swagger
  * /search/continue:
- *   post:
+ *   get:
  *     summary: Continue search
  *     security:
  *       - BearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - query
- *               - page
- *               - tab
- *             properties:
- *               query:
- *                 type: string
- *               page:
- *                 type: integer
- *               tab:
- *                 type: string
- *                 enum: [post, user, community]
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: page
+ *         required: true
+ *         schema:
+ *           type: integer
+ *       - in: query
+ *         name: tab
+ *         required: true
+ *         schema:
+ *           type: string 
+ *           enum: [post, user, community]
  *     responses:
  *       200:
  *         description: Search results
@@ -168,23 +177,21 @@ const router = express.Router()
 /**
  * @swagger
  * /search/searchUsers:
- *   post:
- *     summary: Search users
+ *   get:
+ *     summary: searching users
  *     security:
  *       - BearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - query
- *             properties:
- *               query:
- *                 type: string
- *               page:
- *                 type: integer
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: page
+ *         required: true
+ *         schema:
+ *           type: integer
  *     responses:
  *       200:
  *         description: Search results
@@ -201,12 +208,3 @@ const router = express.Router()
  *       500:
  *         description: Internal server error
  */
-
-router.post('/searchbar' ,checkUser , searchBarSearch) ;
-router.post('/n', checkUser , normalSearch) ;
-
-router.post('/continue' , checkUser , continueSearch)
-
-router.get('/searchUsers' , checkUser , searchUsers)
-
-export default router ;

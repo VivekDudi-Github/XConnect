@@ -29,7 +29,7 @@ export const continueSearch = TryCatch(async (req, res) => {
   const results = await searchService.continueSearch({
     q: req.query.q,
     tab: req.query.tab,
-    page: req.query.page,
+    page: req.query?.page ?? 2,
     userId: req.user._id
   });
 
@@ -41,7 +41,7 @@ export const searchUsers = TryCatch( async(req , res) => {
 
   const result = await searchService.searchUsers({
     q : req.query?.q ,
-    page : req.query?.page ,
+    page : req.query?.page ?? 1 ,
     userId : req.user?._id ,
   })
 

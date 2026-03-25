@@ -51,11 +51,11 @@ export const searchPosts = (q, skip, limit, userId) =>
             text: {
               query: q,
               path: 'content',
-              fuzzy: { maxEdits: 2, prefixLength: 2 }
+              fuzzy: { maxEdits: 2, prefixLength: 1 }
             }
           } ,
         ],
-        mustNot: [
+        filter: [
           {
             equals: {
               path: "isDeleted",
@@ -66,6 +66,17 @@ export const searchPosts = (q, skip, limit, userId) =>
       }
       }
     },
+    {
+      $project: {
+        content: 1,
+        media: 1,
+        createdAt: 1,
+        views: 1,
+        author: 1,
+        score: { $meta: "searchScore" }
+      }
+    },
+    { $sort : { score : -1}} ,
     { $skip: skip },
     { $limit: limit },
 
@@ -102,8 +113,11 @@ export const searchPosts = (q, skip, limit, userId) =>
     {
       $lookup: {
         from: 'likes',
-        localField: '_id',
-        foreignField: 'post',
+        let: { postId: '$_id' },
+        pipeline: [
+          { $match: { $expr: { $eq: ['$post', '$$postId'] } } },
+          { $count: 'count' }
+        ],
         as: 'likes'
       }
     },
@@ -111,8 +125,11 @@ export const searchPosts = (q, skip, limit, userId) =>
     {
       $lookup: {
         from: 'comments',
-        localField: '_id',
-        foreignField: 'post',
+        let: { postId: '$_id' },
+        pipeline: [
+          { $match: { $expr: { $eq: ['$post', '$$postId'] } } },
+          { $count: 'count' }
+        ],
         as: 'comments'
       }
     },
@@ -120,7 +137,7 @@ export const searchPosts = (q, skip, limit, userId) =>
     {
       $addFields: {
         likeStatus: { $gt: [{ $size: '$userLike' }, 0] },
-        likeCount: { $size: '$likes' },
+        likeCount: {$ifNull: [{ $arrayElemAt: ['$likes.count', 0] }, 0] },
         commentCount: { $size: '$comments' }
       }
     },
@@ -149,11 +166,11 @@ export const searchPostsAggregates = (q) =>
           text: {
             query: q,
             path: 'content',
-            fuzzy: { maxEdits: 2, prefixLength: 2 }
+            fuzzy: { maxEdits: 2, prefixLength: 1 }
           }
         }
       ],
-      mustNot: [
+      filter: [
         {
           equals: {
             path: "isDeleted",
@@ -178,6 +195,16 @@ export const searchUsers = (q, skip, limit, userId) =>
         }
       }
     },
+
+    {
+      $project : {
+        username : 1 ,
+        avatar : 1 ,
+        fullname : 1 ,
+        score : { $meta : 'searchScore' } ,
+      }
+    },
+    {$sort : { score : -1}} ,
     { $skip: skip },
     { $limit: limit },
 
@@ -260,14 +287,14 @@ export const searchCommunities = (q, skip, limit, userId) =>
     {
       $lookup: {
         from: 'followings',
-        let: { cid: '$_id' },
+        let: { c_id: '$_id' },
         pipeline: [
           {
             $match: {
               $expr: {
                 $and: [
                   { $eq: ['$followedBy', new ObjectId(`${userId}`)] },
-                  { $eq: ['$followingCommunity', '$$cid'] }
+                  { $eq: ['$followingCommunity', '$$c_id'] }
                 ]
               }
             }

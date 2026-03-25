@@ -64,20 +64,6 @@ const options = {
         ForbiddenError: {
           description: "Access denied"
         } , 
-        toggleResponse : {
-          type : "object" ,
-          properties : {
-            success : { type : "boolean" } ,
-            data : {
-              type : "object" ,
-              properties : {
-                operation : {
-                  type : "boolean" ,
-                }
-              }
-            }
-          }
-        }
       },
       schemas : {
         User : {
@@ -459,9 +445,9 @@ const options = {
                   },
                 },
               },
-            },
             total: {
               type: "integer",
+            },
             },
           },
         },
@@ -533,6 +519,20 @@ const options = {
             },
           },
         },
+        toggleResponse : {
+          type : "object" ,
+          properties : {
+            success : { type : "boolean" } ,
+            data : {
+              type : "object" ,
+              properties : {
+                operation : {
+                  type : "boolean" ,
+                } ,  
+              },
+            }
+          }
+        }
       }
     },
     servers: [

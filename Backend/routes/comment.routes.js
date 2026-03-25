@@ -28,6 +28,7 @@ const router = express.Router() ;
  *               comment_id:
  *                 type: string
  *                 description: Only required if replying to a comment
+ *                 example: 5f8d9f1d8a9b5e7b0f2f3ca(only required if it's a reply to a comment)
  *               mentions:
  *                 type: array
  *                 items:

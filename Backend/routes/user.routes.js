@@ -302,6 +302,10 @@ export default router;
  *     responses:
  *       200:
  *         description: User follow toggled successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/toggleResponse'
  *       400:
  *         $ref: '#/components/responses/BadRequest'
  *       401:
