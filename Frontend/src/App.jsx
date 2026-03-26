@@ -92,10 +92,6 @@ useEffect(() => {
             </Route>
 
             <Route path='/dashboard' element={<DashboardPage />} >
-              <Route path='' element={<DashboardMain />} />
-
-              <Route path='promote' element={<DashboardMain />} />
-              
               <Route path='post/:id' element={<DashboardMain />} />
             </Route> 
 
@@ -103,7 +99,7 @@ useEffect(() => {
             <Route path='/live/watch/:id' element={<LivePage />} />
             <Route path='/meet' element={<MeetPage/>} />
             <Route path='/comment/:id' element ={<CommentPage />} />
-            
+            <Route path='/about' element={<LandingPage/>} />
           </Route>
           <Route path='*' element={<Navigate to='/' />} />
         </Routes>

@@ -2,17 +2,29 @@ import { useState } from 'react';
 import LoginForm from '../component/auth/LoginForm';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
+import AboutTab from '../component/ui/AboutTab';
 
-const Tab = ['XConnect Api', 'Project Trace' , 'Github' , 'Info']
+const Tab = ['XConnect' ,'API', 'Architecture' , 'GitHub' , 'About']
 
 export default function LandingPage() {
+  const navigate = useNavigate() ;
   const [selectedTab , setSelectedTab] = useState('login') ;
-
+  const isAuth = useSelector(state=> state?.auth?.isAuthenticated) ;
+  console.log(isAuth);
+  
   useEffect(() => {
-    if(selectedTab === 'XConnect Api') {
+    if(selectedTab === 'API') {
       window.open('http://locahost:3000/api-docs' , '_blank') ;
-    } else if(selectedTab === 'Github') {
+    } else if(selectedTab === 'GitHub') {
       window.open('https://github.com/VivekDudi-Github/XConnect' , '_blank') ;
+    } else if(selectedTab === 'XConnect'){
+      if(isAuth) navigate('/') ;
+      else {
+        setSelectedTab('login') ;
+        toast.info('Please login to access XConnect') ;
+      }
     }
   } , [selectedTab])
   
@@ -38,7 +50,9 @@ export default function LandingPage() {
       </div>
 
       {/* login box */}
-      {selectedTab === 'login' && <LoginForm />}
+      {selectedTab === 'login' && !isAuth && <LoginForm />}
+      {selectedTab === 'About' && !isAuth && <AboutTab />}
+      
     </div>
   );
 }
