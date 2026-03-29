@@ -103,27 +103,27 @@ export default function LoginForm (){
             />
           </div>
 
-          <div>
-            <label className="block text-sm  text-gray-300">Password</label>
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
-                className="w-full px-4 py-2 mt-1 border rounded-lg bg-gray-100 dark:bg-black text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-white"
-                required
-                onChange={e => setPassword(e.target.value)}
-                value={password}
-                minLength={8}
-              />
-              <button
-                type="button"
-                className="absolute right-3 top-[13px] text-sm text-gray-700 dark:text-gray-300"
-                onClick={() => setShowPassword((prev) => !prev)}
-              >
-                {showPassword ? 'Hide' : 'Show'}
-              </button>
+            <div>
+              <label className="block text-sm  text-gray-300">Password</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  className="w-full px-4 py-2 mt-1 border rounded-lg bg-gray-100 dark:bg-black text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-white"
+                  required
+                  onChange={e => setPassword(e.target.value)}
+                  value={password}
+                  minLength={8}
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-[13px] text-sm text-gray-700 dark:text-gray-300"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
             </div>
-          </div>
 
 
             <div className={`${isLogin ? ' opacity-0 h-0 -translate-y-5 ' : ''} duration-500 `}>

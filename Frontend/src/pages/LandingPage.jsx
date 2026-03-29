@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import LoginForm from '../component/auth/LoginForm';
+import LoginForm from '../component/landing/LoginForm';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
-import AboutTab from '../component/ui/AboutTab';
+import AboutTab from '../component/landing/AboutTab';
+import ArchitectureTab from '../component/landing/ArchitectureTab';
 
 const Tab = ['XConnect' ,'API', 'Architecture' , 'GitHub' , 'About']
 
@@ -51,8 +52,8 @@ export default function LandingPage() {
 
       {/* login box */}
       {selectedTab === 'login' && !isAuth && <LoginForm />}
-      {selectedTab === 'About' && !isAuth && <AboutTab />}
-      
+      {selectedTab === 'About' && <AboutTab />}
+      {selectedTab === 'Architecture' && <ArchitectureTab />}
     </div>
   );
 }
