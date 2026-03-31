@@ -1,6 +1,144 @@
-import { ChevronRightIcon, CogIcon, DatabaseZapIcon, icons, MonitorSmartphoneIcon, NetworkIcon, ServerCogIcon, SquareSplitVerticalIcon } from 'lucide-react'
+import { BlocksIcon, ChevronRightIcon, CloudUploadIcon, CogIcon, CookieIcon, DatabaseZapIcon, FileVideoIcon, GitCompareArrowsIcon, Grid2X2Icon, GridIcon, Hand, HandIcon, icons, ImagePlayIcon, ImageUpIcon, LayoutDashboardIcon, LoaderIcon, LucideDatabaseZap, LucideFileOutput, LucideLoader, LucideVideotape, MonitorSmartphoneIcon, NavigationIcon, NetworkIcon, PanelBottomCloseIcon, PanelsLeftRightIcon, SendToBack, ServerCogIcon, SquareSplitVerticalIcon, User2Icon, UserCheck } from 'lucide-react'
 import React, { useState } from 'react'
 import DownArrow from '../ui/DownArrow';
+
+const flows = [
+  {
+    name : 'Request Flow' ,
+    description : 'How an api travels through the system and returns a response' ,
+    flowDiagram:[
+      {color : 'bg-purple-800', mainText: 'Client Request' ,secText: 'React Redux Query' ,icon :MonitorSmartphoneIcon},
+      {color : 'bg-yellow-600', mainText: 'Backend Server' ,secText: 'Express via router' ,icon :ServerCogIcon},
+      {color : 'bg-sky-600', mainText: 'Auth Check' ,secText: 'Uses Jwt' ,icon :UserCheck},
+      {color : 'bg-red-600', mainText: 'Controller' ,secText: 'Uses Zod for validation' ,icon :CogIcon},
+      {color : 'bg-green-600', mainText: 'Service Layer' ,secText: '' ,icon :SquareSplitVerticalIcon},
+      {color : 'bg-blue-600', mainText: 'DB Layer' ,secText: 'MongoDB' ,icon :DatabaseZapIcon},
+      {color : 'bg-cyan-600', mainText: 'Response' ,secText: 'Response to client' ,icon :MonitorSmartphoneIcon},
+    ] ,
+    responsiblities:[
+      {name : 'Frontend-Rtk Query :' , content :'Sends API requests and manages caching & responses.'},
+      {name : 'Express-Node :' , content :'Act as environment in which server runs.'},
+      {name : 'JWT :' , content :'Verifies token and protects private routes'},
+      {name : 'Controller :' , content :'Vaidates request and forwards to service layer'},
+      {name : 'Service layer :' , content :'Business logic.'},
+      {name : 'DB Layer :' , content :'Responsible for all db related operations.'},
+      {name : 'Controller :' , content :'Sends the response back to the client.'},
+    ] ,
+    process:[
+      'User performs an action on frontend which triggers an api request via Redux Query.',
+      'Express server recieves the api request , do the checks and then route it to the appropraite router.',
+      'Before reaching to the main controller , jwt middleware checks for the auth on protected routes and then passes to next.',
+      'Controller act as anchor between validation and service layer. It sends data to Jod Validation and then calls the appropriate service layer',
+      'Service layer interacts with the db layer and performs the required operations and creates a response.',
+      'Once the operations are done the response is sent back to the client.',
+    ] ,
+    stack:[
+      {name : 'Frontend :' , content :'React, Redux Toolkit, RTK Query'},
+      {name : 'Backend :' , content :'Node.js, Express'},
+      {name : 'Verification :' , content :'Zod'},
+      {name : 'Auth :' , content :'JWT, Cookies'},
+      {name : 'Database :' , content :'MongoDB Atlas'},
+    ]
+  } , {
+    name : 'Authentication Flow' ,
+    description: 'Secure user login and protected route via JWT and cookies' ,
+    flowDiagram:[
+      {color:'bg-fuchsia-800' , mainText: 'User Login' , secText: 'Email & Password' , icon: User2Icon},
+      {color:'bg-cyan-600' , mainText: 'POST/login' , secText: 'Auth api' , icon: NetworkIcon},
+      {color:'bg-green-600' , mainText: 'Controller' , secText: 'Validates creditials' , icon: CogIcon}, 
+      {color:'bg-red-600' , mainText: 'Pass Check' , secText: 'Bycrypt compare' , icon: GitCompareArrowsIcon},  
+      {color:'bg-sky-600' , mainText: 'Jwt Token' , secText: 'generate sign' , icon: LayoutDashboardIcon },   
+      {color:'bg-blue-800/50' , mainText: 'Http Cookie' , secText: 'secure storage' , icon: CookieIcon},   
+      {color:'bg-gray-800' , mainText: 'Protected Route' , secText: 'Acess to routes' , icon: UserCheck},
+    ] ,
+    responsiblities:[
+      {name : 'Cookies-parser :' , content :'safely parses cookies'},
+      {name : 'Bycrypt :' , content : 'hashes & compare password and makes hashed refresh Token for db'},  
+      {name : 'Jwt :' , content : 'generates access and refresh tokens'},
+    ] ,
+    process:[
+      'User enters credentials and clicks login button' ,
+      'express routes it to login /login controller' ,
+      'controller validates the credentials and then calls the auth service' ,
+      'auth service calls db layer to fetch the user details' ,
+      'then it calls bycrypt to compare the password with the hashed one' ,
+      'after matching it calls jwt generate the access and refresh token with credentials' ,
+      'uses bycrypt to hash the refresh token and updates the refresh token in db' ,
+      'the controller then sets the tokens in http-only cookies and sends the response back to the client' ,
+      'client can now visit the protected routes'      
+    ] ,
+    stack:[
+      {name : 'Cookies :' , content :'JWT , cookie Parser'},
+      {name : 'Password Hashing' , content : 'Bcrypt'},
+    ] ,
+  } , {
+    name: 'Media Upload Flow' ,
+    description : 'Handles video uploads with secure stroage and processing',
+    flowDiagram:[
+      {color:'bg-purple-800' , mainText: 'Client Select' , secText: 'Video file' , icon: ImagePlayIcon},
+      {color:'bg-yellow-600' , mainText : 'Initiate Api' ,  secText:'Build and return estimates ' , icon: PanelsLeftRightIcon },
+      {color:'bg-sky-600' , mainText : 'Media-Chunked' ,  secText:'Resumable & Multipart' , icon: Grid2X2Icon },
+      {color:'bg-red-600' , mainText : 'Chunks Upload' ,  secText:'Uploads to server' , icon: BlocksIcon },
+      
+      {color:'bg-green-600' , mainText : 'Multer Middleware' ,  secText:'chunk and file handling' , icon: PanelBottomCloseIcon },
+      {color:'bg-blue-600' , mainText : 'Controller' , secText:'Integrity & completion Checks' , icon : SendToBack} ,   
+      {color:'bg-gray-600' , mainText : 'Video Merge Queue' ,  secText:'Merges chunks' , icon: FileVideoIcon },
+      {color:'bg-pink-600' , mainText : 'Child Process' ,  secText:'Spin up FFmpeg' , icon:  LucideLoader }, 
+      {color:'bg-zinc-300' , mainText: 'HLS creations' , secText: '360p/480p quality' , icon: LucideVideotape },
+      {color:'bg-orange-600' , mainText : 'FFmpeg Output' , secText : 'm3u8 playlist' , icon: LucideFileOutput },
+      {color: 'bg-purple-600/50', mainText: 'Upload Cloud' , secText: 'Calls supabase uploader' , icon: CloudUploadIcon },   
+      {color: 'bg-teal-600', mainText: 'DB Layer' , secText: 'updates status' , icon: DatabaseZapIcon }, 
+    ] ,
+    responsiblities : [
+      {name : 'Multer :' , content : 'Handles media files ,storage, do type and size check'}, 
+      {name : 'FFmpeg :' , content : 'Handles merger, multiple resolution downscaling, HLS segementation and m3u8 playlist creation'},   
+      {name : 'Supabase :' , content : 'cloud storage and provide the cdn for fast access'},
+      {name : 'Cloudinary :' , content : 'Handles media uploads to cloudinary'},
+    ] ,
+    stack : [
+      {name : 'Server File Handling' , content : 'Multer'},
+      {name : 'Video operations ' , content : 'FFmpeg'}, 
+      {name : 'Cloud Storage' , content : 'Cloudinary ,Supabase' },
+      {name : 'Child Process' , content : 'Nodejs'},
+    ] ,
+    process : [
+      'For Images- User > Multer size & type checks > Controller > Cloudinary > DB URL Update (Images uploades are straight forward)' ,
+      'User intiates the Video upload' , 
+      'File type and size are send to Initate Api which size check, calculates the total required chunks , intiate the new MongoDB record and return to client',  
+      'Client slices the video into chunks and uploads one by one.' , 
+      'Multer middleware picks the chunks check size limit and puts into local storage ',
+      'After completion , controller checks for missing parts, change DB status to "uploading" and initiates the merge process' ,
+      'It reads the chunks and merges them into a single video final size are checks with DB' , 
+      'A child process is spawned to start FFmpeg worker' ,
+      'DB status is updated to "processing"',
+      'FFmpeg probes the video generates a thumbnail and creates different streams of segments withing 360p, 480p and 720p resolution.' ,
+      'Creates playlist for every resolution stream and finally it creates a master playlist.' , 
+      'In the end the playlists along with all segments with their respective folder structure uploaded to supabase' ,  
+      'Thumbnail as poster is uploaded to cloudinary',
+      'In end DB is updated with "completed" status and thumnail url'
+    ]
+  } , {
+    name : 'Real Time Communication',
+    description : 'Live Stream , Chat , Video Conference using WebRTC & Socket.io',
+    flowDiagram: [
+      {color:'bg-purple-800' , mainText: 'Client Request' , secText: 'React Redux Query' , icon :MonitorSmartphoneIcon},
+    ] ,
+  } , {
+    name : 'Notification Workflow',
+    description : 'Real Time and presistent notifications for user actions',
+    flowDiagram : [
+      {color : 'bg-cyan-600' ,mainText : 'User Action' , secText : 'Like/Mention/Follow' , icon : HandIcon},
+      {color : 'bg-red-600' ,mainText : 'Controller-service' , secText : 'Validates & Processes' , icon : CogIcon},
+      {color : 'bg-blue-600' ,mainText : 'DB Layer' , secText : 'Make Entry' , icon : DatabaseZapIcon},
+      {color : 'bg-yellow-800' ,mainText : 'Event Service' , secText : 'Sends Notification' , icon : NavigationIcon},
+      {color : 'bg-purple-600' ,mainText : 'Client' , secText : 'Update Ui' , icon : MonitorSmartphoneIcon},
+    ] ,
+    responsiblities : [
+      {name : '' , content: ''}
+    ]
+  }
+
+]
 
 function ArchitectureTab() {
   const [selectedFlow , setSelectedFlow] = useState('') ;
@@ -12,12 +150,11 @@ function ArchitectureTab() {
   return (
     <div className='w-full h-full mx-10 border p-8 z-10 fade-in backdrop-filter backdrop-blur-sm rounded-lg bg-black/80 text-white mt-16 '> 
       Architecture
-      <div onClick={() => selectFlow('Request Flow')} className=' cursor-pointer'>
-        <RequestFlow isSelected={selectedFlow === 'Request Flow'}/>
-      </div>
-      <div onClick={() => selectFlow('Authentication Flow')} className=' cursor-pointer'>
-        <RequestFlow isSelected={selectedFlow === 'Authentication Flow'}/>
-      </div>
+      {flows.map(e => (
+        <div onClick={() => selectFlow(e.name)} className=' cursor-pointer'>
+          <Flow isSelected={selectedFlow === e.name} flow={e} title={e.name} description={e.description}/> 
+        </div>
+      ))}
     </div>
   )
 }
@@ -25,33 +162,47 @@ function ArchitectureTab() {
 export default ArchitectureTab
 
 
-function RequestFlow({isSelected}){
+function Flow({isSelected , title , description , flow}){
+  console.log(flow);
+  
   return (
     <div className={`flex flex-col text-white transistion-all`}>         
-      <h1 className='font-bold text-3xl  items-center gap-2 relative '>
+      <h1 className='font-bold text-3xl  items-center gap-2 relative mb-2'>
         <ChevronRightIcon size={25} strokeWidth={4} className={`${isSelected ? ' rotate-90' : ''} absolute -left-6 top-2 duration-200`}/>
-        Request Flow <br/>
-        <p className='text-sm font-semibold'>How an api travels through the system and returns a response</p>
+        {title}
+        <p className='text-sm font-semibold'>{description}</p>
       </h1>
       
       <div className={`grid transition-all duration-300 ease-linear ${isSelected ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}> 
         <div className='flex flex-row gap-2 overflow-hidden'>
           {/* Flow Diagram */}
-          <div className='h-full flex flex-col  '>
-            <FlowBox bgcolor={'bg-purple-800'} mainText={'Client Request'} secText={'React Frontend'} Icon={MonitorSmartphoneIcon} /><DownArrow/>
-            <FlowBox bgcolor={'bg-cyan-600'} mainText={'API Request'} secText={'Redux Query'} Icon={NetworkIcon} /><DownArrow/>
-            <FlowBox bgcolor={'bg-yellow-600'} mainText={'Backend Server'} secText={'Express via router'} Icon={ServerCogIcon} /><DownArrow/>
-            <FlowBox bgcolor={'bg-red-600'} mainText={'Controller'} secText={'Uses Zod for validation'} Icon={CogIcon} /><DownArrow/>
-            <FlowBox bgcolor={'bg-green-600'} mainText={'Service Layer'} secText={''} Icon={SquareSplitVerticalIcon} /><DownArrow/>
-            <FlowBox bgcolor={'bg-blue-600'} mainText={'DB Layer'} secText={'MongoDB'} Icon={DatabaseZapIcon} /> 
+          <div className='  p-2 h-[800px] flex flex-col overflow-y-scroll w-1/2 '>
+            {flow.flowDiagram.map(({color , mainText , secText , icon}, i) => (
+              <FlowBox bgcolor={color} mainText={mainText} secText={secText} Icon={icon} isLast={i === flow.flowDiagram.length-1}  /> 
+            ))}
           </div>
 
-          <div className=' h-full p-2 '>
-            <ol className='list-disc text-md ml-2'>
-              <li className='text-md font-semibold'>User performs an action on frontend which triggers an api request.</li>
-              <li className='text-md font-semibold'>Express server recieves the api request , do the checks and then route it to the appropraite controller.</li>
-              <li className='text-md font-semibold'>Controller processes the request and send it to validator and then to service layer for business logic.</li>
+          <div className=' h-full p-2  min-w-1/2 shrink-1'>
+            <h3 className='text-2xl font-[600] mt-2'>Responsiblities :</h3> 
+            <ul className='list-disc text-lg ml-2'>
+              {flow.responsiblities.map(({name , content}) => (
+                <li className='text-md '><span className='font-semibold text-green-400'>{name} : </span> {content}</li> 
+              ))}
+            </ul>
+            <h3 className='text-2xl font-[600] mt-2'>Process :</h3> 
+            <ol className='list-disc text-lg ml-2'>
+              {flow.process.map((e) => (
+                <li className='text-base font-semibold'>{e}</li> 
+              ))}
+
             </ol>
+            <h3 className='text-2xl font-[600] mt-2'>Stack :</h3> 
+            <ul className='list-disc text-lg ml-2'>
+              {flow.stack.map(({name , content}) => (
+                <li className='text-sm '><span className='text-green-400'>{name} : </span> {content}</li> 
+              ))}
+            </ul>
+            
           </div>
         </div>
       </div>
@@ -59,18 +210,20 @@ function RequestFlow({isSelected}){
   )
 }
 
-function FlowBox({mainText , bgcolor , secText , Icon}){
+function FlowBox({mainText , bgcolor , secText , Icon , isLast}){
   return (
-    <div className='max-w-1/2 h-full rounded-md p-1'>
-      <div className={`flex justify-center gap-2 ${bgcolor} rounded-md h-16 w-48 `}>
+    <div className=' max-w-1/2 rounded-md p-1'>
+      <div className={`flex justify-center gap-2 ${bgcolor} rounded-md h-16 min-w-52 `}>
         <Icon size={28} className='h-full' />
         <div className=' text-center my-auto '>
-          <h1 className='text-md font-semibold '>
+          <h1 className='text-md font-semibold'>
             {mainText}
           </h1>
           <p className='text-sm'> {secText}</p>
         </div>
       </div>
+    {!isLast && <DownArrow />}
     </div>
+
   )
 }

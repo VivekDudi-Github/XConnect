@@ -5,6 +5,17 @@ import { uploadVideoChunk , InitVideoUpload , uploadStatusCheck, verifyUpload , 
 
 const router = express.Router() ;
 const upload = multer({storage : multer.memoryStorage()})
+
+router.get('/details/:public_id' , checkUser , getVideoDetails ) ;
+router.get('/status/:public_id' ,checkUser , uploadStatusCheck ) ;
+router.post('/verify/:public_id' , checkUser , verifyUpload) ;
+
+router.post('/session' ,checkUser , InitVideoUpload ) ;
+router.post('/chunk', checkUser ,  upload.single('chunk') , uploadVideoChunk ) ;
+
+
+export default router ;
+
 /**
  * @swagger
  * /video/details/{public_id}:
@@ -190,13 +201,3 @@ const upload = multer({storage : multer.memoryStorage()})
  *       500:
  *         description: Internal server error
  */
-
-router.get('/details/:public_id' , checkUser , getVideoDetails ) ;
-router.get('/status/:public_id' ,checkUser , uploadStatusCheck ) ;
-router.post('/verify/:public_id' , checkUser , verifyUpload) ;
-
-router.post('/session' ,checkUser , InitVideoUpload ) ;
-router.post('/chunk', checkUser ,  upload.single('chunk') , uploadVideoChunk ) ;
-
-
-export default router ;

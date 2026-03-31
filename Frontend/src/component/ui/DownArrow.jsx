@@ -1,9 +1,9 @@
 import { ArrowDown } from 'lucide-react'
 import React from 'react'
 
-function DownArrow() {
+function DownArrow({rotate}) {
   return (
-    <div className='w-full h-10 flex justify-center items-center'>
+    <div className={`h-10 flex justify-center items-center -rotate-${rotate ?? 0 }`}>
       <ArrowDown size={25}  strokeWidth={2} color='white' stopColor='gray'/>
     </div>
   )
