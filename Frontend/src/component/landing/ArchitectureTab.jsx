@@ -1,4 +1,4 @@
-import { BlocksIcon, ChevronRightIcon, CloudUploadIcon, CogIcon, CookieIcon, DatabaseZapIcon, FileVideoIcon, GitCompareArrowsIcon, Grid2X2Icon, GridIcon, Hand, HandIcon, icons, ImagePlayIcon, ImageUpIcon, LayoutDashboardIcon, LoaderIcon, LucideDatabaseZap, LucideFileOutput, LucideLoader, LucideVideotape, MonitorSmartphoneIcon, NavigationIcon, NetworkIcon, PanelBottomCloseIcon, PanelsLeftRightIcon, SendToBack, ServerCogIcon, SquareSplitVerticalIcon, User2Icon, UserCheck } from 'lucide-react'
+import { BlocksIcon, ChevronRightIcon, CloudUploadIcon, CogIcon, CookieIcon, DatabaseZapIcon, DownloadIcon, FileVideoIcon, GitCompareArrowsIcon, GithubIcon, Grid2X2Icon, GridIcon, Hand, HandIcon, icons, ImagePlayIcon, ImageUpIcon, LayoutDashboardIcon, LoaderIcon, LucideDatabaseZap, LucideFileOutput, LucideLoader, LucideVideotape, MonitorSmartphoneIcon, NavigationIcon, NetworkIcon, PackageIcon, PanelBottomCloseIcon, PanelsLeftRightIcon, Plug2Icon, SendToBack, ServerCogIcon, SquareSplitVerticalIcon, TextSelectionIcon, UploadIcon, User2Icon, UserCheck } from 'lucide-react'
 import React, { useState } from 'react'
 import DownArrow from '../ui/DownArrow';
 
@@ -46,13 +46,14 @@ const flows = [
       {color:'bg-fuchsia-800' , mainText: 'User Login' , secText: 'Email & Password' , icon: User2Icon},
       {color:'bg-cyan-600' , mainText: 'POST/login' , secText: 'Auth api' , icon: NetworkIcon},
       {color:'bg-green-600' , mainText: 'Controller' , secText: 'Validates creditials' , icon: CogIcon}, 
+      {color: 'bg-sky-600' , mainText: 'DB Layer' , secText: 'fetch user & store refresh Token' , icon: DatabaseZapIcon },
       {color:'bg-red-600' , mainText: 'Pass Check' , secText: 'Bycrypt compare' , icon: GitCompareArrowsIcon},  
       {color:'bg-sky-600' , mainText: 'Jwt Token' , secText: 'generate sign' , icon: LayoutDashboardIcon },   
       {color:'bg-blue-800/50' , mainText: 'Http Cookie' , secText: 'secure storage' , icon: CookieIcon},   
       {color:'bg-gray-800' , mainText: 'Protected Route' , secText: 'Acess to routes' , icon: UserCheck},
     ] ,
     responsiblities:[
-      {name : 'Cookies-parser :' , content :'safely parses cookies'},
+      {name : 'Auth service :' , content :' Handles token generation & DB update'}, 
       {name : 'Bycrypt :' , content : 'hashes & compare password and makes hashed refresh Token for db'},  
       {name : 'Jwt :' , content : 'generates access and refresh tokens'},
     ] ,
@@ -63,13 +64,14 @@ const flows = [
       'auth service calls db layer to fetch the user details' ,
       'then it calls bycrypt to compare the password with the hashed one' ,
       'after matching it calls jwt generate the access and refresh token with credentials' ,
-      'uses bycrypt to hash the refresh token and updates the refresh token in db' ,
+      'uses bycrypt to hash the refresh token and calls db layer to update the refresh token in db' ,
       'the controller then sets the tokens in http-only cookies and sends the response back to the client' ,
       'client can now visit the protected routes'      
     ] ,
     stack:[
-      {name : 'Cookies :' , content :'JWT , cookie Parser'},
+      {name : 'Auth :' , content :'JWT '},
       {name : 'Password Hashing' , content : 'Bcrypt'},
+      {name : 'Cookies :' , content :'Http only cookies, cookie parser'},
     ] ,
   } , {
     name: 'Media Upload Flow' ,
@@ -119,10 +121,36 @@ const flows = [
     ]
   } , {
     name : 'Real Time Communication',
-    description : 'Live Stream , Chat , Video Conference using WebRTC & Socket.io',
+    description : 'Live Stream & Video Conference using WebRTC & Socket.io',
     flowDiagram: [
-      {color:'bg-purple-800' , mainText: 'Client Request' , secText: 'React Redux Query' , icon :MonitorSmartphoneIcon},
+      {color:'bg-purple-800' , mainText: 'User join' , secText: 'Room session' , icon :User2Icon},
+      {color:'bg-yellow-600' , mainText: 'Socket.io' , secText: 'Signaling channel' , icon : Plug2Icon},
+      {color:'bg-yellow-600' , mainText: 'Mediasoup ' , secText: 'Connection Router' , icon : Plug2Icon},
+      {color:'bg-yello-800' , mainText : 'Transport' , secText : 'Handles connection' , icon : Plug2Icon}, 
+      {color:'bg-yellow-600' , mainText: 'Producer ' , secText: 'Publishs Media' , icon : Plug2Icon},
+      {color:'bg-yellow-800' , mainText : 'Mediasoup' , secText : 'Handles the stream' , icon : Plug2Icon}, 
+      {color:'bg-yellow-800' , mainText : 'Consumer' , secText : 'Subscribe to media' , icon : Plug2Icon},
+      {color:'bg-yellow-600' , mainText: 'Live Connection ' , secText: 'Peer to Peer' , icon : Plug2Icon}, 
     ] ,
+    process : [
+      'User creates/joins a meeting room' ,
+      'Client mediasoup transport is created' , 
+      'Transport  produces video  and audio tracks' ,    
+      'Mediasoup assigns producerId to each track' ,
+      'these Ids are then emitted into the room' ,
+      'Viewers subscribe to these producer ids and start recieving tracks' ,
+      'A mediastream is created from tracks and fed into Videojs to create visuals.' ,  
+    ] ,
+    stack : [
+      {name : 'Webrtc' , content : 'Mediasoup'},
+      {name : 'Signalling' , content : 'socket.io'},
+      {name : 'Stream Read' , content : 'Video.js'}, 
+    ] ,
+    responsiblities : [
+      {name : 'Mediasoup' , content : 'Handles webrtc transports , producers and consumers'},
+      {name : 'Socket.io' , content : 'Handles signalling'},
+      {name : 'Video.js' , content : 'Handles stream read'},
+    ]
   } , {
     name : 'Notification Workflow',
     description : 'Real Time and presistent notifications for user actions',
@@ -134,9 +162,52 @@ const flows = [
       {color : 'bg-purple-600' ,mainText : 'Client' , secText : 'Update Ui' , icon : MonitorSmartphoneIcon},
     ] ,
     responsiblities : [
-      {name : '' , content: ''}
+      {name : 'Service' , content: 'Triggers on user event'} ,
+      {name : 'DB' , content: 'Stores notifications'} ,
+      {name : 'Event Service' , content: 'Create & emit Socket events'} , 
+      {name : 'Client' , content: 'Receives & Update UI'} ,
+    ] ,
+    process : [
+      'User like or mention a post' ,
+      'Controller service validates the request and then calls service which create a new performs a DB update' ,
+      'Event serice is called which emits a Notification socket event to required connected clients' ,
+      'End User is updated with the new notification' ,
+    ] ,
+    stack : [
+      {name : 'Events' , content : 'Socket.io'},
+      {name : 'Notification' , content : 'MongoDB Atlas'},
     ]
-  }
+  } , {
+    name : 'CI/CD Flow' ,
+    description : 'Automatic testing and deployment using Github Actions' ,
+    flowDiagram : [
+      {color : 'bg-purple-800' , mainText : 'Development Push' , secText : 'Git Content' , icon :UploadIcon},
+      {color : 'bg-yellow-600' , mainText : 'Github Actions' , secText : 'CI Pipeline' , icon : GithubIcon},
+      {color : 'bg-sky-600' , mainText : 'Install Dependencies' , secText : '' , icon : DownloadIcon}, 
+      {color : 'bg-sky-600' , mainText : 'Run Tests' , secText : 'Jest+ SuperTest' , icon : TextSelectionIcon},
+      {color : 'bg-red-600' , mainText : 'Build' , secText : 'Vite Build' , icon : PackageIcon},
+      {color : 'bg-green-600' , mainText : 'Deploy' , secText : 'Hosting/Server' , icon : ServerCogIcon},
+    ] ,
+    process : [
+      'User pushes code to github' ,
+      'Github actions detects the changes and triggers the pipeline' ,
+      'Pipeline runs tests and checks for the potentials errorrs' ,
+      'If no errors are found , different production build is created' , 
+      'Build is deployed to hosting' ,
+    ] ,
+    stack : [
+      {name : 'Github Actions' , content : 'Github , NodeJS , Vite '},
+      {name : 'Testing' , content : 'Jest , SuperTest'},
+      {name : 'Hosting' , content : 'Vercel, Render'},
+    ] ,
+    responsiblities : [
+      {name : 'Github Actions' , content : 'Looks for changes and triggers the test pipeline'}, 
+      {name : 'Jest , supertest' , content : 'Creates and runs predefined tests & flags inconsistencies before deplyoment.'},  
+      {name : 'Vercel , Render' , content : 'Hosts the production application.'},
+    ]
+  } 
+
+
 
 ]
 

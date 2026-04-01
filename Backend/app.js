@@ -81,8 +81,5 @@ app.use('/api/v1/search' , searchRouter) ;
 app.use('/api/v1/analytics' , analyticsRouter) ;
 app.use('/api/v1/video' , videoUploadRouter) ;
 
-console.log('run');
-
 
 export {io , newServer} ;
-// export default newServer ;
