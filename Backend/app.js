@@ -42,6 +42,7 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 app.use('/api/v1/stripe' , stripeWebhook);
+app.disable('x-powered-by')
 
 
 const io = new Server(newServer, {

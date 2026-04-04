@@ -36,7 +36,7 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
     socket.on(CREATE_MEETING, async ({password} , callback) => {
       const roomId = v4() ;
       roomMap.set(roomId , { 
-        users : new Map() ,      
+        users : new Map() ,
         producers : new Map() ,
         consumers : new Map() ,
         chat : [] ,

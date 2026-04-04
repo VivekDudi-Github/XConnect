@@ -1,4 +1,4 @@
-import { BlocksIcon, ChevronRightIcon, CloudUploadIcon, CogIcon, CookieIcon, DatabaseZapIcon, DownloadIcon, FileVideoIcon, GitCompareArrowsIcon, GithubIcon, Grid2X2Icon, GridIcon, Hand, HandIcon, icons, ImagePlayIcon, ImageUpIcon, LayoutDashboardIcon, LoaderIcon, LucideDatabaseZap, LucideFileOutput, LucideLoader, LucideVideotape, MonitorSmartphoneIcon, NavigationIcon, NetworkIcon, PackageIcon, PanelBottomCloseIcon, PanelsLeftRightIcon, Plug2Icon, SendToBack, ServerCogIcon, SquareSplitVerticalIcon, TextSelectionIcon, UploadIcon, User2Icon, UserCheck } from 'lucide-react'
+import { ArrowRightLeftIcon, BlocksIcon, ChartNetworkIcon, ChevronRightIcon, ClipboardPenLine, CloudUploadIcon, CogIcon, CookieIcon, DatabaseZapIcon, DownloadIcon, FileVideoIcon, GitCompareArrowsIcon, GithubIcon, Grid2X2Icon, GridIcon, Hand, HandIcon, icons, ImageDownIcon, ImagePlayIcon, ImageUpIcon, LayoutDashboardIcon, LoaderIcon, LucideDatabaseZap, LucideFileOutput, LucideLoader, LucideNewspaper, LucideVideotape, LucideView, MonitorSmartphoneIcon, NavigationIcon, NetworkIcon, PackageIcon, PanelBottomCloseIcon, PanelsLeftRightIcon, PickaxeIcon, Plug2Icon, SendToBack, ServerCogIcon, SquareSplitVerticalIcon, TextSelectionIcon, TrendingUpDown, TruckElectricIcon, UnplugIcon, UploadIcon, User2Icon, UserCheck } from 'lucide-react'
 import React, { useState } from 'react'
 import DownArrow from '../ui/DownArrow';
 
@@ -78,7 +78,7 @@ const flows = [
     description : 'Handles video uploads with secure stroage and processing',
     flowDiagram:[
       {color:'bg-purple-800' , mainText: 'Client Select' , secText: 'Video file' , icon: ImagePlayIcon},
-      {color:'bg-yellow-600' , mainText : 'Initiate Api' ,  secText:'Build and return estimates ' , icon: PanelsLeftRightIcon },
+      {color:'bg-yellow-600' , mainText : 'Initiate Api' ,  secText:'Create upload session & chunk metadata ' , icon: PanelsLeftRightIcon },
       {color:'bg-sky-600' , mainText : 'Media-Chunked' ,  secText:'Resumable & Multipart' , icon: Grid2X2Icon },
       {color:'bg-red-600' , mainText : 'Chunks Upload' ,  secText:'Uploads to server' , icon: BlocksIcon },
       
@@ -89,13 +89,13 @@ const flows = [
       {color:'bg-zinc-300' , mainText: 'HLS creations' , secText: '360p/480p quality' , icon: LucideVideotape },
       {color:'bg-orange-600' , mainText : 'FFmpeg Output' , secText : 'm3u8 playlist' , icon: LucideFileOutput },
       {color: 'bg-purple-600/50', mainText: 'Upload Cloud' , secText: 'Calls supabase uploader' , icon: CloudUploadIcon },   
-      {color: 'bg-teal-600', mainText: 'DB Layer' , secText: 'updates status' , icon: DatabaseZapIcon }, 
+      {color: 'bg-teal-600', mainText: 'DB Layer' , secText: 'Update video status & metadata' , icon: DatabaseZapIcon }, 
     ] ,
     responsiblities : [
       {name : 'Multer :' , content : 'Handles media files ,storage, do type and size check'}, 
       {name : 'FFmpeg :' , content : 'Handles merger, multiple resolution downscaling, HLS segementation and m3u8 playlist creation'},   
-      {name : 'Supabase :' , content : 'cloud storage and provide the cdn for fast access'},
-      {name : 'Cloudinary :' , content : 'Handles media uploads to cloudinary'},
+      {name : 'Supabase :' , content : 'cloud storage for hsl videos and provide the cdn for fast access'},
+      {name : 'Cloudinary :' , content : 'Handles media uploads to images'},
     ] ,
     stack : [
       {name : 'Server File Handling' , content : 'Multer'},
@@ -124,21 +124,32 @@ const flows = [
     description : 'Live Stream & Video Conference using WebRTC & Socket.io',
     flowDiagram: [
       {color:'bg-purple-800' , mainText: 'User join' , secText: 'Room session' , icon :User2Icon},
-      {color:'bg-yellow-600' , mainText: 'Socket.io' , secText: 'Signaling channel' , icon : Plug2Icon},
-      {color:'bg-yellow-600' , mainText: 'Mediasoup ' , secText: 'Connection Router' , icon : Plug2Icon},
-      {color:'bg-yello-800' , mainText : 'Transport' , secText : 'Handles connection' , icon : Plug2Icon}, 
-      {color:'bg-yellow-600' , mainText: 'Producer ' , secText: 'Publishs Media' , icon : Plug2Icon},
-      {color:'bg-yellow-800' , mainText : 'Mediasoup' , secText : 'Handles the stream' , icon : Plug2Icon}, 
-      {color:'bg-yellow-800' , mainText : 'Consumer' , secText : 'Subscribe to media' , icon : Plug2Icon},
-      {color:'bg-yellow-600' , mainText: 'Live Connection ' , secText: 'Peer to Peer' , icon : Plug2Icon}, 
+      {color:'bg-yellow-600' , mainText: 'Socket.io' , secText: 'Signaling channel' , icon : ArrowRightLeftIcon},
+      {color:'bg-sky-600' , mainText: 'Mediasoup worker ' , secText: 'Connection Router' , icon : NetworkIcon},
+      {color :'bg-orange-600', mainText: 'Rtp Capabilities' , secText: 'Device compatibility' , icon : MonitorSmartphoneIcon},
+      {color:'bg-green-800' , mainText : 'Transport' , secText : 'Handles connection to router' , icon : TruckElectricIcon}, 
+      {color:'bg-cyan-600' , mainText: 'Producer ' , secText: 'Publishs Media' , icon : ImageUpIcon},
+      {color:'bg-red-600' , mainText : 'Server Room store' , secText : 'Handles the room metadata' , icon : ClipboardPenLine}, 
+      {color:'bg-lime-600' , mainText : 'Consumer' , secText : 'Request Rtp and build Transp.' , icon : GitCompareArrowsIcon},
+      {color:'bg-blue-600' , mainText : 'Consume' , secText : 'Subsribe to the stream ', icon : ImageDownIcon } ,
+      {color:'bg-pink-600' , mainText: 'Live Connection ' , secText: 'peer- SFU - peer' , icon : LucideView}, 
     ] ,
     process : [
-      'User creates/joins a meeting room' ,
-      'Client mediasoup transport is created' , 
-      'Transport  produces video  and audio tracks' ,    
-      'Mediasoup assigns producerId to each track' ,
-      'these Ids are then emitted into the room' ,
-      'Viewers subscribe to these producer ids and start recieving tracks' ,
+      'User connects to server and a socket connection is established with proper jwt auth checks which servers as main signaling channel.' ,
+      'User request to create a meeting room with required credentials like password or id.' ,
+      'Server creates a mediasoup worker' ,
+      'A router is intialized which handles all the media tracks, codecs and its routing' ,
+      'User request for rtp capablities to router which provides media codecs for device compatiablity and consistencies.' ,
+      'Mediasoup client loads capablities to Mediasoup Client Device' ,
+      'This device requests a Send transport and router creates a new transport connection using using ICE and DTLS' , 
+      "The transport is used then to produce data channels for audio and video tracks." ,    
+      'Mediasoup assigns producerId to each track , get emitted into server and stored in room metadata on server' ,
+      'New user joins the room ' ,
+      'They follow similar protocol for stting up their own upstreams.',  
+      'For consumption , the client requests the producers lists' ,
+      'Server sends producer IDs',
+      'Client creates consumers for each producer',
+      'Client signals to resume consumers and starts receiving the tracks' ,
       'A mediastream is created from tracks and fed into Videojs to create visuals.' ,  
     ] ,
     stack : [
@@ -147,9 +158,15 @@ const flows = [
       {name : 'Stream Read' , content : 'Video.js'}, 
     ] ,
     responsiblities : [
-      {name : 'Mediasoup' , content : 'Handles webrtc transports , producers and consumers'},
+      {name : 'Mediasoup' , content : 'Handles webrtc router, transports , producers, consumers and transmission'},
       {name : 'Socket.io' , content : 'Handles signalling'},
       {name : 'Video.js' , content : 'Handles stream read'},
+      {name: 'transport' , content : 'Handles the pathway between client and router and media transmission'},
+      {name: 'rtp Capabilities' , content : 'Define the media codecs and compatibility headers of media transmission that the router can handle'}, 
+      {name : 'Producer' , content : 'Creates a upstream data channel for media to router'}, 
+      {name : 'Consumer' , content : 'Subscribe to producer & creates a donstream data channel.'},
+      {name : 'Room Store' , content : 'Maintains the room metadata and producer-consumer mapping'},
+      {name : 'DTLS Paramaters' , content : 'Used for validation handshake between server and client and encrypted media transmission '},   
     ]
   } , {
     name : 'Notification Workflow',
@@ -157,8 +174,8 @@ const flows = [
     flowDiagram : [
       {color : 'bg-cyan-600' ,mainText : 'User Action' , secText : 'Like/Mention/Follow' , icon : HandIcon},
       {color : 'bg-red-600' ,mainText : 'Controller-service' , secText : 'Validates & Processes' , icon : CogIcon},
-      {color : 'bg-blue-600' ,mainText : 'DB Layer' , secText : 'Make Entry' , icon : DatabaseZapIcon},
-      {color : 'bg-yellow-800' ,mainText : 'Event Service' , secText : 'Sends Notification' , icon : NavigationIcon},
+      {color : 'bg-blue-600' ,mainText : 'DB Layer' , secText : 'Store Notification' , icon : DatabaseZapIcon},
+      {color : 'bg-yellow-800' ,mainText : 'Event Service' , secText : 'Emit Socket Notification' , icon : NavigationIcon},
       {color : 'bg-purple-600' ,mainText : 'Client' , secText : 'Update Ui' , icon : MonitorSmartphoneIcon},
     ] ,
     responsiblities : [
@@ -169,7 +186,7 @@ const flows = [
     ] ,
     process : [
       'User like or mention a post' ,
-      'Controller service validates the request and then calls service which create a new performs a DB update' ,
+      'Controller service validates the request and then calls service which  creates notification and updates DB' ,
       'Event serice is called which emits a Notification socket event to required connected clients' ,
       'End User is updated with the new notification' ,
     ] ,
@@ -212,7 +229,7 @@ const flows = [
 ]
 
 function ArchitectureTab() {
-  const [selectedFlow , setSelectedFlow] = useState('') ;
+  const [selectedFlow , setSelectedFlow] = useState('Request Flow') ;
   
   function selectFlow(flow){
     if(selectedFlow === flow) return setSelectedFlow('') ;
@@ -247,7 +264,7 @@ function Flow({isSelected , title , description , flow}){
       <div className={`grid transition-all duration-300 ease-linear ${isSelected ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}> 
         <div className='flex flex-row gap-2 overflow-hidden'>
           {/* Flow Diagram */}
-          <div className='  p-2 h-[800px] flex flex-col overflow-y-scroll w-1/2 '>
+          <div className='  p-2 max-h-[800px] flex flex-col overflow-y-scroll w-1/2 '> 
             {flow.flowDiagram.map(({color , mainText , secText , icon}, i) => (
               <FlowBox bgcolor={color} mainText={mainText} secText={secText} Icon={icon} isLast={i === flow.flowDiagram.length-1}  /> 
             ))}

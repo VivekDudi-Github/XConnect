@@ -1,6 +1,6 @@
 import React from 'react'
 import Layout from '../layout/Layout'
-import MeetLayout from '../component/Call/MeetLayout'
+import MeetLayout from '../component/Meeting/MeetLayout'
 
 function MeetPage() {
   return (
