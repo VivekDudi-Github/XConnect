@@ -27,8 +27,18 @@ describe("Communities", () => {
   });
 
   it('should create a community post' , async() => {
+    const formData = new FormData();
+    formData.append("content", "Hello world");
+    formData.append("isCommunityPost", true);
+    formData.append("title", "Hello world");
+    formData.append("category", "general");
+    formData.append("type", "community");
+    formData.append("isAnonymous", false);
+    formData.append("community", communityId);
+    
     const res = await agent
       .post("/api/v1/post")
+      .type('form')
       .send({
         content: "Hello world" ,
         isCommunityPost : true ,
@@ -36,9 +46,9 @@ describe("Communities", () => {
         category : "general" ,
         type : "community" ,
         isAnonymous : false ,
-        community : communityId , // fake community id for testing
+        community : communityId ,
       });
-
+    console.log(communityId , res.body);
     if(res.statusCode !== 201) console.log(res.body);
     expect(res.statusCode).toBe(201);
     expect(res.body.data).toHaveProperty("_id");

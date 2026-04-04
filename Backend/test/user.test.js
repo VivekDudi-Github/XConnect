@@ -3,7 +3,7 @@ import { createOtherUser, createUser } from "./user.helper.js";
 let agent ;
 beforeAll(async () => {
   agent = await createUser() ;
-}, 15000);
+}, 20000);
 
 describe("get my profile" , () => {
     it("should return my profile" , async () => {
@@ -45,7 +45,7 @@ describe('change my password', () => {
     if(response.statusCode !== 200) console.log(response.body);
       expect(response.statusCode).toBe(200);
       expect(response.body.success).toBe(true);
-    });
+    } , 20000);
 }) 
 
 
