@@ -1,79 +1,183 @@
 # XConnect 🚀  
-**A Twitter-like Full-Stack Web App with Live Streaming, meetings Rooms, and Creator Tools**
+A full-featured real-time social media and live streaming platform built using MERN stack, WebRTC, and Media Processing pipelines.
 
-Built with the **MERN stack**, XConnect is a powerful, full-featured social platform combining the best of Twitter and Youtube like apps — all in one.
-
----
-
-### 🧪 Tech Stack
-
-| Area              | Tech                        |
-|-------------------|-----------------------------|
-| Frontend          | React + Tailwind            |
-| Api & States      | Redux toolkit + RTK Query   |  
-| Backend           | Node.js + Express + zod     |
-| Database          | MongoDB + Mongoose          |
-| Realtime          | Socket.IO                   |
-| Auth & sessions   | Json web Tokens             |
-| WebRTC            | Mediasoup                   | 
-| Payments          | Stripe                      |
-| Charts            | Recharts .js                |
-| Media Uploads     | Cloudinary + Supabase       |  
-| Backend Testing   | supertest + Jest            |
-| Video Proccesing  | FFmpeg                      |
-| CI-CD             | GitHub Actions              |
-
+XConnect enables users to connect, stream live, upload media, send superchats, receive real-time notifications, and interact through secure and scalable architecture.
 
 ---
 
-## ✨ Features
-
-### 🧱 Core Social Features
-- 📝 Create Posts (text + audio/videos)
-- 💬 Comments and Replies
-- 🔔 Real-time Notifications
-- 📌 Pin Posts
-- #️⃣ Hashtag Support
-- 📎 User Tagging (`@username`)
-- ⏳ Watch/View History
-- 📩 Direct Text Messaging
-- 🧑‍🤝‍🧑 Communities (group-based content feeds)
-- 📺 Live Streaming Rooms (with viewer count, chat)
-- 🗂️ User Profiles (bio, followers/following, media)
-- 🔍 Full-text Search with MongoDB Atlas Search
+## Live Links 
 
 ---
 
-### 👨‍🎨 Creator & Admin Features
-- 📈 Creator Dashboard
-  - Audience & content analytics
-- 📊 Chart Visualizations (Recharts)
-- 💸 Stripe Integration for Donations & Monetization
-- 🧰 Admin Panel (moderate users, posts, reports)
+## Features
+
+### Authentication
+- JWT-based login and secure cookies
+- Protected routes
+- Refresh token system
+  
+### Social Platform
+- Create and manage posts
+- Like and comment on posts
+- Follow and unfollow users
+- Personalized feed system
+- User profiles and activity
+- Media posts (image and video)
+
+### Media Upload
+- Chunked video upload
+- FFmpeg processing
+- HLS streaming
+- Supabase storage
+- Cloudinary thumbnails
+
+### Real-Time Communication
+- WebRTC live streaming
+- Mediasoup SFU
+- Socket.io signaling
+- Video.js playback
+
+### Notifications
+- Real-time socket notifications
+- Persistent notification storage
+
+### SuperChat
+- Stripe payment integration
+- Live stream superchat messages
+
+### Security
+- Rate limiting
+- Helmet
+- CORS
+- Global error handling
+- Web Security & API Protection
+
+### DevOps
+- GitHub Actions CI
+- Automated testing
+- Deployment pipeline
 
 ---
 
-### 🌟 Engagement Extras
-- ❤️ Like / Reaction System
-- 📌 Save / Bookmark Posts
-- 🔍 Search Users / Hashtags / Posts
-- 🧭 Explore Trending Tags & Posts
-- ✨ Smart Tag Suggestions 
-- 🤝 Follow / Unfollow Users
-- 🧠 Personalized Feed Recommendations
+
+## Project Architecture
+
+---
+---
+
+
+##  Tech Stack
+
+| Area              | Tech                                                             |
+|-------------------|------------------------------------------------------------------|
+| Frontend          | React , Tailwind Css, Rdux Toolkit , RTK Query , Vite , Video.js |
+| Backend           | Node.js , Express , Mongo Atlas , Mongoose                       |
+| Real-Time Coms    | Mediasoup , Socket.io , WebRTC                                   |
+| Media Processing  | Multer , ffmpeg , HLS                                            |
+| Payments          | Stripe                                                           |
+| Storage           | Cloudinary , Supabase                                            |  
+| Security          | Helmet, CORS, Rate Limiting, JWT, Http only Cookies, Zod         |
+| Backend Testing   | supertest + Jest                                                 |
+| Dev Ops           | Github , vercel , render                                         |
+| CI-CD             | GitHub Actions                                                   |
+
+## Project Structure
+
+```text
+XConnect
+  │
+  ├── Backend
+  │   ├── controllers
+  │   ├── routes
+  │   ├── models
+  │   ├── middleware
+  │   ├── utils
+  │   ├── tests
+  │   ├── server.js
+  |   ├── swagger.js
+  │   └── app.js
+  │
+  ├── Frontend
+  │   ├── src
+  │       ├── components
+  |       ├── layout
+  |       ├── constants
+  │       ├── pages
+  │       ├── redux
+  |       ├── api
+  |       ├── main.jsx
+  │       └── app.jsx
+  │
+  └── README.md
+  ```
+---
+
+## Installation
+
+Clone the repository
+```text
+git clone https://github.com/yourname/xconnect.git
+cd xconnect
+```
+
+```text
+cd Backend
+npm install
+npm run dev
+```
+
+```text
+cd Frontend
+npm install
+npm run dev
+```
+### Running tests
+```text
+cd Backend
+npm run test
+```
+---
+## Environment Variables
+```text
+Backend:
+PORT=
+MONGO_URL=
+ACCESS_TOKEN_SECRET=
+ACCESS_TOKEN_SECRET_EXPIRES_IN=
+REFRESH_TOKEN_SECRET=
+REFRESH_TOKEN_SECRET_EXPIRES_IN=
+
+PUBLISHABLE_STRIPE_KEY=
+STRIPE_SECRET_KEY=
+WEBHOOK_KEY=
+
+SUPABASE_URL=
+SUPABASE_API_KEY=
+SUPABASE_VIDEO_BUCKET
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+
+Frontend:
+VITE_STRIPE_PUBLISHABLE_KEY=
+```
+---
+
+## Future Improvements
+
+- Creator payout system
+- Advanced analytics
+- Scalable media workers
+- Kubernetes deployment
+- Redis caching
 
 ---
 
-### 🛡️ Moderation & Security
-- 👮 Admin Control Panel
+## Author
+
+Vivek Dudi
+
+GitHub: https://github.com/VivekDudi-Github
+LinkedIn: VivekDudi-LinkedIn
 
 ---
-
-### 📌 Future Enhancements
-- 🌐 PWA Support
-- 🧠 AI Content Moderation (images, text)
-- 🚨 User Reports & Admin Reviews
-- 🧍 Block / Mute / Restrict Users
-
----
-
