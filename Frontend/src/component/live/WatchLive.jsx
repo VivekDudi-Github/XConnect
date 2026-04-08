@@ -16,6 +16,7 @@ import {
   BROADCAST_ENDED , 
   CHECK_ROOM_ACTIVE , 
   CHECK_ROOM_JOINED , 
+  JOIN_SOCKET_ROOM ,
 } from "../../constants/live.socket.constant";
 
 export default function WatchLive({localStreamRef , stopBroadcast , isProducer , streamData = null}) {

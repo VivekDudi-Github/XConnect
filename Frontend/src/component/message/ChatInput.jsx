@@ -15,7 +15,7 @@ export default function ChatInput({members ,user , setLiveMessages , room_id}) {
 
   const handleSend = () => {
     if (!message.trim()) return;
-    socket.emit(SEND_MESSAGE , {message , memberIds : members , room_id });  
+    socket.emit('SEND_MESSAGE' , {message , memberIds : members , room_id });  
     socket.emit(USER_ROOM_META_UPDATE , {room_id}) ;
     setLiveMessages(prev => [...prev , 
       {

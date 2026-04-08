@@ -123,9 +123,9 @@ function ChatCard({
     >
       {/* Avatar */}
       <img
-        src={avatar?.url}
+        src={avatar?.url || '/avatar-default.svg'}
         alt={username}
-        className="w-12 h-12 rounded-full object-cover mr-2"
+        className="w-12 h-12 rounded-full object-cover mr-2 overflow-hidden"
       />
 
       {/* User Info */}

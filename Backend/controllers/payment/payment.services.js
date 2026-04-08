@@ -47,9 +47,10 @@ export const paymentService = {
       isSuperChat: true,
       amount: Number(amount),
     });
-
-    emitEvent(RECEIVE_LIVE_MESSAGE , LIVESTREAM_ROOM , streamId , {
-      ...superChat.toObject(),
+    console.log('superChat recived' , superChat);
+    
+    emitEvent(RECEIVE_LIVE_MESSAGE , LIVESTREAM_ROOM , [streamId] , {
+      ...superChat.toObject(), 
       sender: {
         _id,
         username,

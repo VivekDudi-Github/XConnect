@@ -1,11 +1,12 @@
 import { EditIcon, Loader2Icon, Send, SettingsIcon, UserCheck2, UserPenIcon, UserPlus2Icon } from 'lucide-react';
-import {useNavigate, useParams} from 'react-router-dom'
+import {NavLink, useNavigate, useParams} from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux';
 import { setChatName, setIsProfileEdit } from '../../redux/reducer/miscSlice';
 import { useCreateRoomMutation, useGetProfileQuery, useToggleFollowMutation } from '../../redux/api/api';
 import { useEffect , useState } from 'react';
 import { toast } from 'react-toastify';
 import { useSocket } from '../specific/socket';
+import { ensureSocketReady } from '../shared/SharedFun';
 
 function ProfileHeader() {
   const {username} = useParams();
@@ -13,7 +14,8 @@ function ProfileHeader() {
 
   const dispatch = useDispatch() ;
   const {user : userProfile} = useSelector(state => state.auth) ;
-  
+  const [liveId , setLiveId] = useState(null) ;
+
   const [user , setUser]  = useState({}) ;
   const [followStatus , setFollowStatus] = useState(false) ;
   const socket = useSocket() ;
@@ -25,9 +27,17 @@ function ProfileHeader() {
   const [createRoomMutation] = useCreateRoomMutation() ;
 
   useEffect(() => {
+    const checkLiveStatus = async(hostId) => {
+      await ensureSocketReady(socket);
+      socket.emit('CHECK_LIVE_HOST' , {hostId : hostId} , (roomId) => {
+        if(roomId) setLiveId(roomId) ;
+      })
+      }
+
     if(data && username) {
       setUser(data?.data) ; 
       console.log(data?.data);
+      checkLiveStatus(data?.data?._id) ;
       setFollowStatus(data?.data?.isFollowing)
     }
   } , [data ,username])
@@ -78,6 +88,7 @@ function ProfileHeader() {
       return toast.error('Error while creating the room.')
     }
   }
+  console.log(user);
 
   
   return (
@@ -90,14 +101,20 @@ function ProfileHeader() {
         </div>
         <div className="flex flex-col relative items-center px-3 pt-2 gap-3 dark:bg-black sm:flex-row sm:items-start sm:gap-6">
           
-          <div>
+          <div className='relative '>
             <img
               src={ user?.avatar?.url || '/avatar-default.svg' } 
               alt="Profile"
-              className="w-28 h-28 mx-auto rounded-full object-cover border-2 border-gray-300"
+              className={`w-28 h-28 mx-auto rounded-full object-cover ${ liveId ? 'border-4 border-red-800' : 'border-2 border-gray-300'}`}
             />
-          <h2 className="text-base text-center block p-2 dark:text-slate-400 text-cyan-600">@{user?.username}</h2>
+            {liveId &&  <NavLink 
+             to={ `/live/watch/${liveId}` }
+             className='absolute top-0 right-0 text-white bg-red-800 font-semibold text-sm rounded-md p-1'>
+              {liveId ? 'Live' : null}
+            </NavLink>} 
+            <h2 className="text-base text-center block p-2 dark:text-slate-400 text-cyan-600">@{user?.username}</h2>
           </div>
+          
           <div className='pt-2  sm:w-auto  w-full'>
             <h2 className="text-3xl font-semibold dark:text-gray-200" >{user?.fullname}</h2>
             

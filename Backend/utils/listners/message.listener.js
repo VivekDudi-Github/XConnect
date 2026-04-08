@@ -45,13 +45,15 @@ const MessageListener = (socket , io) => {
     }) ;
 
   socket.on(SEND_LIVE_MESSAGE , async({message , isSuperChat = false, roomId , amount = 0 } , cb) => {  
+    if(!message) return cb({error : 'no message content'}) ;
+    if(!roomId) return cb({error : 'no room Id found'}) ;
 
     const Obj = await new LiveChat({
       sender :  socket.user._id ,
       message ,
       roomId ,
-      isSuperChat ,
-      amount ,
+      isSuperChat : false ,
+      amount : 0 ,
     }).save() ;
     console.log(socket?.rooms , 'rooms');
     

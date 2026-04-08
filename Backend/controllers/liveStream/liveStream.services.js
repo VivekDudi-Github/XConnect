@@ -48,7 +48,7 @@ export const deleteLiveStreamService = async (id, user) => {
 
 export const updateLiveStreamService = async (id, user, updates) => {
   console.log("Updating live stream with ID:", id , updates);
-  const { title, description, startedAt, endedAt, videoId, audioId } = updates;
+  const { title, description, startedAt, endedAt, videoId, audioId , isLive } = updates;
 
   let stream = await findLiveStreamById(id);
   if (!stream) throw { statusCode: 404, message: "Live stream not found" };
@@ -62,6 +62,7 @@ export const updateLiveStreamService = async (id, user, updates) => {
   if (endedAt !== undefined) stream.endedAt = endedAt;
   if (videoId !== undefined) stream.producers.videoId = videoId;
   if (audioId !== undefined) stream.producers.audioId = audioId;
+  if(isLive !== undefined) stream.isLive = isLive ;
 
   emitEvent(RECEIVE_LIVE_STREAM_DATA , LIVESTREAM_ROOM , stream._id , stream);
 

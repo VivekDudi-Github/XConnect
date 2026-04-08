@@ -1,6 +1,7 @@
 import {
   getUserProfileAggregate,
   checkIsFollowing,
+  checkIsLive
 } from '../db/getAnotherUser.db.js';
 
 export const getAnotherUserService = async ({

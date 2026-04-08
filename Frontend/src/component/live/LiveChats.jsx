@@ -42,8 +42,6 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
   const stripPromiseRef = useRef(null) ;
   console.log(streamData);
   useMemo(() => {
-    console.log(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
-    
     if(!stripPromiseRef.current) stripPromiseRef.current = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
   } , [])
 

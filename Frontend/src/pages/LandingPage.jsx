@@ -11,7 +11,7 @@ const Tab = ['XConnect' ,'API', 'Architecture' , 'GitHub' , 'About']
 
 export default function LandingPage() {
   const navigate = useNavigate() ;
-  const [selectedTab , setSelectedTab] = useState('Architecture') ;
+  const [selectedTab , setSelectedTab] = useState('login') ;
   const isAuth = useSelector(state=> state?.auth?.isAuthenticated) ;
   console.log(isAuth);
   

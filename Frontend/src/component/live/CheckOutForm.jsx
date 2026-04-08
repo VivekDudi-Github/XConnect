@@ -38,7 +38,7 @@ export default function CheckoutForm({auth , streamData , input , onClose}) {
       }
     }) ;
     console.log(res , data.data);
-    
+
     if(res.error){
       return toast.error(res.error.message)
     }else {

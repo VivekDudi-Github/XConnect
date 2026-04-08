@@ -23,6 +23,7 @@ const liveStreamSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId ,
     ref : 'User' ,
     required: true,
+    index : true ,
   },
   startedAt: {
     type: Date,
@@ -31,6 +32,7 @@ const liveStreamSchema = new mongoose.Schema({
   isLive : {
     type : Boolean ,
     default : false ,
+    index : true ,
   },
   viewersCount : {
     type : Number ,

@@ -30,8 +30,6 @@ const roomSchema = new mongoose.Schema({
     admins : [{
         type : mongoose.Schema.Types.ObjectId ,
         ref : 'User' ,
-        unique : true ,
-        required : true ,
     }] ,
     type : {
         type : String ,
@@ -41,7 +39,6 @@ const roomSchema = new mongoose.Schema({
     members : [{
         type : mongoose.Schema.Types.ObjectId ,
         ref : 'User' ,
-        unique : true ,
         required : true 
     }] ,
     archievedBy : [{

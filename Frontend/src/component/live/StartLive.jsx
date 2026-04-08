@@ -53,14 +53,15 @@ export default function StartLive() {
   const {startBroadcast , stopBroadcast , videoProducer , audioProducer , isLive : mediasoupReady , localStreamRef } = useBroadcast(socket , true ) ;
 
   const goLive = async() => {
-    if(!title) return toast.error('Title is required') ;
-    if(!description) return toast.error('Description is required') ;
     if(isRoomAvailable){
       if(timerRef.current ) clearInterval(timerRef.current) ; 
       rejoinLiveStream() ;
       await startBroadcast(isCameraOn , null );
       return ;
     }
+    if(!description) return toast.error('Description is required') ;
+    if(!title) return toast.error('Title is required') ;
+    
     const formData = new FormData() ;
     formData.append('title' , title) ;
     formData.append('description' , description) ;
@@ -86,21 +87,26 @@ export default function StartLive() {
       if(audioProducer && mediasoupReady && streamData){
         await updateLiveMutation({id :streamData._id , audioId : audioProducer.id})
       }
-      console.log(!!videoProducer , !!mediasoupReady , !!audioProducer , !!streamData);
       
-      if(videoProducer && mediasoupReady && streamData && audioProducer) setIsLive(true) ;
+      if(videoProducer && mediasoupReady && streamData && audioProducer) {
+        await updateLiveMutation({isLive : true , id : streamData._id }) ;
+        setIsLive(true) ;
+      }
     }
     update() ;
   } , [videoProducer , audioProducer , streamData ])
 
-  const removeLiveHost = () => {
+  const removeLiveHost = async() => {
     socket.emit(REMOVE_LIVE_HOST) ;
+    await updateLiveMutation({id : streamData._id , isLive : false }) ;
     setIsRoomAvailable(false) ;
   }
   const rejoinLiveStream = () => {
-    socket.emit(REJOIN_LIVE_STREAM , {roomId : 'temp'} , async(res) => {
+    if(!streamData?._id) return toast.error('Failed to get stream id') ;
+    socket.emit(REJOIN_LIVE_STREAM , {roomId : streamData._id} , async(res) => {
       if(res) setIsRoomAvailable(true) ;
     })
+    
   }
   const AddHost = async() => {
     if(isLive && !isRoomAvailable) socket.emit(ADD_LIVE_HOST , {roomId : streamData._id}) ;
@@ -114,7 +120,7 @@ export default function StartLive() {
   useEffect(() => {
     let func = async() => {
       await ensureSocketReady(socket);
-      socket.emit(CHECK_AND_UPDATE_LIVE_HOST , {roomId : 'temp'} , (res) => {
+      socket.emit(CHECK_AND_UPDATE_LIVE_HOST , (res) => {
         console.log('available' , res);
         if(res.isAvailableTime){
           setIsRoomAvailable(true) ; 
@@ -146,6 +152,7 @@ export default function StartLive() {
   
   const endBroadcast = async() => {
     if(socket) socket.emit(END_BROADCAST , {roomId : streamData._id}) ;
+    await updateLiveMutation({id : streamData._id , isLive : false }) ;
     setIsLive(false) ;
   }
 

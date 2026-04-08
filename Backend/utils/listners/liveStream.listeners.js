@@ -24,7 +24,12 @@ export const StreamListener = (socket , io) => {
     cb && cb(!!hostRoom) ;  
   })
 
-  socket.on('CHECK_AND_UPDATE_LIVE_HOST' , ({roomId} , cb) => {
+  socket.on('CHECK_LIVE_HOST' , ({hostId} , cb) => {
+    const hostRoom = liveHosts.get(hostId) ;
+    if(hostRoom && !hostRoom?.isDisconnected) cb && cb(hostRoom.roomId) ;
+  })
+
+  socket.on('CHECK_AND_UPDATE_LIVE_HOST' , ( cb) => {
     const hostRoom = liveHosts.get(socket.user._id) ; 
     let isAvailableTime = false ;
     if(hostRoom){

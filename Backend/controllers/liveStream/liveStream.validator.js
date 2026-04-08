@@ -26,6 +26,7 @@ export const updateLiveStreamSchema = z.object({
     endedAt: z.coerce.date().optional(),
     videoId: z.string().optional(),
     audioId: z.string().optional(),
+    isLive : z.boolean().optional(),
   }),
 });
 

@@ -1,5 +1,8 @@
 import { User } from '../../../models/user.model.js';
 import { Following } from '../../../models/following.model.js';
+import {LiveStream} from '../../../models/liveStream.model.js'
+
+const OneDay = 24 * 60 * 60 * 1000;
 
 export const getUserProfileAggregate = (username) => {
   return User.aggregate([
@@ -83,3 +86,10 @@ export const checkIsFollowing = (targetUserId, viewerId) => {
     followedBy: viewerId,
   });
 };
+
+export const checkIsLive = (userId) => {
+  return LiveStream.exists({
+    host : userId ,
+    isLive : true ,
+  })
+}
