@@ -1,6 +1,6 @@
 import express from 'express' ;
 import { checkUser } from '../utils/chekAuth.js';
-import * as routes from '../controllers/comment/comment.controller.js';
+import * as routes from '../modules/comment/comment.controller.js';
 
 const router = express.Router() ;
 /**

@@ -3,7 +3,7 @@ import express from "express";
 import { checkUser } from "../utils/chekAuth.js";
 import parseMultipartFields from "../middlewares/parseMultiPart.js";
 
-import * as routes from '../controllers/post/routes.index.js'
+import * as routes from '../modules/post/routes.index.js'
 
 
 const router = express.Router();

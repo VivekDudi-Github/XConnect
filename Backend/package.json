@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.95.3",
+    "address": "^2.0.3",
     "bcryptjs": "^3.0.2",
     "body-parser": "^2.2.0",
     "cloudinary": "^2.6.1",
@@ -35,6 +36,7 @@
     "mongoose": "^8.15.1",
     "multer": "^2.0.0",
     "nodemon": "^3.1.10",
+    "public-ip": "^8.0.0",
     "rate-limiter-flexible": "^9.1.1",
     "socket.io": "^4.8.1",
     "stripe": "^19.1.0",

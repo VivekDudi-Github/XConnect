@@ -2,7 +2,7 @@ import express from 'express';
 import {checkUser} from '../utils/chekAuth.js'
 import { uploadFiles } from '../middlewares/multer.js';
 
-import * as routes from '../controllers/community/route.index.js'
+import * as routes from '../modules/community/route.index.js'
 
 const router = express.Router();
 

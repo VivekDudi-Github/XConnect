@@ -108,11 +108,10 @@ const flows = [
       'User intiates the Video upload' , 
       'File type and size are send to Initate Api which size check, calculates the total required chunks , intiate the new MongoDB record and return to client',  
       'Client slices the video into chunks and uploads one by one.' , 
-      'Multer middleware picks the chunks check size limit and puts into local storage ',
-      'After completion , controller checks for missing parts, change DB status to "uploading" and initiates the merge process' ,
+      'Multer middleware check size limit and puts into local storage ',
+      'After completion , controller checks for missing parts, change DB status to "processing" and initiates the merge process' ,
       'It reads the chunks and merges them into a single video final size are checks with DB' , 
       'A child process is spawned to start FFmpeg worker' ,
-      'DB status is updated to "processing"',
       'FFmpeg probes the video generates a thumbnail and creates different streams of segments withing 360p, 480p and 720p resolution.' ,
       'Creates playlist for every resolution stream and finally it creates a master playlist.' , 
       'In the end the playlists along with all segments with their respective folder structure uploaded to supabase' ,  
@@ -236,7 +235,7 @@ function ArchitectureTab() {
     setSelectedFlow(flow) ;
   }
   return (
-    <div className='w-full h-full mx-10 border p-8 z-10 fade-in backdrop-filter backdrop-blur-sm rounded-lg bg-black/80 text-white mt-16 '> 
+    <div className='w-full h-full md:mx-0 border md:p-8 p-2 pl-5 z-10  fade-in backdrop-filter backdrop-blur-sm rounded-lg bg-black/80 text-white md:mt-16 sm:mt-20 mt-24 duration-200'> 
       Architecture
       {flows.map(e => (
         <div onClick={() => selectFlow(e.name)} className=' cursor-pointer'>
@@ -255,16 +254,16 @@ function Flow({isSelected , title , description , flow}){
   
   return (
     <div className={`flex flex-col text-white transistion-all`}>         
-      <h1 className='font-bold text-3xl  items-center gap-2 relative mb-2'>
+      <h1 className='font-bold md:text-3xl text-2xl  items-center gap-2 relative mb-2'>
         <ChevronRightIcon size={25} strokeWidth={4} className={`${isSelected ? ' rotate-90' : ''} absolute -left-6 top-2 duration-200`}/>
         {title}
         <p className='text-sm font-semibold'>{description}</p>
       </h1>
       
       <div className={`grid transition-all duration-300 ease-linear ${isSelected ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}> 
-        <div className='flex flex-row gap-2 overflow-hidden'>
+        <div className='flex md:flex-row flex-col gap-2 overflow-hidden'>
           {/* Flow Diagram */}
-          <div className='  p-2 max-h-[800px] flex flex-col overflow-y-scroll w-1/2 '> 
+          <div className='  p-2 md:max-h-[800px] flex md:flex-col overflow-y-scroll md:w-1/2 w-full '> 
             {flow.flowDiagram.map(({color , mainText , secText , icon}, i) => (
               <FlowBox bgcolor={color} mainText={mainText} secText={secText} Icon={icon} isLast={i === flow.flowDiagram.length-1}  /> 
             ))}
@@ -272,15 +271,15 @@ function Flow({isSelected , title , description , flow}){
 
           <div className=' h-full p-2  min-w-1/2 shrink-1'>
             <h3 className='text-2xl font-[600] mt-2'>Responsiblities :</h3> 
-            <ul className='list-disc text-lg ml-2'>
+            <ul className='list-disc md:text-lg text-[14px] ml-2'>
               {flow.responsiblities.map(({name , content}) => (
                 <li className='text-md '><span className='font-semibold text-green-400'>{name} : </span> {content}</li> 
               ))}
             </ul>
             <h3 className='text-2xl font-[600] mt-2'>Process :</h3> 
-            <ol className='list-disc text-lg ml-2'>
+            <ol className='list-disc md:text-lg text-[14px]  ml-2'>
               {flow.process.map((e) => (
-                <li className='text-base font-semibold'>{e}</li> 
+                <li className='text- font-semibold'>{e}</li> 
               ))}
 
             </ol>
@@ -300,8 +299,8 @@ function Flow({isSelected , title , description , flow}){
 
 function FlowBox({mainText , bgcolor , secText , Icon , isLast}){
   return (
-    <div className=' max-w-1/2 rounded-md p-1'>
-      <div className={`flex justify-center gap-2 ${bgcolor} rounded-md h-16 min-w-52 `}>
+    <div className=' w-full rounded-md p-1 flex md:flex-col flex-row items-center'>
+      <div className={`flex justify-center gap-2 ${bgcolor} rounded-md h-16 min-w-52 w-full `}>
         <Icon size={28} className='h-full' />
         <div className=' text-center my-auto '>
           <h1 className='text-md font-semibold'>

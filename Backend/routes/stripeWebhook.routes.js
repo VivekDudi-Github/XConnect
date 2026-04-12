@@ -1,6 +1,6 @@
 import express from 'express' ;
 import bodyParser from 'body-parser' ;
-import { stripeWebhookHandler } from '../controllers/payment/payment.webhook.js';
+import { stripeWebhookHandler } from '../modules/payment/payment.webhook.js';
 
 const router = express.Router() ;
 

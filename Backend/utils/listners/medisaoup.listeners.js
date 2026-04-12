@@ -1,10 +1,12 @@
 import { v4 } from "uuid";
-import {LiveStream} from '../../models/liveStream.model.js'
+
+import {webRtcServer} from '../../server.js'
 import {CREATE_MEETING, JOIN_MEETING, NEW_MESSAGE_TO_MEETING , NEW_USER_TO_MEETING , REMOVE_USER_FROM_MEETING, USER_LEFT_FROM_MEETING} from '../constants/meeting.socket.constants.js'
 import { CONNECT_CONSUMER_TRANSPORT, CONNECT_PRODUCER_TRANSPORT, CONSUME, CONSUME_STREAM, CREATE_CONSUMER_TRANSPORT, CREATE_WEBRTC_TRANSPORT, GET_PRODUCERS, GET_RTP_CAPABILITIES, PRODUCE, PRODUCE_STREAM, RESUME_CONSUMER } from "../constants/mediasoup.socket.constant.js";
 import {ADD_MESSAGE, GET_ALL_MESSAGES} from '../constants/messages.socket.constant.js' ;
 
 let streamConsumers = new Map() ;
+
 
 export const MediaSoupListener = (socket , io , roomMap, participants , transportsBySocket , router) => {
   
@@ -102,8 +104,9 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
     });
   
     socket.on(CREATE_WEBRTC_TRANSPORT, async (callback) => {
+      if(!webRtcServer) return callback({error : 'server loading , please wait.'}) ;
       const transport = await router.createWebRtcTransport({
-        listenIps: [{ ip: '0.0.0.0' , announcedIp: process.env.IP_ADDRESS }],
+        webRtcServer,
         enableUdp: true,
         enableTcp: true,
         preferUdp: true

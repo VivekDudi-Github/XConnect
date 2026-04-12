@@ -3,9 +3,14 @@ A full-featured real-time social media and live streaming platform built using M
 
 XConnect enables users to connect, stream live, upload media, send superchats, receive real-time notifications, and interact through secure and scalable architecture.
 
+
+![XConnect Landing](./Backend/docs/screenshots/XConnect-Landing.png)
+
 ---
 
 ## Live Links 
+Live Applicatioon - https://xconnect.vercel.app/
+APi Docs - swagger
 
 ---
 
@@ -64,6 +69,9 @@ XConnect enables users to connect, stream live, upload media, send superchats, r
 
 ---
 
+## Project Preview
+
+## Demo
 
 ##  Tech Stack
 
@@ -116,7 +124,7 @@ XConnect
 
 Clone the repository
 ```text
-git clone https://github.com/yourname/xconnect.git
+git clone https://github.com/VivekDudi-Github/Xconnect.git
 cd xconnect
 ```
 Backend :

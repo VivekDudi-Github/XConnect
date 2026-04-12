@@ -28,15 +28,14 @@ export const fetchFeedPostsDB = async ({
     filter.push({ $gte: [{ $size: '$media' }, 1] });
   }
 
-  if (tab === 'Following') {
-    filter.push({ $in: ['$author', '$userFollowIds'] });
-  }
+  const getFollowings = await Following.find({ followedBy: userId }).select('followedTo followingCommunity -_id').lean(); 
 
-    const getFollowings = await Following.find({ followedBy: userId }).select('followedTo followingCommunity -_id').lean(); 
+  const followingUserIds = getFollowings.map(f => f.followedTo).filter(Boolean) ;
+  const followingCommunityIds = getFollowings.map(f => f.followingCommunity).filter(Boolean) ;
   
-    const followingUserIds = getFollowings.map(f => f.followedTo).filter(Boolean) ;
-    const followingCommunityIds = getFollowings.map(f => f.followingCommunity).filter(Boolean) ;
-  
+  if (tab === 'Following') {
+    filter.push({ $in: ['$author', followingUserIds] });
+  }
 
 
   return Post.aggregate([

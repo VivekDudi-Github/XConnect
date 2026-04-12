@@ -1,7 +1,7 @@
 import express from 'express' ;
 import multer from 'multer';
 import {checkUser} from '../utils/chekAuth.js'
-import { uploadVideoChunk , InitVideoUpload , uploadStatusCheck, verifyUpload , getVideoDetails } from '../controllers/video/video.controller.js';
+import { uploadVideoChunk , InitVideoUpload , uploadStatusCheck, verifyUpload , getVideoDetails } from '../modules/video/video.controller.js';
 
 const router = express.Router() ;
 const upload = multer({storage : multer.memoryStorage()})

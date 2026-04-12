@@ -1,7 +1,6 @@
 import express from 'express';
 import { checkUser } from '../utils/chekAuth.js';
-import * as routes from '../controllers/room/room.controller.js'
-// import * as routes from '../controllers/room.controller.js';
+import * as routes from '../modules/room/room.controller.js'
 
 const router = express.Router();
 

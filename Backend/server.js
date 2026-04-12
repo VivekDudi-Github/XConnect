@@ -5,6 +5,9 @@ import connectDB from "./utils/connectDB.js";
 import { v2 as cloudinary } from 'cloudinary' ;
 import { RateLimiterMemory } from "rate-limiter-flexible";
 
+import {publicIp} from 'public-ip' ;
+import {ip} from 'address' ;
+
 import messageListener from "./utils/listners/message.listener.js";
 import { MediaSoupCleanup, MediaSoupListener } from "./utils/listners/medisaoup.listeners.js";
 
@@ -21,27 +24,49 @@ const participants = new Map(); // roomId → array of userIds
 
 configDotenv();
 
+
+const isProduction = process.env.NODE_ENV === 'PRODUCTION' ;
+
 const roomMap = new Map();
-let worker, router;
+let worker, router , webRtcServer;
 
 
 (async () => {
-  worker = await mediasoup.createWorker();
-  router = await worker.createRouter({
-    mediaCodecs: [
-      { kind: "audio", mimeType: "audio/opus", clockRate: 48000, channels: 2 },
-      {
-        kind: "video",
-        mimeType: "video/H264",
-        clockRate: 90000,
-        parameters: {
-          "packetization-mode": 1,
-          "profile-level-id": "42e01f", // baseline
-          "level-asymmetry-allowed": 1
+  let publicIpAddress = await publicIp() ;
+  let localIpAddress = await ip() ;
+  let announcedIp = isProduction ? publicIpAddress : localIpAddress ;
+
+  try {
+    worker = await mediasoup.createWorker();
+    webRtcServer = await worker.createWebRtcServer({
+      listenInfos:[{
+        protocol : 'udp' ,
+        ip: '0.0.0.0' , 
+        announcedAddress: announcedIp
+      } , {
+        protocol : 'tcp' ,
+        ip : '0.0.0.0' ,
+        announcedAddress : announcedIp
+      }]
+    })
+    router = await worker.createRouter({
+      mediaCodecs: [
+        { kind: "audio", mimeType: "audio/opus", clockRate: 48000, channels: 2 },
+        {
+          kind: "video",
+          mimeType: "video/H264",
+          clockRate: 90000,
+          parameters: {
+            "packetization-mode": 1,
+            "profile-level-id": "42e01f", // baseline
+            "level-asymmetry-allowed": 1
+          }
         }
-      }
-    ]
-  }) ;
+      ]
+    }) ;
+  } catch (error) {
+    console.error('mediasoup worker error ::' ,error);
+  }
 })();
 
 
@@ -59,6 +84,7 @@ const rateLimiter = new RateLimiterMemory({
 async function StartServer(){
   try {
     console.log('starting server');
+    
     await connectDB() ;
     
     newServer.listen(process.env.PORT, async() => {
@@ -142,3 +168,4 @@ process.on("unhandledRejection", (reason, promise) => {
   console.error("Reason:", reason);
 });
 
+export {webRtcServer}
