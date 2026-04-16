@@ -43,6 +43,13 @@ export function userApi(builder){
         credentials : 'include' ,
       })
     }) ,
+    logout : builder.mutation({
+      query : () => ({
+        url : '/user/logout' ,
+        method : 'POST' ,
+        credentials : 'include' ,
+      })
+    }) ,
   }
 }
   

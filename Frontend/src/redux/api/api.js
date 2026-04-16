@@ -78,6 +78,7 @@ export const {
   useLoginMeMutation ,
   useUpdateProfileMutation ,
   useGetProfileQuery ,
+  useLogoutMutation,
 
 //post
   useCreatePostMutation ,

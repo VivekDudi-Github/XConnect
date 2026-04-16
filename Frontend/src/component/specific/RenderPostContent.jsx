@@ -16,7 +16,7 @@ function RenderPostContent({text}) {
   if(parts.length > 0){
     return parts.map((part , index) => {
       if(part.startsWith('#')){
-        return <Link key={index} className='text-blue-600 hover:underline font-semibold' to={'/tags/'+ part.slice(1)} >{part}</Link>
+        return <pre key={index} className='text-blue-600 hover:underline font-semibold'>{part}</pre>
       }
       if(part.startsWith('@')){
         return <Link key={index} className='text-purple-600  dark:text-purple-400 hover:underline font-semibold' to={'/profile/'+ part.slice(1)} >{part}</Link>

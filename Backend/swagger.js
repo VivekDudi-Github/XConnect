@@ -6,9 +6,9 @@ const options = {
   definition: {
     openapi: "3.0.0",
     info: {
-      title: "My API",
+      title: "XConnect API",
       version: "1.0.0",
-      description: "API documentation for my project",
+      description: "All Api documentation and testing in one place.",
     },
     components: {
       securitySchemes: {

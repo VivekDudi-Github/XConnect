@@ -276,7 +276,7 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
       </div>
       <div hidden={collapseTopBar} className="w-full z-50 mt-4 rounded-b-lg overflow-hidden duration-200">
         {superchats.find(m => m._id === displaySuperChat) ? 
-          <SuperChatUi msg={superchats.find(m => m._id === displaySuperChat) } BlockList={BlockList} openOptions={openOptions} toggleSetOptions={toggleSetOptions} topMessageRef={topMessageRef} /> 
+          <SuperChatUi msg={superchats.find(m => m._id === displaySuperChat) } BlockList={BlockListRef} openOptions={openOptions} toggleSetOptions={toggleSetOptions} topMessageRef={topMessageRef} /> 
         : null} 
       </div>      
     </div>

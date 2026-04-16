@@ -5,19 +5,20 @@ function InPostImages({imagesArray}) {
   const length = imagesArray.length ;
      
   return (
-      <div className={`w-full sm:max-h-[460px] max-h-[460px] grid gap-2 mx-auto 
-        ${length > 1 && ' grid-cols-2 grid-flow-col grid-rows-2'}`}>
+      <div className={`w-full  grid gap-2 mx-auto 
+        ${length > 1 && ' grid-cols-2 grid-flow-row'}`}>
         {length >0 && length <5 && imagesArray.map(({url ,public_id , type}, index) => 
              type === 'video' ? (
-                <div className='w-full h-full rounded-lg mb-2 object-cover' key={index}>
+                <div className='w-full rounded-lg mb-2 object-cover' key={index}>
                   <VideoPlayer src={url} public_id={public_id} type={'application/x-mpegURL'} />
                 </div>
             ) : (
-              <img
+              <img 
+              loading='lazy'
               key={index}
               src={url}
               alt={'post'+index}
-              className={` rounded-lg mb-2 object-cover sm:max-h-[385px] max-h-48 duration-200
+              className={` rounded-lg mb-2 object-contain sm:max-h-[220px] max-h-36 duration-200
                 ${length == 1 ? ' col-span-1 row-span-1 mx-auto h-full  ' : '' }
                 ${length == 3 && index == 2 ? ' col-span-1 row-span-2 w-full h-full ' : 'row-span-1 col-span-1 h-full w-full' }  
                 ${length == 2 ? 'row-span-2 h-full mx-auto' : '' }
@@ -31,15 +32,16 @@ function InPostImages({imagesArray}) {
           <>
           { imagesArray.slice(0 ,3).map(({url , public_id , type} ,index) => {
             return type === 'video' ? (
-                <div className='w-full h-full rounded-lg mb-2 object-cover ' key={index}>
+                <div className='w-full h-full rounded-lg mb-2 object-contain ' key={index}>
                   <VideoPlayer src={url} public_id={public_id} type={"application/x-mpegURL"} />
                 </div>
               ) : (
                 <img 
+                loading='lazy'
                 key={index}
                 src={url}
                 alt={'post'+index}
-                className='w-full h-full rounded-lg mb-2 object-cover '
+                className='w-full h-full rounded-lg mb-2 object-contain sm:max-h-[220px] max-h-36'
               />
             )} 
           )}
@@ -54,8 +56,9 @@ function InPostImages({imagesArray}) {
               </div>
             ) : (
               <img 
+              loading='lazy' 
               src={imagesArray[3].url}  
-              className='w-full h-full rounded-lg mb-2 object-cover z-0'
+              className='w-full h-full rounded-lg mb-2 object-cover z-0 sm:max-h-[220px] max-h-36'
               />
             )}
           </div>

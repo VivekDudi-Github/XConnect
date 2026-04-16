@@ -33,10 +33,10 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-black flex items-center md:justify-end justify-center px-4  -z-30">
-      <img className='fixed object-cover h-full inset-0 scale-110 ' src='./login-bg.jpg' />
+      <img className='fixed  inset-0 scale-110   top-0 -left-16 w-full h-full object-cover object-left ' src='./login-bg.jpg' />
       
       {/* tabs */}
-      <div className=' py-4 w-full flex absolute left-0 px-8 top-0 text-white text-base bg-black justify-between flex-wrap'>
+      <div className=' py-4 w-full flex absolute left-0 px-8 top-0 text-white text-base bg-black justify-between flex-wrap z-10'>
         <div className='text-base gap- flex flex-wrap'>
           {Tab.map((t ,i) => 
             <span 

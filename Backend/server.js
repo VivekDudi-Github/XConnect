@@ -35,7 +35,6 @@ let worker, router , webRtcServer;
   let publicIpAddress = await publicIp() ;
   let localIpAddress = await ip() ;
   let announcedIp = isProduction ? publicIpAddress : localIpAddress ;
-
   try {
     worker = await mediasoup.createWorker();
     webRtcServer = await worker.createWebRtcServer({

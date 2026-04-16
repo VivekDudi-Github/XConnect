@@ -9,9 +9,11 @@ const deletePostFunc = async(id , deleteMutation , dispatch , setDeletePostIds ,
     const data = await deleteMutation(id).unwrap() ;
     if(data?.success) {
       toast.update(toastId, {render : "Post deleted successfully!" , type : 'success' , isLoading : false , autoClose: 5000 , hideProgressBar: false })
-      let set = new Set(Idsset) ;
-      set.add(id) ;
-      setDeletePostIds(set);
+      if(Idsset && setDeletePostIds){
+        let set = new Set(Idsset) ;
+        set.add(id) ;
+        if(setDeletePostIds) setDeletePostIds(set);
+      }
     } 
   } catch (error) {
     console.log(error , 'errror in deleting the post');

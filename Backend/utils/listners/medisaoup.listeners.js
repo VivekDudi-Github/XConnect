@@ -106,7 +106,8 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
     socket.on(CREATE_WEBRTC_TRANSPORT, async (callback) => {
       if(!webRtcServer) return callback({error : 'server loading , please wait.'}) ;
       const transport = await router.createWebRtcTransport({
-        webRtcServer,
+        webRtcServer : webRtcServer,
+        // listenIps: [{ ip: "0.0.0.0", announcedIp: '10.45.121.142' }],
         enableUdp: true,
         enableTcp: true,
         preferUdp: true
@@ -221,9 +222,10 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
   
     socket.on(CREATE_CONSUMER_TRANSPORT, async (callback) => {
       const transport = await router.createWebRtcTransport({
-        listenIps: [{ ip: "0.0.0.0", announcedIp: process.env.IP_ADDRESS  }],
+        webRtcServer : webRtcServer,
         enableUdp: true,
-        enableTcp: true
+        enableTcp: true,
+        preferUdp: true
       });
       console.log("consumer transportId :" ,transport?.id);
       

@@ -21,7 +21,8 @@ function Feed() {
   const observer = useRef() ;
 
   const {isDeleteDialog} = useSelector(state => state.misc);
-  
+  const [deleteIdsset , setDeletePostIds ] = useState(new Set()) ;
+
   const [page , setPage] = useState(1) ;
   const [activeTab, setActiveTab] = useState("For You");
   const [pause , setPause] = useState(false) ;
@@ -96,11 +97,13 @@ function Feed() {
         ))}
       </div>
 
-      {posts && posts.map((post , i) => (
+      {posts && posts.map((post , i) => {
+        if(deleteIdsset.has(  post._id)) return null ;
+        return (
         <div ref={ (i === posts.length - 1 && !pause )? lastPostRef : null }  key={i} >
           {post?.type !== 'community' ? <PostCard post={post} key={post._id}/> : <CommunityPostCard post={post} heading={true} key={post._id}/>}
         </div>
-      ))}
+      )})}
       {(!posts || posts.length < 4) &&  Array.from({length : 4}).map((_  , i) => (
         <PostCardSkeleton key={i}/>
       ))}
@@ -108,7 +111,7 @@ function Feed() {
       {isDeleteDialog?.isOpen ?
         (<DialogBox message='Are you sure you want to delete this post?' 
           onClose={() => dispatch(setisDeleteDialog({isOpen : false , postId : null}))}
-          mainFuction={() => deletePostFunc(isDeleteDialog?.postId , deleteMutation , dispatch)}
+          mainFuction={() => deletePostFunc(isDeleteDialog?.postId , deleteMutation , dispatch , setDeletePostIds , deleteIdsset)}
           />) : null }
     </div>
 
