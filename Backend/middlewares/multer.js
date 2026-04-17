@@ -1,5 +1,6 @@
 import multer from 'multer';
 import ApiError from '../utils/ApiError.js';
+import path from 'path';
 
 const storage = multer.diskStorage({
   destination : (req, file, cb) => {
@@ -13,7 +14,7 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage ,
   limits: { 
-    fileSize: 1 * 1024 * 1024 // 5MB limit
+    fileSize: 5 * 1024 * 1024 // 5MB limit
   }, 
   fileFilter: (req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png|gif/;
@@ -22,7 +23,7 @@ const upload = multer({
     if (isMimeValid && isExtValid) {
       return cb(null, true);
     }
-    cb(new ApiError(400 ,'Only .png, .jpg, .jpeg and .pdf formats are allowed!'));
+    cb(new ApiError(400 ,'Only .png, .jpg, .jpeg formats are allowed!'));
   }
 });
 

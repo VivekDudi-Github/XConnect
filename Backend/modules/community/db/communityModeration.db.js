@@ -1,5 +1,5 @@
 import { Community } from '../../../models/community.model.js';
-import { Notification } from '../../../models/notifiaction.model.js';
+import { Notification } from '../../../models/notification.model.js';
 
 
 export const findCommunityById = (id, select = '') =>

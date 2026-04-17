@@ -1,6 +1,6 @@
 import { uploadFiles} from "../middlewares/multer.js";
 import express from "express";
-import { checkUser } from "../utils/chekAuth.js";
+import { checkUser } from "../utils/checkAuth.js";
 import parseMultipartFields from "../middlewares/parseMultiPart.js";
 
 import * as routes from '../modules/post/routes.index.js'

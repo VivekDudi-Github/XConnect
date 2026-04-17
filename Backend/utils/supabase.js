@@ -1,5 +1,7 @@
 import fs from "fs";
+import fsPromise from 'fs/promises'
 import path from "path";
+import pLimit from "p-limit";
 import { createClient } from "@supabase/supabase-js";
 import { configDotenv } from "dotenv";
 import ApiError from "./ApiError.js";
@@ -20,14 +22,15 @@ function getMimeType(filePath) {
   return "application/octet-stream";
 }
 
-export function walkDir(dirPath) {
+export async function walkDir(dirPath) {
   let fileList = [];
-
-  for (const file of fs.readdirSync(dirPath)) {
+  const files = await fsPromise.readdir(dirPath);
+  for (const file of files) {
     const fullPath = path.join(dirPath, file);
 
-    if (fs.statSync(fullPath).isDirectory()) {
-      fileList = fileList.concat(walkDir(fullPath));
+    const isDirectory = await fsPromise.stat(fullPath).isDirectory() ;
+    if (isDirectory) {
+      fileList = fileList.concat(await walkDir(fullPath));
     } else {
       fileList.push(fullPath);
     }
@@ -39,7 +42,8 @@ export function walkDir(dirPath) {
 // Upload full HLS folder
 export async function uploadHLSFolder(fileId) {
   const bucketName = [process.env.SUPABASE_VIDEO_BUCKET];
-  
+  let limit = pLimit(5); // Limit concurrent uploads to 5
+
   // local folder where HLS is stored
   let folder = path.resolve('uploads/storage') ;
   const localRoot = path.join(folder, fileId);
@@ -47,33 +51,36 @@ export async function uploadHLSFolder(fileId) {
   // collect all files recursively
   const allFiles = walkDir(localRoot);
 
-  console.log("Total files:", allFiles.length);
+  console.log("Total files:", allFiles?.length);
+  if(allFiles.length === 0)  return ;
 
-  // upload one by one
-  for (const filePath of allFiles) {
-    const relativePath = path.relative(localRoot, filePath);
+  let allPromises = allFiles.map( (filePath) => {
+    return limit( async () => {
+      const relativePath = path.relative(localRoot, filePath);
 
-    const storageKey = `${fileId}/${relativePath}`;
+      const storageKey = `${fileId}/${relativePath}`;
 
-    console.log("Uploading:", storageKey);
+      console.log("Uploading:", storageKey);
 
-    const fileBuffer = fs.readFileSync(filePath);
+      const fileBuffer = await fsPromise.readFile(filePath);
 
-    const { error } = await supabase.storage
-      .from(bucketName)
-      .upload(storageKey, fileBuffer, {
-        upsert: true,
-        contentType: getMimeType(filePath),
-      });
+      const { error } = await supabase.storage
+        .from(bucketName)
+        .upload(storageKey, fileBuffer, {
+          upsert: true,
+          contentType: getMimeType(filePath),
+        });
 
-    if (error) {
-      console.error("Upload failed:", error);
-      throw new Error ("Upload failed: " + error.message);
-    }
-    fs.unlinkSync(filePath);
-  }
+      if (error) {
+        console.error("Upload failed:", error);
+        throw new Error ("Upload failed: " + error.message);
+      }
+      await fsPromise.unlink(filePath);
+      }) 
+    });
+  await Promise.all(allPromises);
 
-  fs.rmSync(localRoot, { recursive: true });
+  await fsPromise.rm(localRoot, { recursive: true }); // Cleanup
   console.log("HLS Upload Complete");
 
   return `${process.env.SUPABASE_URL}/storage/v1/object/public/${bucketName}/${fileId}/master.m3u8`;

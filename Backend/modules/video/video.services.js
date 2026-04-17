@@ -6,7 +6,7 @@ import {
   CHUNK_SIZE,
   STORAGE_DIR,
   VIDEO_STATUSES
-} from './video.constant.js';
+} from '../../utils/constants/video.constant.js';
 
 import * as videoRepo from './video.db.js';
 import { enqueueMerge } from "../../utils/mergeQueue.js";

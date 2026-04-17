@@ -1,7 +1,7 @@
 import {Post} from '../../../models/post.model.js';
 import {VideoUpload} from '../../../models/videoUpload.model.js';
 import {User} from '../../../models/user.model.js';
-import {Notification} from '../../../models/notifiaction.model.js';
+import {Notification} from '../../../models/notification.model.js';
 import {Hashtag} from '../../../models/hastags.model.js';
 
 export const createPostDB = (data) => Post.create(data);

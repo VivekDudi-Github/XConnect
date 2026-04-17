@@ -3,7 +3,8 @@ import cookieParser from "cookie-parser";
 import express from "express";
 import dotenv from 'dotenv' ;
 import cors from 'cors' ;
-
+import mongoSanitizer from '@exortek/express-mongo-sanitize';
+import helmet from 'helmet' ;
 
 import {createServer} from 'http' ;
 import {Server} from 'socket.io' ;
@@ -22,7 +23,7 @@ import stripeRouter from './routes/stripePayment.routes.js' ;
 import stripeWebhook from './routes/stripeWebhook.routes.js' ;
 import videoUploadRouter from './routes/video.routes.js' ;
 
-import { checkSocketUser } from "./utils/chekAuth.js";
+import { checkSocketUser } from "./utils/checkAuth.js";
 
 import { swaggerSpec } from "./swagger.js" ;
 import swaggerUi from "swagger-ui-express" ;
@@ -30,6 +31,8 @@ import swaggerUi from "swagger-ui-express" ;
 import path from "path";
 
 dotenv.config() ;
+const isDevelopment = process.env.NODE_ENV !== 'PRODUCTION' ;
+
 
 const app = express() ;
 const newServer = createServer(app) ;
@@ -40,24 +43,25 @@ const limiter = rateLimit({
 });
 
 app.use('/api/', limiter);
-
-app.use('/api/v1/stripe' , stripeWebhook);
+app.use(helmet()) ;
 app.disable('x-powered-by')
-
 
 const io = new Server(newServer, {
   cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: [
+      isDevelopment ? 'http://localhost:5173' : process.env.CLIENT_URL, 
+    ] ,
     credentials: true
   }
 });
 
 io.use(checkSocketUser);
+app.use('/api/v1/stripe' , stripeWebhook);
 
 app.use(cors({
   origin: [
-    'http://localhost:5173',
-    'http://localhost:3000'
+    isDevelopment ? 'http://localhost:5173' : process.env.CLIENT_URL ,
+    isDevelopment ? 'http://localhost:3000' : process.env.BACKEND_URL ,
   ], 
   credentials: true, 
   optionsSuccessStatus : 200 
@@ -67,6 +71,13 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser()) ;
+
+app.use(mongoSanitizer()) ;
+
+app.use((err, req, res, next) => {
+  const status = err.statusCode || 500;
+  res.status(status).json({ success: false, message: err.message || 'Internal Server Error' });
+});
 
 app.use('/api/v1/health-check' , (req,res) => res.status(200).json({success : true})) ;
 

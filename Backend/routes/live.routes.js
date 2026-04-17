@@ -1,6 +1,6 @@
 import express from "express";
 import * as routes from "../modules/liveStream/liveStream.controller.js";  
-import {checkUser} from '../utils/chekAuth.js'
+import {checkUser} from '../utils/checkAuth.js'
 import { uploadFiles } from "../middlewares/multer.js";
 
 

@@ -1,6 +1,6 @@
 import express from 'express'
 import { searchBarSearch, searchUsers , normalSearch, continueSearch } from '../modules/search/search.controller.js'
-import {checkUser} from '../utils/chekAuth.js'
+import {checkUser} from '../utils/checkAuth.js'
 
 const router = express.Router()
 

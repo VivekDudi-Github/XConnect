@@ -1,4 +1,4 @@
-import { Notification } from '../../../models/notifiaction.model.js';
+import { Notification } from '../../../models/notification.model.js';
 import {
   findCommunityById,
   insertModInvites,

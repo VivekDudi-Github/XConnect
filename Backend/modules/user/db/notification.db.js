@@ -1,4 +1,4 @@
-import { Notification } from "../../../models/notifiaction.model.js";
+import { Notification } from "../../../models/notification.model.js";
 
 export const createFollowNotification = ({ sender, receiver }) => {
   return Notification.create({

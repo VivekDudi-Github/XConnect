@@ -1,5 +1,5 @@
 import express from 'express';
-import { checkUser } from '../utils/chekAuth.js';
+import { checkUser } from '../utils/checkAuth.js';
 import * as routes from '../modules/room/room.controller.js'
 
 const router = express.Router();

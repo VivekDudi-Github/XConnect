@@ -29,7 +29,7 @@ const TryCatch = (func , funcName ) => {
               .map(e => e.path.join('.') + '- ' + e.message)
               .join("; ");
 
-            return ResError(req.res, 400, message);
+            return ResError(res, 400, message);
           } else if (error.statusCode) ResError(res, error.statusCode, error.message);
           else {
             console.error(`Error in ${funcName}:`, {
@@ -67,8 +67,8 @@ const generateTokens = async (user) => {
 
 const cookieOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+  secure: process.env.NODE_ENV === 'PRODUCTION',
+  sameSite: process.env.NODE_ENV === 'PRODUCTION' ? 'strict' : 'lax',
 };
 
 export { 

@@ -1,6 +1,7 @@
 import {spawn , execFile} from 'child_process' ;
 import path from 'path';
-import fs from 'fs';
+import fs from 'fs/promises';
+import fsSync from 'fs';
 import {VideoUpload} from '../../models/videoUpload.model.js' ;
 import { fileTypeFromFile } from 'file-type';
 import { uploadHLSFolder , walkDir } from '../supabase.js';
@@ -45,11 +46,11 @@ async function mergeUploadAsync(public_id) {
       const uploadDir = path.join(STORAGE_DIR, public_id);
       const outputPath = path.join(uploadDir, "final.mp4");
 
-      const writeStream = fs.createWriteStream(outputPath);
+      const writeStream = await fsSync.createWriteStream(outputPath);
 
       for (let i = 0; i < uploadDoc.totalChunks; i++) {
         const chunkPath = path.join(uploadDir, `part-${i}`);
-        const readStream = fs.createReadStream(chunkPath);
+        const readStream = await fsSync.createReadStream(chunkPath);
         readStream.pipe(writeStream, { end: false });
         await new Promise((resolve, reject) => {
           readStream.on("end", resolve);
@@ -70,11 +71,11 @@ async function mergeUploadAsync(public_id) {
 
       // Integrity check
       
-      const finalSize = fs.statSync(outputPath).size; 
+      const finalSize = await fs.stat(outputPath).size; 
       if (finalSize !== uploadDoc.fileSize) {
         throw new Error("Final file size mismatch");
       }
-      console.log(fs.statSync(outputPath) , 'output stats');
+      console.log (await fs.stat(outputPath) , 'output stats');
       
 
       uploadDoc.finalPath = `${outputPath}`;
@@ -83,7 +84,7 @@ async function mergeUploadAsync(public_id) {
 
       // Cleanup chunks
       for (let i = 0; i < uploadDoc.totalChunks; i++) {
-        fs.unlinkSync(path.join(uploadDir, `part-${i}`));
+        await fs.unlink(path.join(uploadDir, `part-${i}`));
       }
       console.time(':: ffmpeg worker time') ;
       
@@ -96,7 +97,7 @@ async function mergeUploadAsync(public_id) {
         { public_id },
         { status: "failed" ,}
       );
-      fs.unlinkSync(path.join(STORAGE_DIR, public_id, "final.mp4")); 
+      await fs.unlink(path.join(STORAGE_DIR, public_id, "final.mp4")); 
     }
 }
 
@@ -227,7 +228,7 @@ async function startFFmpegWorker(public_id ){
   const hlsDir = path.join(uploadDir, "hls");
   
   
-  fs.mkdirSync(hlsDir , {recursive: true}) ;
+  await fs.mkdir(hlsDir , {recursive: true}) ;
   
   const probe = await probeVideo(inputPath);
   const args = buildFfmpegArgs(inputPath, hlsDir, probe);
@@ -257,7 +258,7 @@ async function startFFmpegWorker(public_id ){
 
         let uploadedPoster ;
         try {
-          if(fs.existsSync(posterPath) === false){
+          if (fsSync.existsSync(posterPath) === false){
             throw new Error("Poster file does not exist");
           }
           uploadedPoster = await uploadFilesTOCloudinary([{path : posterPath , type : 'image'}]) 
@@ -269,7 +270,7 @@ async function startFFmpegWorker(public_id ){
 
         // Create master playlist manually
         createMasterPlaylist(hlsDir , probe);
-        fs.unlinkSync(inputPath) ;
+        await fs.unlink(inputPath) ;
         console.log("Uploading HLS folder" , uploadedPoster);
         
         let masterPlaylist = await uploadHLSFolder(public_id) ;
@@ -293,12 +294,12 @@ async function startFFmpegWorker(public_id ){
           );
 
           for(const path of paths){
-            fs.unlinkSync(path) ;
+            await fs.unlink(path) ;
           }
           let posterPath = path.join(uploadDir , "poster.jpg") ;
-          fs.existsSync(inputPath) ? fs.unlinkSync(inputPath) : null ; 
-          fs.existsSync(posterPath) ? fs.unlinkSync(posterPath) : null;
-          fs.existsSync(uploadDir) ? fs.rmSync(uploadDir , {recursive : true}) : null ;
+           fsSync.existsSync(inputPath) ? await fs.unlink(inputPath) : null ; 
+           fsSync.existsSync(posterPath) ? await fs.unlink(posterPath) : null;
+           fsSync.existsSync(uploadDir) ? await fs.rm(uploadDir , {recursive : true}) : null ;
         }
         
     } else {
@@ -311,12 +312,12 @@ async function startFFmpegWorker(public_id ){
       );
 
       for(const path of paths){
-        fs.unlinkSync(path) ;
+        await fs.unlink(path) ;
       }
       let posterPath = path.join(uploadDir , "poster.jpg") ;
-      fs.existsSync(inputPath) ? fs.unlinkSync(inputPath) : null ; 
-      fs.existsSync(posterPath) ? fs.unlinkSync(posterPath) : null;
-      fs.existsSync(uploadDir) ? fs.rmSync(uploadDir , {recursive : true}) : null ;
+       fsSync.existsSync(inputPath) ? await fs.unlink(inputPath) : null ; 
+       fsSync.existsSync(posterPath) ? await fs.unlink(posterPath) : null;
+       fsSync.existsSync(uploadDir) ? await fs.rm(uploadDir , {recursive : true}) : null ;
 
       await VideoUpload.updateOne(
         { public_id },
@@ -327,7 +328,7 @@ async function startFFmpegWorker(public_id ){
 }
 
 
-function createMasterPlaylist(hlsDir, probe) {
+async function createMasterPlaylist(hlsDir, probe) {
   const { height, width } = probe;
 
   let content = `#EXTM3U
@@ -351,7 +352,7 @@ function createMasterPlaylist(hlsDir, probe) {
     `;
       }
 
-      fs.writeFileSync(path.join(hlsDir, "master.m3u8"), content.trim());
+      await fs.writeFile(path.join(hlsDir, "master.m3u8"), content.trim());
 }
 
   

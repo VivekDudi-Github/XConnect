@@ -92,8 +92,10 @@ const postSchema = new mongoose.Schema({
   } ,
   scheduledAt : {
     type : Date ,
-  }
+  } ,
 } , {timestamps : true})
+
+postSchema.index({author : 1 , createdAt : -1})
 
 postSchema.query.NoDelete = function() {
   return this.where({ isDeleted : false})

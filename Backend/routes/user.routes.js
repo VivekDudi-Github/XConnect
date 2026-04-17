@@ -1,5 +1,5 @@
 import express from "express";
-import { checkUser } from "../utils/chekAuth.js";
+import { checkUser } from "../utils/checkAuth.js";
 import { uploadFiles} from "../middlewares/multer.js";
 
 import {registerUser} from '../modules/user/controller/register.controller.js' ;
