@@ -1,4 +1,4 @@
-import { UserRoomMeta } from "../../models/UserRoomMeta.model.js";
+import { UserRoomMeta } from "../models/UserRoomMeta.model.js";
 
 const UserListener = (socket , io) => {
   socket.on('User_Room_Meta_Update', async({room_id}) => {

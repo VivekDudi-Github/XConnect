@@ -6,11 +6,9 @@ import { ObjectId } from 'mongodb';
 
 export const validateCreatePost = async (req, res) => {
 
-  try {
-    console.log(req.body);
-    
+  try {    
     req.body = createPostSchema.parse(req.body);
-  } catch (err) {
+  } catch (err) {d
     console.log(err);
     throw err;
   }

@@ -8,7 +8,7 @@ import {
   deleteLikeNotification,
 } from '../db/toggleOnPost.db.js';
 import { emitEvent } from '../../../utils/socket.js';
-import { NOTIFICATION_RECEIVE, NOTIFICATION_RETRACT } from '../../../utils/constants/notification.socketEvent.js';
+import { NOTIFICATION_RECEIVE, NOTIFICATION_RETRACT } from '../../../constants/notification.socketEvent.js';
 
 export const togglePinService = async ({ post }) => {
   const status = await togglePinDB(post);

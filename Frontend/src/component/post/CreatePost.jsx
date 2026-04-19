@@ -133,10 +133,18 @@ export default function CreatePost() {
   const finalSubmit = async() => {
     setLoading(true) ;  
     try {
+      if(content.trim().length === 0 && media.length === 0) {
+        toast.error('Post cannot be empty.') ;
+        setLoading(false) ;
+        return ;
+      }
+      if(content.trim().length === 0) return toast.error("Text content shouldn't be empty.") ;
       await upload() ;
       await submitPost() ;
     } catch (error) {
       console.log(error);
+      setLoading(false) ;
+    } finally {
       setLoading(false) ;
     }
   }

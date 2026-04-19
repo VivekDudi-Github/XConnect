@@ -2,10 +2,10 @@ import {spawn , execFile} from 'child_process' ;
 import path from 'path';
 import fs from 'fs/promises';
 import fsSync from 'fs';
-import {VideoUpload} from '../../models/videoUpload.model.js' ;
+import {VideoUpload} from '../models/videoUpload.model.js' ;
 import { fileTypeFromFile } from 'file-type';
-import { uploadHLSFolder , walkDir } from '../supabase.js';
-import { uploadFilesTOCloudinary } from '../cloudinary.js';
+import { uploadHLSFolder , walkDir } from '../utils/supabase.js';
+import { uploadFilesTOCloudinary } from '../utils/cloudinary.js';
 
 
 const STORAGE_DIR = path.resolve('uploads/storage') ;
@@ -37,7 +37,6 @@ const RENDITIONS = [
 async function mergeUploadAsync(public_id) {
   console.log('merge initalized');
     try {
-      console.log("merge started");
       const uploadDoc = await VideoUpload.findOne({ public_id });
       if (!uploadDoc || uploadDoc.status !== "processing") {       
         throw new Error("Invalid upload state for merge");
@@ -71,11 +70,10 @@ async function mergeUploadAsync(public_id) {
 
       // Integrity check
       
-      const finalSize = await fs.stat(outputPath).size; 
+      const finalSize = (await fs.stat(outputPath)).size; 
       if (finalSize !== uploadDoc.fileSize) {
         throw new Error("Final file size mismatch");
       }
-      console.log (await fs.stat(outputPath) , 'output stats');
       
 
       uploadDoc.finalPath = `${outputPath}`;
@@ -208,8 +206,8 @@ function getVideoPoster(inputPath , posterPath , duration){
         posterPath
       ],
       (err , stdout, stderr) => {
-        console.log('POSTER STDOUT' , stdout);
-        console.log('POSTER STDERR' , stderr);
+        // console.log('POSTER STDOUT' , stdout);
+        // console.log('POSTER STDERR' , stderr);
         if (err) {
           console.error('error in generating poster from video' ,err);
           return reject(null);
@@ -236,7 +234,7 @@ async function startFFmpegWorker(public_id ){
 
 
   ffmpeg.stderr.on("data", data => {
-    console.log('::' , data.toString());
+    // console.log('::' , data.toString());
   });
 
   ffmpeg.on('error' , (err) => {
@@ -250,12 +248,12 @@ async function startFFmpegWorker(public_id ){
   ffmpeg.on("close", async (code) => {
     if (code === 0) {
       try {
-        console.log('creating master playlist');
         const posterPath = path.join(uploadDir , "poster.jpg") ;
-        console.log(probe?.duration, 'video duration');
         
         await getVideoPoster(inputPath , posterPath , probe.duration*0.2);
-
+        console.log('generated poster at :' , posterPath); 
+        
+        console.log('creating master playlist');
         let uploadedPoster ;
         try {
           if (fsSync.existsSync(posterPath) === false){
@@ -266,14 +264,14 @@ async function startFFmpegWorker(public_id ){
           console.error('error in uploading the poster files')
           uploadedPoster = null ;
         };
-
+          
 
         // Create master playlist manually
         createMasterPlaylist(hlsDir , probe);
         await fs.unlink(inputPath) ;
-        console.log("Uploading HLS folder" , uploadedPoster);
+        console.log("Uploading HLS folder");
         
-        let masterPlaylist = await uploadHLSFolder(public_id) ;
+        let masterPlaylist = await uploadHLSFolder(public_id) ;          
         await VideoUpload.findOneAndUpdate({public_id : public_id}  , {
           url : masterPlaylist , 
           status : "completed" ,
@@ -282,11 +280,10 @@ async function startFFmpegWorker(public_id ){
             public_id : uploadedPoster[0].public_id ,
           } : null 
         }) ;
-        console.log("HLS folder uploaded");
 
       } catch (error) {
           console.log('ffmpeg catch block error :' ,error);     
-          let paths = walkDir(uploadDir) ;
+          let paths = await walkDir(uploadDir) ;
 
           await VideoUpload.updateOne(
             { public_id },
@@ -304,7 +301,7 @@ async function startFFmpegWorker(public_id ){
         
     } else {
       console.log('ffmpeg error:' , code);
-      let paths = walkDir(uploadDir) ;
+      let paths = await walkDir(uploadDir) ;
 
       await VideoUpload.updateOne(
         { public_id },

@@ -1,5 +1,6 @@
 import {v2 as cloudinary} from 'cloudinary'
-import fs from 'fs' ;
+import fsSync from 'fs' ;
+import fs from 'fs/promises' ;
 
 class ErrorHandler extends Error {
   constructor (message , statusCode){
@@ -35,15 +36,19 @@ export const uploadFilesTOCloudinary = async(files =[]) => {
       type : r.resource_type
     }))
 
-    files.forEach(f => {
-      if (fs.existsSync(f.path)) fs.unlinkSync(f.path);
-    })
+    await Promise.all(files.map( async (f) => {
+      if (fsSync.existsSync(f.path)) await fs.unlink(f.path); 
+    }))
     
     return formattedResults ;
   } catch (error) {
     console.log(files.length);
     
-    if(files) files.forEach(f => fs.unlinkSync(f.path))
+    if(files) {
+      await Promise.all(files.map( async (f) => {
+      if (fsSync.existsSync(f.path)) await fs.unlink(f.path); 
+    }))
+    }
       console.log( '---error-- while uploading files to Cloudinary' ,error );
     throw new ErrorHandler('Error uploading files in Cloudinary' , 500)   
   }

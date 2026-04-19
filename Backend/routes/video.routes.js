@@ -1,5 +1,5 @@
 import express from 'express' ;
-import {CHUNK_SIZE} from '../utils/constants/video.constant.js'
+import {CHUNK_SIZE} from '../constants/video.constant.js'
 import multer from 'multer';
 import {checkUser} from '../utils/checkAuth.js'
 import { uploadVideoChunk , InitVideoUpload , uploadStatusCheck, verifyUpload , getVideoDetails } from '../modules/video/video.controller.js';
@@ -7,7 +7,9 @@ import { uploadVideoChunk , InitVideoUpload , uploadStatusCheck, verifyUpload , 
 
 const router = express.Router() ;
 const upload = multer({
-  storage : multer.memoryStorage() , limits : {fileSize : CHUNK_SIZE}}
+  storage : multer.memoryStorage() , 
+  limits : {fileSize : CHUNK_SIZE *2}
+  }
 ) ;
 
 router.get('/details/:public_id' , checkUser , getVideoDetails ) ;

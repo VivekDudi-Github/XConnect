@@ -8,13 +8,13 @@ import { RateLimiterMemory } from "rate-limiter-flexible";
 import {publicIp} from 'public-ip' ;
 import {ip} from 'address';
 
-import messageListener from "./utils/listeners/message.listener.js";
-import { MediaSoupCleanup, MediaSoupListener } from "./utils/listeners/medisaoup.listeners.js";
+import messageListener from "./listeners/message.listener.js";
+import { MediaSoupCleanup, MediaSoupListener } from "./listeners/mediasoup.listeners.js";
 
 import { User } from "./models/user.model.js";
-import { UserListener } from "./utils/listeners/user.listener.js";
+import { UserListener } from "./listeners/user.listener.js";
 import { Following } from "./models/following.model.js";
-import { LiveStreamCleanup, StreamListener } from "./utils/listeners/liveStream.listeners.js";
+import { LiveStreamCleanup, StreamListener } from "./listeners/liveStream.listeners.js";
 
 import fs from "fs";
 import path from "path";

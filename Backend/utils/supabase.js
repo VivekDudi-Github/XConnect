@@ -25,11 +25,12 @@ function getMimeType(filePath) {
 export async function walkDir(dirPath) {
   let fileList = [];
   const files = await fsPromise.readdir(dirPath);
+
   for (const file of files) {
     const fullPath = path.join(dirPath, file);
 
-    const isDirectory = await fsPromise.stat(fullPath).isDirectory() ;
-    if (isDirectory) {
+    const stats = await fsPromise.stat(fullPath) ;
+    if (stats.isDirectory()) {
       fileList = fileList.concat(await walkDir(fullPath));
     } else {
       fileList.push(fullPath);
@@ -49,7 +50,7 @@ export async function uploadHLSFolder(fileId) {
   const localRoot = path.join(folder, fileId);
 
   // collect all files recursively
-  const allFiles = walkDir(localRoot);
+  const allFiles = await walkDir(localRoot);
 
   console.log("Total files:", allFiles?.length);
   if(allFiles.length === 0)  return ;
@@ -59,8 +60,6 @@ export async function uploadHLSFolder(fileId) {
       const relativePath = path.relative(localRoot, filePath);
 
       const storageKey = `${fileId}/${relativePath}`;
-
-      console.log("Uploading:", storageKey);
 
       const fileBuffer = await fsPromise.readFile(filePath);
 

@@ -11,7 +11,7 @@ import {
   getFollowStatsRepo,
 } from "./liveStream.db.js";
 import ApiError from "../../utils/ApiError.js";
-import {RECEIVE_LIVE_STREAM_DATA , LIVESTREAM_ROOM} from '../../utils/constants/livestrream.socket.constant.js'
+import {RECEIVE_LIVE_STREAM_DATA , LIVESTREAM_ROOM} from '../../constants/livestream.socket.constant.js'
 import { emitEvent } from "../../utils/socket.js";
 
 export const createLiveStreamService = async ({

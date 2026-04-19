@@ -197,7 +197,7 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
           <div key={msg._id} ref={i === 0 ? topMessageRef : null} className={`w-full border-b border-gray-500 flex items-start justify-between gap-0.5 text-wrap break-words p-1 text-sm fade-in duration-200 relative ${openOptions == msg._id ? 'z-50' : 'z-0'} 
             ${(msg.sender._id === streamData?.host) ? 'dark:bg-white dark:text-black text-white bg-black rounded-lg' : 'dark:text-white rounded-sm'}`}>
             <div className="w-fit">
-              <img className="rounded-full size-8 mr-1 dark:border " src={msg?.sender?.avatar?.url || './avatar-default.svg'} alt="" />
+              <img className="rounded-full size-8 mr-1 dark:border " src={msg?.sender?.avatar?.url || '/avatar-default.svg'} alt="" />
             </div>
             <div className="w-full text-left">
               <strong>{msg?.sender?.username}</strong> {' : '}
@@ -224,7 +224,7 @@ export default function LiveChat({closeFunc , streamData , isProducer }) {
             ${(msg.sender._id === streamData?.host) ? 'dark:bg-white dark:text-black text-white bg-black rounded-lg' : 'dark:text-white rounded-sm'}`}>
             
             <div className="w-fit">
-              <img className="rounded-full size-8 mr-1 dark:border " src={msg?.sender?.avatar?.url || './avatar-default.svg'} alt="" />
+              <img className="rounded-full size-8 mr-1 dark:border " src={msg?.sender?.avatar?.url || '.avatar-default.svg'} alt="" />
             </div>
             <div className="w-full text-left">
               <strong>{msg?.sender?.username}</strong> {' : '}

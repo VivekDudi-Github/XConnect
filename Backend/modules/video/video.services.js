@@ -1,4 +1,5 @@
-import fs from 'fs';
+import fsSync from 'fs';
+import fs from 'fs/promises'
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -6,7 +7,7 @@ import {
   CHUNK_SIZE,
   STORAGE_DIR,
   VIDEO_STATUSES
-} from '../../utils/constants/video.constant.js';
+} from '../../constants/video.constant.js';
 
 import * as videoRepo from './video.db.js';
 import { enqueueMerge } from "../../utils/mergeQueue.js";
@@ -16,8 +17,9 @@ export const initUpload = async ({ userId, fileSize, fileType }) => {
   const public_id = uuidv4();
   const totalChunks = Math.ceil(fileSize / CHUNK_SIZE);
 
-  fs.mkdirSync(path.join(STORAGE_DIR, public_id), { recursive: true });
-
+  await fs.mkdir(path.join(STORAGE_DIR, public_id), { recursive: true });
+  console.log('init upload', totalChunks , fileSize, CHUNK_SIZE);
+  
   const upload = await videoRepo.createUpload({
     public_id,
     user: userId,
@@ -27,7 +29,7 @@ export const initUpload = async ({ userId, fileSize, fileType }) => {
     totalChunks,
     status: VIDEO_STATUSES.UPLOADING
   });
-
+  console.log(totalChunks, 'total chunks for the upload');  
   return {
     public_id,
     _id: upload._id,
@@ -55,8 +57,8 @@ export const uploadChunk = async ({ public_id, chunkIdx, buffer }) => {
     `part-${chunkIdx}`
   );
 
-  if (!fs.existsSync(chunkPath)) {
-    await fs.promises.writeFile(chunkPath, buffer);
+  if (!fsSync.existsSync(chunkPath)) {
+    await fs.writeFile(chunkPath, buffer);
     uploadDoc.uploadedChunks.push(chunkIdx);
     await videoRepo.saveUpload(uploadDoc);
   }
@@ -84,29 +86,29 @@ export const verifyUpload = async (public_id) => {
   }
 
   const missingChunks = new Set();
-
+  console.log(uploadDoc.totalChunks, 'total chunks for the upload');
   for (let i = 0; i < uploadDoc.totalChunks; i++) {
     const chunkPath = path.join(STORAGE_DIR, public_id, `part-${i}`);
 
-    if (!fs.existsSync(chunkPath)) {
+    if (!fsSync.existsSync(chunkPath)) {
       missingChunks.add(i);
       uploadDoc.uploadedChunks.pull(i);
       continue;
     }
 
-    const size = fs.statSync(chunkPath).size;
+    const size = (await fs.stat(chunkPath)).size;
 
     if (
       (i < uploadDoc.totalChunks - 1 && size !== CHUNK_SIZE) ||
       (i === uploadDoc.totalChunks - 1 &&
         size !== uploadDoc.fileSize - CHUNK_SIZE * (uploadDoc.totalChunks - 1))
     ) {
-      fs.unlinkSync(chunkPath);
+      await fs.unlink(chunkPath);
       uploadDoc.uploadedChunks.pull(i);
       missingChunks.add(i);
     }
   }
-
+  console.log(missingChunks, 'missing chunks after verification');
   if (missingChunks.size === 0) {
     uploadDoc.status = VIDEO_STATUSES.PROCESSING;
     await videoRepo.saveUpload(uploadDoc);

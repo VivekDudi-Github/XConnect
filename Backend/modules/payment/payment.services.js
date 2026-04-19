@@ -3,8 +3,8 @@ import { paymentRepo } from "./payment.db.js";
 import { io } from "../../app.js";
 import dotenv from "dotenv";
 import { emitEvent } from "../../utils/socket.js";
-import { RECEIVE_LIVE_MESSAGE } from "../../utils/constants/messages.socket.constant.js";
-import { LIVESTREAM_ROOM } from "../../utils/constants/livestrream.socket.constant.js";
+import { RECEIVE_LIVE_MESSAGE } from "../../constants/messages.socket.constant.js";
+import { LIVESTREAM_ROOM } from "../../constants/livestream.socket.constant.js";
 
 dotenv.config();
 

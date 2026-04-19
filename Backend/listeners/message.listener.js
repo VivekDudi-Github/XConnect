@@ -1,8 +1,8 @@
-import { LiveChat } from "../../models/liveChats.model.js";
-import { Message } from "../../models/messages.model.js";
+import { LiveChat } from "../models/liveChats.model.js";
+import { Message } from "../models/messages.model.js";
 import {Types} from 'mongoose' ;
 import { v4 as uuidv4 } from 'uuid';
-import { LIVESTREAM_ROOM } from "../constants/livestrream.socket.constant.js";
+import { LIVESTREAM_ROOM } from "../constants/livestream.socket.constant.js";
 import { RECEIVE_LIVE_MESSAGE, RECEIVE_MESSAGE , SEND_LIVE_MESSAGE , SEND_MESSAGE } from "../constants/messages.socket.constant.js";
 
 const ObjectId = Types.ObjectId ;

@@ -1,4 +1,4 @@
-import { mergeUploadAsync } from "./child process/ffmpeg.js";
+import { mergeUploadAsync } from "../child process/ffmpeg.js";
 
 const queue = [];
 let activeJobs = 0;

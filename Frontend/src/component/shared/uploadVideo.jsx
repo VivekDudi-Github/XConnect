@@ -95,7 +95,7 @@ function UploadVideo() {
         
         if(!res?.data) return toast.error('Couldn\'t initialize the video. Please try again.');
         let chunkSize = res.data.chunkSize ;
-        
+        console.log(chunkSize , 'chunk size from the server');
         // set the states and refs
         set_id(res.data._id);
         public_idRef.current = res.data.public_id ;

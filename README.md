@@ -1,5 +1,6 @@
 # XConnect 🚀  
-A full-featured real-time social media and live streaming platform built using MERN stack, WebRTC, and Media Processing pipelines.
+A distributed real-time social platform with live streaming (WebRTC SFU),
+chunked video processing (FFmpeg + HLS), and event-driven architecture.
 
 XConnect enables users to connect, stream live, upload media, send superchats, receive real-time notifications, and interact through secure and scalable architecture.
 
@@ -64,14 +65,35 @@ APi Docs - swagger
 
 ---
 
-
-## Project Architecture
+## High-Level Architecture Diagram
+```
+            Client (React)
+                 │
+     ┌───────────┼───────────┐
+     │           │           │
+ REST API    Socket.io    Media Pipeline
+ (Express)   (Realtime)   (FFmpeg)
+     │           │           │
+  MongoDB     Mediasoup    HLS + Storage
+                │
+           Stripe / Cloudinary
+```
+### [More Detailed Architecture Link](./Backend/docs/architecture.md)  
 
 ---
 
 ## Project Preview
-
+  ``A few screenshots of the application yet to add``
 ## Demo
+
+### Authentication Flow
+![Auth GIF](./docs/gifs/auth.gif)
+
+### Media Upload Flow
+![Upload GIF](./docs/gifs/upload.gif)
+
+### Live Streaming
+![Live GIF](./docs/gifs/live.gif)
 
 ##  Tech Stack
 
