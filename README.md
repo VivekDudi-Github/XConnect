@@ -1,68 +1,44 @@
 # XConnect 🚀  
-A distributed real-time social platform with live streaming (WebRTC SFU),
+XConnect is a scalable real-time social platform with live streaming (WebRTC SFU),
 chunked video processing (FFmpeg + HLS), and event-driven architecture.
 
-XConnect enables users to connect, stream live, upload media, send superchats, receive real-time notifications, and interact through secure and scalable architecture.
+![Live Stream GIF](./docs/gifs/LiveDemoShort.gif)
+*Real-time live streaming with WebRTC SFU and instant SuperChat payments*
 
 
-![XConnect Landing](./Backend/docs/screenshots/XConnect-Landing.png)
+It enables users to connect, stream live, upload media, send superchats, receive real-time notifications, and interact through secure and scalable architecture.
 
 ---
 
 ## Live Links 
-Live Applicatioon - https://xconnect.vercel.app/
-APi Docs - swagger
+- 🌐 Live App: https://xconnect.vercel.app/
+- 📘 API Docs (Swagger): <your-swagger-url>
 
 ---
 
-## Features
 
-### Authentication
-- JWT-based login and secure cookies
-- Protected routes
-- Refresh token system
-  
-### Social Platform
-- Create and manage posts
-- Like and comment on posts
-- Follow and unfollow users
-- Personalized feed system
-- User profiles and activity
-- Media posts (image and video)
+## Demo
+### Media Upload 
+![Media Upload GIF](./docs/gifs/MediaUploadDemoShort.gif)
 
-### Media Upload
-- Chunked video upload
-- FFmpeg processing
-- HLS streaming
-- Supabase storage
-- Cloudinary thumbnails
+### Meeting 
+![Meeting GIF](./docs/gifs/MeetingDemoShort.gif)
 
-### Real-Time Communication
-- WebRTC live streaming
-- Mediasoup SFU
-- Socket.io signaling
-- Video.js playback
 
-### Notifications
-- Real-time socket notifications
-- Persistent notification storage
+## Core System Features
 
-### SuperChat
-- Stripe payment integration
-- Live stream superchat messages
+- Real-time streaming via WebRTC SFU
+- Chunked video upload + FFmpeg processing (HLS) 
+- Event-driven notifications using sockets
+- SuperChat payments via Stripe
+- Meeting and call with mediasoup SFU with simulcast support
+- Swagger Documentation
 
-### Security
-- Rate limiting
-- Helmet
-- CORS
-- Global error handling
-- Web Security & API Protection
+## Platform Features
 
-### DevOps
-- GitHub Actions CI
-- Automated testing
-- Deployment pipeline
-
+- Posts, likes, comments
+- Follow system
+- User profiles & communities
 ---
 
 ## High-Level Architecture Diagram
@@ -78,39 +54,46 @@ APi Docs - swagger
                 │
            Stripe / Cloudinary
 ```
-### [More Detailed Architecture Link](./Backend/docs/architecture.md)  
-
+### [More Detailed Architecture Link](./docs/architecture.md)  
+----
+### System Flow ( From landing page)
+![Notification Flow](./docs/screenshots/NotificationFlow.png)
 ---
+Real-Time Coms
 
-## Project Preview
-  ``A few screenshots of the application yet to add``
-## Demo
+## UI and System Preview
+  <div align="center">
+    <p><b>Analytics Dashboard</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>User Profile</b></p>
+    <img src="./docs/screenshots/Dashboard.png" width="45%" />
+    <img src="./docs/screenshots/ProfilePage.png" width="45%" />
+  </div>
+  <div style="height:2px; background-color: #444; width: 100%; margin: 20px 0px;"></div>
+  <div align="center" style="margin-top: 0px;">
+    <p><b>Mobile Post View</b> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>API Documentation (Swagger)</b></p>
+    <img src="./docs/screenshots/PostMobile.png" width="25%" style="margin-right: 20px;" />
+    <img src="./docs/screenshots/SwaggerDocs.png" width="65%" />
+  </div>
 
-### Authentication Flow
-![Auth GIF](./docs/gifs/auth.gif)
-
-### Media Upload Flow
-![Upload GIF](./docs/gifs/upload.gif)
-
-### Live Streaming
-![Live GIF](./docs/gifs/live.gif)
 
 ##  Tech Stack
 
 | Area              | Tech                                                             |
 |-------------------|------------------------------------------------------------------|
-| Frontend          | React , Tailwind Css, Rdux Toolkit , RTK Query , Vite , Video.js |
+| Frontend          | React , Tailwind Css, Redux Toolkit , RTK Query , Vite , Video.js |
 | Backend           | Node.js , Express , Mongo Atlas , Mongoose                       |
-| Real-Time Coms    | Mediasoup , Socket.io , WebRTC                                   |
-| Media Processing  | Multer , ffmpeg , HLS                                            |
+| Real-Time Comms   | Mediasoup , Socket.io , WebRTC                                   |
+| Media Processing  | Multer , FFmpeg , HLS                                            |
 | Payments          | Stripe                                                           |
 | Storage           | Cloudinary , Supabase                                            |  
 | Security          | Helmet, CORS, Rate Limiting, JWT, Http only Cookies, Zod         |
 | Backend Testing   | supertest + Jest                                                 |
-| Dev Ops           | Github , vercel , render                                         |
+| Dev Ops           | GitHub , Vercel , AWS t2                                         |
 | API Docs          | Swagger                                                          |
 
 ---
+
+
+
 ## Project Structure
 
 ```text
@@ -203,10 +186,50 @@ VITE_STRIPE_PUBLISHABLE_KEY=
 - Creator payout system
 - Advanced analytics
 - Scalable media workers
-- Kubernetes deployment
+- SVC suppport on mediasoup
 - Redis caching
 
 ---
+
+## Detailed Features list
+
+### Authentication
+- JWT-based login and secure cookies
+- Refresh and access token system
+  
+### Social Platform
+- Create and manage posts
+- Follow - unfollow & like comment
+- Personalized feed system
+
+### Media Upload
+- Chunked video upload
+- FFmpeg processing
+- HLS streaming
+- Dedicated bucket storage
+
+### Real-Time Communication
+- WebRTC live streaming
+- Mediasoup SFU
+- Socket.io signaling 
+- Real Time Chats
+- Video.js playback
+
+### Notifications
+- Real-time socket notifications
+- Persistent notification storage
+
+### SuperChat
+- Stripe payment integration
+- Live stream superchat messages
+
+### Security
+- Rate limiting , Helmet , CORS and global error handling
+
+### DevOps
+- GitHub Actions CI with automated testing
+- Deployment pipeline
+
 
 ## Author
 

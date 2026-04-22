@@ -216,11 +216,11 @@ export default function MeetingPage({roomId , stopBroadcast , audioproducer ,vid
   
 
   return (
-    <div className={`min-h-screen flex gap-4 p-6  dark:bg-gradient-to-t to-slate-900 from-gray-900 text-white`}> 
+    <div className={`min-h-screen flex gap-4 sm:p-6 pb-16  dark:bg-gradient-to-t to-slate-900 from-gray-900 text-white`}> 
       
       {/* Left sidebar */}
       
-      <aside className={` flex overflow-clip backdrop-blur-sm filter dark:bg-black rounded-2xl  flex-col gap-4 ${collapsed ? 'w-10 p-0' : 'w-3/12 min-w-56 p-4'} duration-300`}> 
+      <aside className={` flex overflow-clip backdrop-blur-sm filter dark:bg-black rounded-2xl  flex-col gap-4 ${collapsed ? 'w-5 h-10 p-0 overflow-y-visible' : 'w-3/12 min-w-56 p-4'} duration-300`}> 
         {/* Side Buttons */}
         <div className="flex gap-2 mb-4">
           <button
@@ -309,10 +309,6 @@ export default function MeetingPage({roomId , stopBroadcast , audioproducer ,vid
               ))} 
             </div>
 
-            <div className="flex gap-2">
-              <button className="flex-1 py-2 rounded-lg border border-slate-700 text-slate-300">Invite</button>
-              <button className="py-2 px-3 rounded-lg bg-indigo-600 text-white">Settings</button>
-            </div>
           </aside>
         )}
       </aside>
@@ -320,10 +316,10 @@ export default function MeetingPage({roomId , stopBroadcast , audioproducer ,vid
       {/* Main video area */}
       <main className={` flex flex-col gap-4 w-full ${collapsed ? '' : ' w-full'} `} >
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold flex">Meeting Room
+          <h2 className="text-lg font-semibold flex flex-wrap">Meeting Room
             <div className='ml-3 text-xs text-slate-400'>{roomId}</div>
           </h2>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <button onClick={() => {
               setView('grid');
               resumeAll() ;
@@ -342,7 +338,7 @@ export default function MeetingPage({roomId , stopBroadcast , audioproducer ,vid
             
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid xl:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-2">
             <VideoPlayer stream={localStreamRef.current.videoStream} audioStream={localStreamRef.current.audioStream} />
             {streams.map((p, i) => {
               const {mediaStream , audioStream} = bundleUserStream(p.producers);
@@ -377,7 +373,7 @@ export default function MeetingPage({roomId , stopBroadcast , audioproducer ,vid
           </div>
         )}
 
-        <div className="flex items-center justify-center gap-4">
+        <div className="flex items-center justify-center gap-4 flex-wrap">
           <ControlButton onClick={() => toggleMute('You')}>
             {isMuted ? <MicOff /> : <Mic />}
           </ControlButton>

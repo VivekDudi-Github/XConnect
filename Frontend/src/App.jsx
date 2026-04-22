@@ -92,7 +92,7 @@ useEffect(() => {
             </Route>
 
             <Route path='/dashboard' element={<DashboardPage />} >
-              <Route path='post/:id' element={<DashboardMain />} />
+              <Route path='' element={<DashboardMain />} />
             </Route> 
 
             <Route path='/live' element={<LivePage />} />
