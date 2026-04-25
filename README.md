@@ -20,10 +20,11 @@ It enables users to connect, stream live, upload media, send superchats, receive
 ## Demo
 ### Media Upload 
 ![Media Upload GIF](./docs/gifs/MediaUploadDemoShort.gif)
+*Resumable media uploads, multi quality video and thumbnail generation using FFmpeg*  
 
 ### Meeting 
 ![Meeting GIF](./docs/gifs/MeetingDemoShort.gif)
-
+*Multi-user video conferencing with mediasoup SFU and simulcast support*
 
 ## Core System Features
 
@@ -56,10 +57,6 @@ It enables users to connect, stream live, upload media, send superchats, receive
 ```
 ### [More Detailed Architecture Link](./docs/architecture.md)  
 ----
-### System Flow ( From landing page)
-![Notification Flow](./docs/screenshots/NotificationFlow.png)
----
-Real-Time Coms
 
 ## UI and System Preview
   <div align="center">

@@ -4,6 +4,11 @@ import * as service from "./liveStream.services.js";
 import { ResSuccess, TryCatch } from "../../utils/extra.js";
 
 export const createLiveStream = TryCatch(async (req, res) => {
+  req.CreateMediaForDelete = [];
+
+  const media = [...(req.files?.avatar || []), ...(req.files?.banner || []), ...(req.files?.media || [])];
+  media?.forEach(file => req.CreateMediaForDelete.push(file));
+
   validate(schema.createLiveStreamSchema, req);
 
   const stream = await service.createLiveStreamService({
@@ -22,6 +27,11 @@ export const deleteLiveStream = TryCatch(async (req, res) => {
 } , 'deleteLiveStream');
 
 export const updateLiveStream = TryCatch(async (req, res) => {
+  req.CreateMediaForDelete = [];
+
+  const media = [...(req.files?.avatar || []), ...(req.files?.banner || []), ...(req.files?.media || [])];
+  media?.forEach(file => req.CreateMediaForDelete.push(file));
+
   validate(schema.updateLiveStreamSchema, req);
 
   const stream = await service.updateLiveStreamService(

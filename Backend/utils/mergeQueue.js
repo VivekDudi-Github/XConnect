@@ -1,9 +1,9 @@
-import { mergeUploadAsync } from "../child process/ffmpeg.js";
+import { mergeUploadAsync } from '../jobs/ffmpeg.js' ;
 
 const queue = [];
 let activeJobs = 0;
 
-const MAX_CONCURRENT_JOBS = 2;
+const MAX_CONCURRENT_JOBS = 1;
 
 export function enqueueMerge(job) {
   queue.push(job);

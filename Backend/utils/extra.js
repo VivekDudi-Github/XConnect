@@ -47,7 +47,7 @@ const TryCatch = (func , funcName ) => {
           await Promise.allSettled(
             req.CreateMediaForDelete.map(async(f , i) => {
               console.log(f.path , i);
-              if(fs.existsSync(f?.path)) return fsAsync.unlink(f.path).catch(err => console.error('Cleanup error:', err))
+              if(fs.existsSync(f?.path)) return fsAsync.unlink(f.path).catch(err => console.error('Cleanup error in TryCatch utility:', err))
             })
           )
         }

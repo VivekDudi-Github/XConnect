@@ -107,10 +107,9 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
       if(!webRtcServer) return callback({error : 'server loading , please wait.'}) ;
       const transport = await router.createWebRtcTransport({
         webRtcServer : webRtcServer,
-        // listenIps: [{ ip: "0.0.0.0", announcedIp: '10.45.121.142' }],
         enableUdp: true,
         enableTcp: true,
-        preferUdp: true
+        preferUdp: true,
       });
       
       // store it

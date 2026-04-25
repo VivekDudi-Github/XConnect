@@ -4,6 +4,12 @@ import { validateEditPost } from '../validator/editPost.validator.js';
 
 
 export const editPost = TryCatch(async (req, res) => {
+  req.CreateMediaForDelete = [];
+
+  const media = [...(req.files?.media || [])];
+  media?.forEach(file => req.CreateMediaForDelete.push(file));
+
+
   const valid = await validateEditPost(req, res);
   if (valid !== true) return;
 

@@ -28,7 +28,7 @@ import { checkSocketUser } from "./utils/checkAuth.js";
 import { swaggerSpec } from "./swagger.js" ;
 import swaggerUi from "swagger-ui-express" ;
 
-import path from "path";
+import { initCronJob } from "./jobs/cleanUpJob.js";
 
 dotenv.config() ;
 const isDevelopment = process.env.NODE_ENV !== 'PRODUCTION' ;
@@ -36,6 +36,8 @@ const isDevelopment = process.env.NODE_ENV !== 'PRODUCTION' ;
 
 const app = express() ;
 const newServer = createServer(app) ;
+
+initCronJob() ;
 
 const limiter = rateLimit({
   windowMs: 5 * 60 * 1000,

@@ -30,7 +30,6 @@ const isProduction = process.env.NODE_ENV === 'PRODUCTION' ;
 const roomMap = new Map();
 let worker, router , webRtcServer;
 
-
 (async () => {
   let publicIpAddress = await publicIp() ;
   let localIpAddress = await ip() ;
@@ -41,12 +40,20 @@ let worker, router , webRtcServer;
       listenInfos:[{
         protocol : 'udp' ,
         ip: '0.0.0.0' , 
-        announcedAddress: announcedIp
+        announcedAddress: announcedIp,
+        portRange: {
+          min: 40000,
+          max: 49999
+        }
       } , {
         protocol : 'tcp' ,
         ip : '0.0.0.0' ,
-        announcedAddress : announcedIp
-      }]
+        announcedAddress : announcedIp,
+        portRange: { 
+          min: 40000, 
+          max: 40100 
+        }
+      }] ,
     })
     router = await worker.createRouter({
       mediaCodecs: [
@@ -86,7 +93,7 @@ async function StartServer(){
   try {
     console.log('starting server');
     
-    await connectDB() ;
+    // await connectDB() ;
     
     newServer.listen(process.env.PORT, async() => {
       console.log("Server is running on port "+process.env.PORT);

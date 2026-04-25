@@ -5,6 +5,11 @@ import { cookieOptions } from '../../../utils/extra.js';
 
 
 export const updateUser = TryCatch(async (req, res) => {
+  req.CreateMediaForDelete = [];
+
+  const media = [...(req.files?.avatar || []), ...(req.files?.banner || []), ...(req.files?.media || [])];
+  media?.forEach(file => req.CreateMediaForDelete.push(file));
+
   const userId = req.user._id;
   console.log('Updating user with ID:', userId);
   const valid = validateUpdateUser(req, res);

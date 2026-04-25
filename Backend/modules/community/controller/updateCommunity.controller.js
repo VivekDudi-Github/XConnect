@@ -4,6 +4,12 @@ import { updateCommunityService } from '../services/updateCommunity.services.js'
 
 
 export const updateCommunity = TryCatch(async (req, res) => {
+  req.CreateMediaForDelete = [];
+
+  const media = [...(req.files?.avatar || []), ...(req.files?.banner || []), ...(req.files?.media || [])];
+  media.forEach(file => req.CreateMediaForDelete.push(file));
+
+
   const parsed = updateCommunitySchema.safeParse({
     params: req.params,
     body: req.body,
