@@ -8,10 +8,11 @@ import { liveApi } from './live.api';
 import { searchApi } from './search.api.';
 import { videoApi } from './video.api';
 
+const isProduction = process.env.NODE_ENV === 'production' ;
 
 const api = createApi({
   reducerPath : 'api' ,
-  baseQuery : fetchBaseQuery({baseUrl : 'http://localhost:3000/api/v1'}),
+  baseQuery : fetchBaseQuery({baseUrl : isProduction ? 'http://xconnect.ddns.net/serve/api/v1' : 'http://localhost:3000/api/v1'}),
   tagTypes : ['Room' , 'Messages' , 'User' , 'Post' , 'UserPosts' ] ,
 
   endpoints : (builder) => ({
