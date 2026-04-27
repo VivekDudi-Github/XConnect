@@ -16,6 +16,7 @@ import ApiError from '../../utils/ApiError.js';
 export const initUpload = async ({ userId, fileSize, fileType }) => {
   const public_id = uuidv4();
   const totalChunks = Math.ceil(fileSize / CHUNK_SIZE);
+  if(fileSize > 1024 * 1024 * 25) return ApiError(400, 'File size exceeds the maximum allowed limit of 25 MB');
 
   await fs.mkdir(path.join(STORAGE_DIR, public_id), { recursive: true });
   console.log('init upload', totalChunks , fileSize, CHUNK_SIZE);

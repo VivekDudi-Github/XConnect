@@ -1,6 +1,6 @@
 import path from 'path';
 
-export const CHUNK_SIZE = 1024 * 1024 * 1; // prod: *2
+export const CHUNK_SIZE = 1024 * 1024 * 1; // prod: *1
 export const STORAGE_DIR = path.resolve('uploads/storage');
 
 export const VIDEO_STATUSES = {

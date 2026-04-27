@@ -6,7 +6,12 @@ import {VideoUpload} from '../models/videoUpload.model.js' ;
 import { fileTypeFromFile } from 'file-type';
 import { uploadHLSFolder , walkDir } from '../utils/supabase.js';
 import { uploadFilesTOCloudinary } from '../utils/cloudinary.js';
+import { configDotenv } from 'dotenv';
 
+configDotenv();
+
+
+const isProduction = process.env.NODE_ENV === 'PRODUCTION' ;
 
 const STORAGE_DIR = path.resolve('uploads/storage') ;
 const RENDITIONS = [
@@ -14,23 +19,24 @@ const RENDITIONS = [
     name: "360",
     maxW: 640,
     maxH: 360,
-    maxrate: "856k",
-    bufsize: "1200k"
+    maxrate: "500k",
+    bufsize: "1000k"
   },
   {
     name: "480",
     maxW: 854,
     maxH: 480,
-    maxrate: "1498k",
-    bufsize: "2100k"
+    maxrate: "1000k",
+    bufsize: "2000k"
   },
-  {
-    name: "720",
-    maxW: 1280,
-    maxH: 720,
-    maxrate: "2996k",
-    bufsize: "4200k"
-  }
+  // removed 720p rendition to save processing time and resources, can be added back if needed.
+  // { 
+  //   name: "720",
+  //   maxW: 1280,
+  //   maxH: 720,
+  //   maxrate: "2996k",
+  //   bufsize: "4200k"
+  // }
 ];
 
 
@@ -129,7 +135,7 @@ function buildFfmpegArgs(inputPath, hlsDir, probe) {
     width >= r.maxW || height >= r.maxH
   );
 
-  // Always keep at least one rendition (source-limited)
+  // Always keep at least one rendition 
   if (enabled.length === 0) {
     enabled.push(RENDITIONS[0]);
   }
@@ -162,6 +168,8 @@ function buildFfmpegArgs(inputPath, hlsDir, probe) {
     "-c:a", "aac",
     "-profile:v", "main",
     "-preset", "veryfast",
+    "max_muxing_queue_size", "1024",
+    
     "-crf", "20",
     "-g", "48",
     "-keyint_min", "48",
@@ -230,8 +238,11 @@ async function startFFmpegWorker(public_id ){
   
   const probe = await probeVideo(inputPath);
   const args = buildFfmpegArgs(inputPath, hlsDir, probe);
-  const ffmpeg = spawn("ffmpeg", args);
 
+  const ffmpegPath =  "/usr/bin/ffmpeg"; // path to ffmpeg binary on linux
+  const ffmpeg = isProduction ? 
+                  spawn("nice", ["-n", "10", ffmpegPath, "-threads", "1", ...args]) : 
+                  spawn(ffmpegPath, args);
 
   ffmpeg.stderr.on("data", data => {
     // console.log('::' , data.toString());
