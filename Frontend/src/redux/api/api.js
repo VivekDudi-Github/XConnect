@@ -8,11 +8,13 @@ import { liveApi } from './live.api';
 import { searchApi } from './search.api.';
 import { videoApi } from './video.api';
 
-const isProduction = process.env.NODE_ENV === 'production' ;
+const isProduction = import.meta.env.PROD ;
+const proudction_url = import.meta.env.VITE_PRODUCTION_URL ;
+const development_url = import.meta.env.VITE_DEVELOPMENT_URL ;
 
 const api = createApi({
   reducerPath : 'api' ,
-  baseQuery : fetchBaseQuery({baseUrl : isProduction ? 'http://xconnect.ddns.net/serve/api/v1' : 'http://localhost:3000/api/v1'}),
+  baseQuery : fetchBaseQuery({baseUrl : isProduction ? proudction_url+'/api/v1' : development_url+'/api/v1'}),
   tagTypes : ['Room' , 'Messages' , 'User' , 'Post' , 'UserPosts' ] ,
 
   endpoints : (builder) => ({

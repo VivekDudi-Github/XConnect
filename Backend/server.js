@@ -93,7 +93,7 @@ async function StartServer(){
   try {
     console.log('starting server');
     
-    // await connectDB() ;
+    await connectDB() ;
     
     newServer.listen(process.env.PORT, async() => {
       console.log("Server is running on port "+process.env.PORT);

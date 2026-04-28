@@ -11,8 +11,14 @@ export const useSocket = () => useContext(SocketContext);
 export const SocketProvider = ({ children , user }) => {
   const [socket, setSocket] = useState(null);
 
+  
+  const isProduction = import.meta.env.PROD ;
+  const proudction_url = import.meta.env.VITE_PRODUCTION_URL ;
+  const development_url = import.meta.env.VITE_DEVELOPMENT_URL ;
+
+
   useEffect(() => {
-    const newSocket = io("http://localhost:3000", {
+    const newSocket = io(isProduction ? proudction_url : development_url, {
       autoConnect : true ,
       reconnection : true , 
       withCredentials : true 
