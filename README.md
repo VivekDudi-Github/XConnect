@@ -11,8 +11,8 @@ It enables users to connect, stream live, upload media, send superchats, receive
 ---
 
 ## Live Links 
-- 🌐 Live App: https://xconnect.vercel.app/
-- 📘 API Docs (Swagger): <your-swagger-url>
+- 🌐 Live App: https://xconnect.ddns.net/
+- 📘 API Docs (Swagger): https://xconnect.ddns.net/serve/api-docs
 
 ---
 
