@@ -29,7 +29,6 @@ jobs:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_VIDEO_BUCKET: ${{ secrets.SUPABASE_VIDEO_BUCKET }}
       SUPABASE_API_KEY: ${{ secrets.SUPABASE_API_KEY }}
-      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       PORT: ${{secrets.PORT}}
 
       
