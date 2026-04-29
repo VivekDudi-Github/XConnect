@@ -5,7 +5,12 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
-
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'manually test to find inconsistencies'
+        required: false
+        default: 'Manual Trigger'
 
 jobs:
   test:
@@ -35,9 +40,6 @@ jobs:
       STRIPE_SECRET_KEY: ${{secrets.STRIPE_SECRET_KEY}}
       WEBHOOK_KEY: ${{secrets.WEBHOOK_KEY}}
       
-
-
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -51,9 +53,9 @@ jobs:
         run: npm ci
 
       - name: Run Tests
-        run: npm test -- --coverage
-  
-  
+        run: npm test -- --coverage --detectOpenHandles --forceExit
+
+
   deploy:
     needs: test   
     runs-on: ubuntu-latest
@@ -66,5 +68,5 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd home/ubuntu/XConnect
+            cd /home/ubuntu/XConnect
             ./deploy.sh
