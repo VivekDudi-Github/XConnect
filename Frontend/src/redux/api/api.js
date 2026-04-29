@@ -9,13 +9,16 @@ import { searchApi } from './search.api.';
 import { videoApi } from './video.api';
 
 const isProduction = import.meta.env.PROD ;
-const proudction_url = import.meta.env.VITE_PRODUCTION_URL ;
+const production_url = import.meta.env.VITE_PRODUCTION_URL ;
 const development_url = import.meta.env.VITE_DEVELOPMENT_URL ;
-  console.log(proudction_url + '/serve/api/v1') ;
-  
+console.log({
+  isProduction,
+  production_url,
+  development_url,
+});
 const api = createApi({
   reducerPath : 'api' ,
-  baseQuery : fetchBaseQuery({baseUrl : isProduction ? proudction_url+'/serve/api/v1' : development_url+'/api/v1'}),
+  baseQuery : fetchBaseQuery({baseUrl : isProduction ? '/serve/api/v1' : '/api/v1'}),
   tagTypes : ['Room' , 'Messages' , 'User' , 'Post' , 'UserPosts' ] ,
 
   endpoints : (builder) => ({

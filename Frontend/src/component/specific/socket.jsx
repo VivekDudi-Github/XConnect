@@ -13,12 +13,14 @@ export const SocketProvider = ({ children , user }) => {
 
   
   const isProduction = import.meta.env.PROD ;
-  const proudction_url = import.meta.env.VITE_PRODUCTION_URL ;
+  const production_url = import.meta.env.VITE_PRODUCTION_URL ;
   const development_url = import.meta.env.VITE_DEVELOPMENT_URL ;
 
 
+
   useEffect(() => {
-    const newSocket = io(isProduction ? proudction_url : development_url, {
+    const newSocket = io(isProduction ? production_url : development_url, {
+      path : isProduction ? '/serve/socket.io' : '/socket.io' ,
       autoConnect : true ,
       reconnection : true , 
       withCredentials : true 
