@@ -15,7 +15,7 @@ const development_url = import.meta.env.VITE_DEVELOPMENT_URL ;
   
 const api = createApi({
   reducerPath : 'api' ,
-  baseQuery : fetchBaseQuery({baseUrl : isProduction ? proudction_url+'/serve/api/v1' : development_url+'/api/v1'}),
+  baseQuery : fetchBaseQuery({baseUrl : isProduction ? '/serve/api/v1' : '/api/v1'}),
   tagTypes : ['Room' , 'Messages' , 'User' , 'Post' , 'UserPosts' ] ,
 
   endpoints : (builder) => ({
