@@ -5,6 +5,12 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'manually test to find inconsistencies'
+        required: false
+        default: 'Manual Trigger'
 
 jobs:
   test:
@@ -35,3 +41,19 @@ jobs:
 
       - name: Run Tests
         run: npm test -- --coverage
+
+
+  deploy:
+    needs: test   
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{secrets.EC2_IP}}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd home/ubuntu/XConnect
+            ./deploy.sh
