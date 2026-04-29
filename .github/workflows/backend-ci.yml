@@ -6,6 +6,7 @@ on:
   pull_request:
     branches: [ master ]
 
+
 jobs:
   test:
 
@@ -20,6 +21,22 @@ jobs:
       ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
       ACCESS_TOKEN_SECRET_EXPIRES_IN: ${{ secrets.ACCESS_TOKEN_SECRET_EXPIRES_IN }}
       REFRESH_TOKEN_SECRET_EXPIRES_IN: ${{ secrets.REFRESH_TOKEN_SECRET_EXPIRES_IN }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_VIDEO_BUCKET: ${{ secrets.SUPABASE_VIDEO_BUCKET }}
+      SUPABASE_API_KEY: ${{ secrets.SUPABASE_API_KEY }}
+      PORT: ${{secrets.PORT}}
+      BACKEND_URL: ${{secrets.BACKEND_URL}}
+      CLIENT_URL: ${{secrets.CLIENT_URL}}
+      CLOUDINARY_API_KEY: ${{secrets.CLOUDINARY_API_KEY}}
+      CLOUDINARY_API_SECRET: ${{secrets.CLOUDINARY_API_SECRET}}
+      CLOUDINARY_CLOUD_NAME: ${{secrets.CLOUDINARY_CLOUD_NAME}}
+      MONGODB_URL: ${{secrets.MONGODB_URL}}
+      PUBLISHABLE_STRIPE_KEY: ${{secrets.PUBLISHABLE_STRIPE_KEY}}
+      STRIPE_SECRET_KEY: ${{secrets.STRIPE_SECRET_KEY}}
+      WEBHOOK_KEY: ${{secrets.WEBHOOK_KEY}}
+      
+
+
 
     steps:
       - name: Checkout Repository
@@ -35,3 +52,19 @@ jobs:
 
       - name: Run Tests
         run: npm test -- --coverage
+  
+  
+  deploy:
+    needs: test   
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{secrets.EC2_IP}}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd home/ubuntu/XConnect
+            ./deploy.sh
