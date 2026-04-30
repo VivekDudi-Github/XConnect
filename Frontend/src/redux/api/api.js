@@ -18,7 +18,7 @@ console.log({
 });
 const api = createApi({
   reducerPath : 'api' ,
-  baseQuery : fetchBaseQuery({baseUrl : isProduction ? '/serve/api/v1' : '/api/v1'}),
+  baseQuery : fetchBaseQuery({baseUrl : isProduction ? '/serve/api/v1' : 'http://localhost:3000/api/v1'}) ,
   tagTypes : ['Room' , 'Messages' , 'User' , 'Post' , 'UserPosts' ] ,
 
   endpoints : (builder) => ({

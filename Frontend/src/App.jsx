@@ -3,6 +3,7 @@ import './App.css'
 
 import {Routes , Route, Navigate, useNavigate} from 'react-router-dom'
 
+import {useProgress} from '@bprogress/react'
 import { ToastContainer , Slide } from 'react-toastify';
 import ProtectedRoute from './component/specific/ProtectedRoute';
 import { useLazyFetchMeQuery } from './redux/api/api';
@@ -33,6 +34,13 @@ const CommunityHome = lazy(() => import('./component/community/communityFeedPage
 const CommunityHomePage = lazy(() => import('./component/community/CommunityHomePage'))
 const CommunityPostPage = lazy(() => import('./component/community/CommunityPostPage'))
 
+
+const loading = (
+  <div className='min-h-screen w-screen dark:bg-black bg-white flex items-center justify-center'>
+    <Loader message={'Loading..'} />
+  </div>
+)
+
 function App() {
   const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
   const navigate = useNavigate()
@@ -58,48 +66,44 @@ useEffect(() => {
 }, [])
 
 
-  let loading = (
-    <div className='min-h-screen w-screen dark:bg-black bg-white flex items-center justify-center'>
-      <Loader message={'Loading..'} />
-    </div>
-  )
   if(isAuthLoading ) return loading ;
-  
+
+
   return (
     <>
-      <Suspense fallback={loading}>
+      <Suspense fallback={<SuspenseBar children={loading} />}>
         <Routes>
           <Route path='/login' element={!user ?  <LandingPage/> : <Navigate to={'/'} /> } />
 
           <Route element={<ProtectedRoute user={user} /> } >
-            <Route path='/' element={<HomePage/>} />
-            <Route path='/profile/:username' element={<Profile/>} />
-            <Route path='/explore/' element={<ExplorePage/>} />
-            <Route path='/post/:id' element={<PostPage/>} />
-            <Route path='/profile' element={<Profile/>} />
-            <Route path='/notifications' element={<NotificationPage/>} />
+            <Route path='/' element={LazyWrapper({children :<HomePage/>})} />
+            <Route path='/profile/:username' element={<LazyWrapper children={<Profile/>}/> } />
+            <Route path='/explore/' element={<LazyWrapper children={<ExplorePage/>} />} />
+            <Route path='/post/:id' element={<LazyWrapper children={<PostPage/>} />} />
+            <Route path='/profile' element={LazyWrapper({ children:<Profile/>})} /> 
+            <Route path='/notifications' element={<LazyWrapper children={<NotificationPage/>} />} />
             
-            <Route path='/communities' element={<CommunitiesPage/>}>
-              <Route path='' element={<CommunityHome />} />
-              <Route path='post/:id' element={<CommunityPostPage />} />
-              <Route path='c/:id' element={<CommunityHomePage />} />
+            <Route path='/communities' element={<LazyWrapper children={<CommunitiesPage/>} />}>
+              <Route path='' element={<LazyWrapper children={<CommunityHome />} />} />
+              <Route path='post/:id' element={<LazyWrapper children={<CommunityPostPage />} />} />
+              <Route path='c/:id' element={<LazyWrapper children={<CommunityHomePage />} />} />
             </Route>
 
             {/* <Route path='/settings' element={<SettingsPage/>} /> */}
-            <Route path="/messages" element={<MessagesPage />}>
-              <Route path="chat" element={<MessagesPage />} />
-              <Route path="chat/:username" element={<MessagesPage />} />
+            <Route path="/messages" element={<LazyWrapper children={<MessagesPage />} />}>
+              <Route path="chat" element={<LazyWrapper children={<MessagesPage />} />} />
+              <Route path="chat/:username" element={<LazyWrapper children={<MessagesPage />} />} />
             </Route>
 
-            <Route path='/dashboard' element={<DashboardPage />} >
-              <Route path='' element={<DashboardMain />} />
+            <Route path='/dashboard' element={<LazyWrapper children={<DashboardPage />} />} >
+              <Route path='' element={<LazyWrapper children={<DashboardMain />} />} />
             </Route> 
 
-            <Route path='/live' element={<LivePage />} />
-            <Route path='/live/watch/:id' element={<LivePage />} />
-            <Route path='/meet' element={<MeetPage/>} />
-            <Route path='/comment/:id' element ={<CommentPage />} />
-            <Route path='/about' element={<LandingPage/>} />
+            <Route path='/live' element={<LazyWrapper children={<LivePage />} />} />
+            <Route path='/live/watch/:id' element={<LazyWrapper children={<LivePage />} />} />
+            <Route path='/meet' element={<LazyWrapper children={<MeetPage/>} />} />
+            <Route path='/comment/:id' element ={<LazyWrapper children={<CommentPage />} />} />
+            <Route path='/about' element={<LazyWrapper children={<LandingPage/>} />} />
           </Route>
           <Route path='*' element={<Navigate to='/' />} />
         </Routes>
@@ -122,3 +126,27 @@ useEffect(() => {
   )
 }
 export default App
+
+function LazyWrapper ({children}){
+  return (
+    <Suspense fallback={<SuspenseBar/>}>
+      {children}
+    </Suspense>
+  )
+}
+
+
+function SuspenseBar({children}) {
+  const {start , stop} = useProgress() ;
+  useEffect(() => {
+    start() ;
+    return () => stop() ;
+  })
+  return (
+    <>
+      <div className='min-h-screen w-screen dark:bg-black bg-white flex items-center justify-center'>
+        {children || loading}
+      </div>
+    </>
+  )
+}

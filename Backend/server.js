@@ -5,7 +5,7 @@ import connectDB from "./utils/connectDB.js";
 import { v2 as cloudinary } from 'cloudinary' ;
 import { RateLimiterMemory } from "rate-limiter-flexible";
 
-import {publicIp} from 'public-ip' ;
+import {publicIpv4} from 'public-ip' ;
 import {ip} from 'address';
 
 import messageListener from "./listeners/message.listener.js";
@@ -31,7 +31,7 @@ const roomMap = new Map();
 let worker, router , webRtcServer;
 
 (async () => {
-  let publicIpAddress = await publicIp() ;
+  let publicIpAddress = process.env.IP_ADDRESS || await publicIpv4() ;
   let localIpAddress = await ip() ;
   let announcedIp = isProduction ? publicIpAddress : localIpAddress ;
   try {
@@ -96,7 +96,7 @@ async function StartServer(){
     await connectDB() ;
     
     newServer.listen(process.env.PORT, async() => {
-      console.log("Server is running on port "+process.env.PORT);
+      console.log("Server is running on port "+process.env.PORT+ "in "+process.env.NODE_ENV+" mode");
     });
 
 
