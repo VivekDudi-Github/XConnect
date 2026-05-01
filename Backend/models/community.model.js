@@ -20,7 +20,7 @@ const communitySchema = new mongoose.Schema({
       type : String ,
       required : true ,
     } , 
-    public_Id : {
+    public_id : {
       type : String , 
       required : true ,
     } ,
