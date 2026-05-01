@@ -144,7 +144,7 @@ function SuspenseBar({children}) {
   })
   return (
     <>
-      <div className='min-h-screen w-screen dark:bg-black bg-white flex items-center justify-center'>
+      <div className='min-h-screen w-screen dark:bg-black/60 bg-white/60 flex items-center justify-center'>
         {children || loading}
       </div>
     </>

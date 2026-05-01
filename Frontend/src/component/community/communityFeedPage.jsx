@@ -74,7 +74,7 @@ function CommunityHome() {
     <div className="w-full p-4 mx-auto sm:px-0 dark:bg-black min-h-screen py-6 rounded-xl dark:text-white">
       <div className=' flex justify-between items-center mb-1'>
         <h1 className="text-2xl font-semibold">Communities</h1>
-        <div className='px-2 translate-y-3 lock'><SearchBar/></div>
+        {/* <div className='px-2 translate-y-3 lock'><SearchBar/></div> */}
         <button 
         onClick={() => setOpen((prev) => !prev)}
         className=' rounded-full p-2 hover:bg-gray-200 dark:hover:bg-gray-800 active:scale-95 duration-100 sm:hidden block'>
@@ -135,7 +135,7 @@ function CommunityHome() {
           <ul className="space-y-3 mr-2 ">
             {isFollowingLoading ? (
               Array.from({length : 4}).map((i) => 
-                <li className="flex items-center space-x-3  dark:bg-slate-400/20 bg-slate-600/20 hover:bg-gray-300 dark:hover:bg-gray-800 p-2 rounded-lg mb-1 gap-4 animate-pulse duration-200">
+                <li key={i} className="flex items-center space-x-3  dark:bg-slate-400/20 bg-slate-600/20 hover:bg-gray-300 dark:hover:bg-gray-800 p-2 rounded-lg mb-1 gap-4 animate-pulse duration-200">
                   <span className=" size-6 bg-slate-600 rounded-full " />
                   <span className=' bg-slate-600 h-4 w-1/2 rounded-lg' />
                 </li>
@@ -153,7 +153,7 @@ function CommunityHome() {
               )) : <span>No Community followings</span>
             }
           </ul>
-          <h2 className="text-lg font-medium mb-3">You may also like</h2>
+          {/* <h2 className="text-lg font-medium mb-3">You may also like</h2>
           <ul className="space-y-3">
             {communities.map((comm) => (
               <Link to={'/communities/c/' + comm.id}  key={comm.id}>
@@ -165,7 +165,7 @@ function CommunityHome() {
                 </li>
               </Link>
             ))}
-          </ul>
+          </ul> */}
           <hr className='p-[0.5px] mb-1 bg-gray-500 w-full' />
           <button
           onClick={() => dispatch(setIsCreateCommunityDialog(true))}

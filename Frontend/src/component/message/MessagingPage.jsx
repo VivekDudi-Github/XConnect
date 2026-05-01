@@ -16,20 +16,6 @@ import { toast } from 'react-toastify';
 import { ERROR_MESSAGE, RECEIVE_MESSAGE, USER_ROOM_META_UPDATE } from '../../constants/message.socket.constant';
 
 
-const dummyMessages = [
-  {_id: "68866a59d0c7b9752f68d1dc" ,
-    createdAt: "2025-07-27T18:05:13.884Z" ,
-    message: "yes" ,
-    room_id: "688110b6e4c6c30fdf87bf55" ,
-    sender: {
-      _id: "6846a3b1175315af6d4ebc6e", 
-      username: "three",  
-      avatar: { url: "", publicId: "" } ,
-    } ,
-  } ,
-  // { from: "me", text: "All good! You?" },
-  // { from: "other", text: "Just building XConnect 🚀" },
-];
 
 export default function MessagingPage({username}) {
   const navigate = useNavigate();

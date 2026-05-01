@@ -33,6 +33,8 @@ const auto_communities = [
 //Cache trending results to reduce load
 function Explore() {
   const observer = useRef() ;
+  const setRef = useRef(new Set());
+
 
   const [activeTab, setActiveTab] = useState("Trending");
   const [suggestiveQuery , setSuggestiveQuery] = useState('') ;
@@ -115,17 +117,23 @@ function Explore() {
     setCurrPage(1) ;
     setTabContent([]) ;
     setPageEnd(false) ;
+    setRef.current.clear();
     if(activeTab !== 'Results') fetchTrending({page : 1 , tab : activeTab} , true) ;
   }  , [activeTab])
 
   useEffect(() => {
     if(data?.data && !isFetching){
-      setTabContent(prev => [...prev , ...data.data])
+      if(!Array.isArray(data.data)) return toast.error('invalid data recieved') ;
+
+      let filterData = data.data.filter(item => !setRef.current.has(item._id)) ;
+      setTabContent(prev => [...prev , ...filterData])
+      filterData.forEach(f => setRef.current.add(f._id))
+      
       setCurrPage(prev => prev+1) ; 
       if(data.data.length === 0 ) setPageEnd(true) ;
     }
   } , [data , isFetching])
-console.log(isLoading , isFetching);
+
 
   useEffect(() => {
     if(isError ) toast.error(error?.message || 'something went wrong') ;
@@ -135,6 +143,7 @@ console.log(isLoading , isFetching);
     return () => {
       setCurrPage(1) ;
       setTabContent([]) ;
+      setRef.current.clear();
       setPageEnd(false) ;
       setSearchResults({}) ;
     }
@@ -149,7 +158,7 @@ console.log('totalpost pages' , searchResults)
           {suggestionsBox && autoComplete.length >0  && ( 
           <div className="bg-white shadow-md rounded-xl max-h-96  max-w-xl mx-auto absolute top-12 left-0 right-0 z-10 shadowLight overflow-auto duration-200">
             {autoComplete.length > 0 && autoComplete.map( item => (
-              <div onClick={() => setSuggestiveQuery(item.name)} className="text-sm text-black border-b mx-2 border-slate-300 p-2 hover:bg-slate-300 duration-200" key={item} >
+              <div onClick={() => setSuggestiveQuery(item.name)} className="text-sm text-black border-b mx-2 border-slate-300 p-2 hover:bg-slate-300 duration-200" key={item.name} >
                 {item.name}
               </div>  
             ))}

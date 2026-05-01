@@ -39,7 +39,7 @@ const userSchema = new mongoose.Schema({
         default : "user"
     } ,
     avatar : {
-        publicId : {
+        public_id : {
             type : String ,
             default : "" ,
         } , 
@@ -49,7 +49,7 @@ const userSchema = new mongoose.Schema({
         }
     } ,
     banner : {
-        publicId : {
+        public_id : {
             type : String ,
             default : "" ,
         } , 

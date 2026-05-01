@@ -28,8 +28,9 @@ export const updateUserService = async ({
     bannerResult = await uploadFilesTOCloudinary(banner);
   }
 
-  if(bannerResult?.length) await deleteFilesFromCloudinary(existing.banner) ;
-  if(avatarResult?.length) await deleteFilesFromCloudinary(existing.avatar) ; 
+
+  if(bannerResult?.length) await deleteFilesFromCloudinary([existing.banner]) ;
+  if(avatarResult?.length) await deleteFilesFromCloudinary([existing.avatar]) ; 
   
 
   const user = await updateUserDb({

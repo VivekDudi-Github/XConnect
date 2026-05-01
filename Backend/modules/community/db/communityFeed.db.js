@@ -34,8 +34,8 @@ export const getCommunityFeedAggregation = async ({
           }
         }
       } ,
+      {$sort: {createdAt: -1}} ,
       {$skip : skip} ,
-      
       {$limit : limit} ,
   
       //author details

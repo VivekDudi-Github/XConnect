@@ -161,7 +161,7 @@ function DashboardMain() {
               <div className="p-4 bg-white rounded-2xl shadow-sm">
                 <div className="text-sm text-slate-500">Estimated Earnings</div>
                 <div className="text-2xl font-bold">₹{payout}</div>
-                <div className="text-xs text-slate-500 mt-1">Pending payout: $420</div>
+                {/* <div className="text-xs text-slate-500 mt-1">Pending payout: $420</div> */}
               </div>
 
             </motion.div>
@@ -283,7 +283,7 @@ function DashboardMain() {
                     <div className="font-bold text-lg">₹{payout}</div>
                   </div>
                   <div>
-                    <button className="px-3 py-2 bg-white border rounded-lg hover:shadow hover:shadow-black/40 duration-200">Withdraw</button>
+                    {/* <button className="px-3 py-2 bg-white border rounded-lg hover:shadow hover:shadow-black/40 duration-200">Withdraw</button> */}
                   </div>
                 </div>
 

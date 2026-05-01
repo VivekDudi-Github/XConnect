@@ -59,7 +59,7 @@ export const searchPosts = (q, skip, limit, userId) =>
           {
             equals: {
               path: "isDeleted",
-              value: true
+              value: false
             }
           }
         ]
@@ -174,7 +174,7 @@ export const searchPostsAggregates = (q) =>
         {
           equals: {
             path: "isDeleted",
-            value: true
+            value: false
           }
         }
       ]

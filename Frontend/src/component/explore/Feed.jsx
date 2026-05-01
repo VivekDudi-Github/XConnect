@@ -107,6 +107,9 @@ function Feed() {
       {(!posts || posts.length < 4) &&  Array.from({length : 4}).map((_  , i) => (
         <PostCardSkeleton key={i}/>
       ))}
+      {isFetching && Array.from({length : 4}).map((_ , i) => (
+        <PostCardSkeleton key={i}/>
+      ))}
 
       {isDeleteDialog?.isOpen ?
         (<DialogBox message='Are you sure you want to delete this post?' 

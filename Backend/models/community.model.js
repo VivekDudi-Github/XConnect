@@ -20,7 +20,7 @@ const communitySchema = new mongoose.Schema({
       type : String ,
       required : true ,
     } , 
-    public_id : {
+    public_Id : {
       type : String , 
       required : true ,
     } ,
@@ -57,7 +57,6 @@ const communitySchema = new mongoose.Schema({
   highlights: [{ 
     type: mongoose.Types.ObjectId,
     ref: 'Post' ,
-    unique : true 
   }] ,
   tags : [
     {
@@ -69,6 +68,6 @@ const communitySchema = new mongoose.Schema({
   ]
 
 } , {timestamps : true})
-
+communitySchema.index({ name: 'text', tagline: 'text' });
 
 export const Community = mongoose.model('Community' , communitySchema)

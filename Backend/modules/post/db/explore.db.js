@@ -4,7 +4,7 @@ import { ObjectId } from 'mongodb';
 
 
 export const fetchTrendingDB = async ({ tab, skip, userId }) => {
-  const cutoff = new Date(Date.now() - 7 * 24 * 3600 * 1000);
+  const cutoff = new Date(Date.now() - 60 * 24 * 3600 * 1000); //60days for to use seeded data longer , realistically only 3-7 days
 
   const andConditions = [{ $eq: ['$_id', '$$postId'] }];
 

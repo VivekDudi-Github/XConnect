@@ -10,6 +10,7 @@ class ErrorHandler extends Error {
 }
 
 export const uploadFilesTOCloudinary = async(files =[]) => {
+  if(!files || files?.length === 0) return ;
   const promises = files.map((f) => {
     return new Promise((resolve , reject) => {
       cloudinary.uploader.upload(
@@ -56,6 +57,9 @@ export const uploadFilesTOCloudinary = async(files =[]) => {
 
 
 export const deleteFilesFromCloudinary = async(files =[]) => {
+  console.log('files' ,files);
+  
+  if(!files || files?.length === 0) return ; 
   const promise =  files.map((f) => {
     if(f?.type === 'video' || !f?.public_id) return ;
     console.log('public_id:' ,f.public_id);

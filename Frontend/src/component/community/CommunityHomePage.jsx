@@ -175,7 +175,7 @@ useEffect(() => {
         </div>
       </div>
 
-      <div className='px-2'><SearchBar/></div>
+      {/* <div className='px-2'><SearchBar/></div> */}
       {/* Tabs */}
       <div className=" mx-2 flex borde overflow-y-clip overflow-x-auto pb-1 ">
         {tabs.map(tab => (
