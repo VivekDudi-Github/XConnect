@@ -168,7 +168,7 @@ function buildFfmpegArgs(inputPath, hlsDir, probe) {
     "-c:a", "aac",
     "-profile:v", "main",
     "-preset", "veryfast",
-    "max_muxing_queue_size", "1024",
+    "-max_muxing_queue_size", "1024",
     
     "-crf", "20",
     "-g", "48",
@@ -214,8 +214,8 @@ function getVideoPoster(inputPath , posterPath , duration){
         posterPath
       ],
       (err , stdout, stderr) => {
-        // console.log('POSTER STDOUT' , stdout);
-        // console.log('POSTER STDERR' , stderr);
+        console.log('POSTER STDOUT' , stdout);
+        console.log('POSTER STDERR' , stderr);
         if (err) {
           console.error('error in generating poster from video' ,err);
           return reject(null);
@@ -242,10 +242,10 @@ async function startFFmpegWorker(public_id ){
   const ffmpegPath =  "/usr/bin/ffmpeg"; // path to ffmpeg binary on linux
   const ffmpeg = isProduction ? 
                   spawn("nice", ["-n", "10", ffmpegPath, "-threads", "1", ...args]) : 
-                  spawn(ffmpegPath, args);
+                  spawn('ffmpeg', args);
 
   ffmpeg.stderr.on("data", data => {
-    // console.log('::' , data.toString());
+    console.log('::' , data.toString());
   });
 
   ffmpeg.on('error' , (err) => {
@@ -353,12 +353,14 @@ async function createMasterPlaylist(hlsDir, probe) {
     `;
       }
 
-      if (width >= RENDITIONS[2].maxW || height >= RENDITIONS[2].maxH) {
-        content += `
-    #EXT-X-STREAM-INF:BANDWIDTH=2800000,RESOLUTION=1280x720
-    v2/index.m3u8
-    `;
-      }
+    // commented out because 720p rendition is not created on production server
+
+    //   if (width >= RENDITIONS[2]?.maxW || height >= RENDITIONS[2]?.maxH) {
+    //     content += `
+    // #EXT-X-STREAM-INF:BANDWIDTH=2800000,RESOLUTION=1280x720
+    // v2/index.m3u8
+    // `;
+    //   }
 
       await fs.writeFile(path.join(hlsDir, "master.m3u8"), content.trim());
 }
