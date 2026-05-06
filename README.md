@@ -1,10 +1,10 @@
 # XConnect 🚀  
-XConnect is a scalable real-time social platform with live streaming (WebRTC SFU),
-chunked video processing (FFmpeg + HLS), and event-driven architecture.
+XConnect is a full-stack real-time social media and live streaming platform built using a modular and scalable architecture. The system integrates REST APIs, WebRTC-based streaming, real-time communication, and media processing pipelines.
 
-![Live Stream GIF](./docs/gifs/LiveDemoShort.gif)
-*Real-time live streaming with WebRTC SFU and instant SuperChat payments*
-
+### Meeting 
+![Meeting GIF](./docs/gifs/MeetingDemoShort.gif)
+</br>
+*Multi-user video conferencing with mediasoup SFU and simulcast support*
 
 It enables users to connect, stream live, upload media, send superchats, receive real-time notifications, and interact through secure and scalable architecture.
 
@@ -20,13 +20,13 @@ It enables users to connect, stream live, upload media, send superchats, receive
 ## Demo
 ### Media Upload 
 ![Media Upload GIF](./docs/gifs/MediaUploadDemoShort.gif)
-</br>
-*Resumable media uploads, multi quality video and thumbnail generation using FFmpeg*  
+<br/>
+*Resumable media uploads, multi quality video and thumbnail generation using FFmpeg* 
 
-### Meeting 
-![Meeting GIF](./docs/gifs/MeetingDemoShort.gif)
-</br>
-*Multi-user video conferencing with mediasoup SFU and simulcast support*
+### Live Stream
+![Live Stream GIF](./docs/gifs/LiveDemoShort.gif)
+<br/>
+*Real-time live streaming with WebRTC SFU and instant SuperChat payments*
 
 ## Core System Features
 
@@ -46,16 +46,16 @@ It enables users to connect, stream live, upload media, send superchats, receive
 
 ## High-Level Architecture Diagram
 ```
-            Client (React)
-                 │
-     ┌───────────┼───────────┐
-     │           │           │
- REST API    Socket.io    Media Pipeline
- (Express)   (Realtime)   (FFmpeg)
-     │           │           │
-  MongoDB     Mediasoup    HLS + Storage
-                │
-           Stripe / Cloudinary
+              Client (React)
+                   │
+     ┌─────────────┼─────────────┐
+     │             │             │
+ REST API      Socket.io      Media Pipeline
+ (Express)     (Realtime)     (FFmpeg)
+     │           │               │
+  MongoDB     Stripe/Mediasoup  HLS + Storage
+               
+                      
 ```
 ### [More Detailed Architecture Link](./docs/architecture.md)  
 ----
@@ -78,7 +78,7 @@ It enables users to connect, stream live, upload media, send superchats, receive
 
 | Area              | Tech                                                             |
 |-------------------|------------------------------------------------------------------|
-| Frontend          | React , Tailwind Css, Redux Toolkit , RTK Query , Vite , Video.js |
+| Frontend          | React , Tailwind Css, Redux Toolkit , RTK Query , Vite, Video.js |
 | Backend           | Node.js , Express , Mongo Atlas , Mongoose                       |
 | Real-Time Comms   | Mediasoup , Socket.io , WebRTC                                   |
 | Media Processing  | Multer , FFmpeg , HLS                                            |
@@ -86,14 +86,14 @@ It enables users to connect, stream live, upload media, send superchats, receive
 | Storage           | Cloudinary , Supabase                                            |  
 | Security          | Helmet, CORS, Rate Limiting, JWT, Http only Cookies, Zod         |
 | Backend Testing   | supertest + Jest                                                 |
-| Dev Ops           | GitHub , Vercel , AWS t2                                         |
+| Dev Ops           | GitHub Actions , AWS EC2                                                  | 
 | API Docs          | Swagger                                                          |
 
 ---
 
 
 
-## Project Structure
+## Directory Structure
 
 ```text
 XConnect
@@ -177,6 +177,8 @@ CLOUDINARY_API_SECRET=
 
 Frontend:
 VITE_STRIPE_PUBLISHABLE_KEY=
+VITE_PRODUCTION_URL =
+VITE_DEVELOPMENT_URL =
 ```
 ---
 
@@ -234,7 +236,8 @@ VITE_STRIPE_PUBLISHABLE_KEY=
 
 Vivek Dudi
 
-GitHub: https://github.com/VivekDudi-Github
-LinkedIn: VivekDudi-LinkedIn
+GitHub: https://github.com/VivekDudi-Github 
+<br/>
+LinkedIn: https://linkedin.com/in/vivek-dudi-12b2a8300
 
 ---

@@ -1,12 +1,6 @@
-# XConnect System Architecture
-XConnect is a modular full-stack real-time social platform built using MERN stack, WebRTC, and distributed media processing architecture. The system separates frontend, backend, media processing, and real-time communication into independent components to ensure scalability, security, and performance.
-
-
 # XConnect Architecture
 
 ## Overview
-
-XConnect is a full-stack real-time social media and live streaming platform built using a modular and scalable architecture. The system integrates REST APIs, WebRTC-based streaming, real-time communication, and media processing pipelines.
 
 The architecture is divided into:
 
@@ -26,16 +20,21 @@ The architecture is divided into:
 Client (React)
    │
    ├── REST API (Express)
-   │       ├── Modules
+   │    └─ Router   
+   │        └── Modules
    │            ├── Controller
    │            ├── Validators
    │            ├── Services
    │            └── Database (MongoDB)
    │
    ├── Socket.io (Real-Time Layer)
+   │       ├── Notification 
+   │       ├── Superchats 
    │       └── Mediasoup (WebRTC SFU)
    │
-   ├── Storage
+   ├── Media Content
+   │       ├── FFmpeg (Video processing)
+   │       ├── HLS Dash (Streaming)
    │       ├── Supabase (Videos)
    │       └── Cloudinary (Images)
    │
@@ -104,7 +103,7 @@ Handles large video uploads with chunking , processing and cloud storage .
 ### Flow
 
 1. For Images- User > Multer size & type checks > Controller > Cloudinary > DB URL Update (Images uploades are straight forward)
-2. User initiates upload
+2. For videos- User initiates upload
 3. File type and size are send to Initate Api which size check, calculates the total required chunks , intiate the new MongoDB record and return to client
 4. Client slices the video into chunks and uploads one by one.
 5. Backend creates upload session and metadata
@@ -248,7 +247,7 @@ Automates testing, building, and deployment.
 
 ### Backend
 
-* Hosted on Azure
+* Hosted on AWS EC2
 * Handles API and WebSocket connections
 
 ### Database

@@ -55,6 +55,7 @@ export function useBroadcast(socket , isStream = false ) {
 
             // Transport connect
             producerTransport.on("connect", ({ dtlsParameters }, callback, errback) => {
+              if(errback) console.log("Transport connect error:", errback);
               socket.emit(
                 CONNECT_PRODUCER_TRANSPORT,
                 { dtlsParameters, transportId: producerTransport.id },

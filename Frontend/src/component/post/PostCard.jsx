@@ -180,9 +180,9 @@ useEffect(() => {
 
       {/* Image */}
       {post.media && post.media.length > 0 && (
-        <NavLink to={`/post/${post._id}`} >
+        <div >
           <InPostImages imagesArray={post.media}/>
-        </NavLink>
+        </div>
       )}
 
       {/* Actions */}

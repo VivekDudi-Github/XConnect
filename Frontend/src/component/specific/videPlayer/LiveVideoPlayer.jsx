@@ -9,7 +9,7 @@ export default function VideoPlayer({ stream , audioStream  }) {
 
   const audioRef = useRef(null); 
   const isChromium = !!window.chrome;
-  console.log("streams recieved by video player" ,stream , audioStream) ;
+
   useEffect(() => {
     if (!videoRef.current) return;
     // Init player without source

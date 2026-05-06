@@ -208,8 +208,8 @@ useEffect(() => {
           <h3 className="text-lg font-bold mb-2">Community Stats</h3>
           <ul className="text-sm text-gray-400">
             <li>👥 {community?.totalFollowers} { community?.totalFollowers > 1 ? 'Members' : 'Member'}</li>
-            <li>🟢 142 Online</li>
-            <li>👤 5 Moderators</li>
+            <li>🟢 0 Online</li>
+            <li>👤 0 Moderators</li>
           </ul>
         </div>
         {/* rules */}

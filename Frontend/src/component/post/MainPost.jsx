@@ -28,7 +28,8 @@ export default function PostViewPage() {
   const {id} = useParams() ;
   
   const [post , setPost] = useState({}) ;
-  
+  const [openOptions,setOpenOptions] = useState(false) ;
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [likeStatus, setLikeStatus] = useState( 0);
   const [totalLikes, setTotalLikes] = useState(0);
