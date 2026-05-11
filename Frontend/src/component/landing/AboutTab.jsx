@@ -101,7 +101,7 @@ function AboutTab() {
           </div>
           <div className='flex gap-4 items-center'>
             <img className='size-9' src="https://icon.icepanel.io/Technology/svg/LinkedIn.svg" alt="" />
-              <a href="https://github.com/VivekDudi-Github/XConnect">LinkedIn : /VivekDudi</a>
+              <a href="https://www.linkedin.com/in/vivek-dudi/">LinkedIn : /VivekDudi</a>
           </div>
         </div>
       </div>

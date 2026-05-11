@@ -9,6 +9,10 @@ import ArchitectureTab from '../component/landing/ArchitectureTab';
 
 const Tab = ['XConnect' ,'API', 'Architecture' , 'GitHub' , 'About']
 
+const isProduction = import.meta.env.PROD ;
+const production_url = import.meta.env.VITE_PRODUCTION_URL ;
+const development_url = import.meta.env.VITE_DEVELOPMENT_URL ;
+
 export default function LandingPage() {
   const navigate = useNavigate() ;
   const [selectedTab , setSelectedTab] = useState('login') ;
@@ -17,7 +21,8 @@ export default function LandingPage() {
   
   useEffect(() => {
     if(selectedTab === 'API') {
-      window.open('http://locahost:3000/api-docs' , '_blank') ;
+      window.open(!isProduction ? production_url : development_url + '/api-docs' , '_blank') ;
+      setSelectedTab('login') ;
     } else if(selectedTab === 'GitHub') {
       window.open('https://github.com/VivekDudi-Github/XConnect' , '_blank') ;
     } else if(selectedTab === 'XConnect'){
