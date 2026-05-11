@@ -21,7 +21,7 @@ export default function LandingPage() {
   
   useEffect(() => {
     if(selectedTab === 'API') {
-      window.open(!isProduction ? production_url : development_url + '/api-docs' , '_blank') ;
+      window.open(isProduction ? production_url : development_url + '/api-docs' , '_blank') ;
       setSelectedTab('login') ;
     } else if(selectedTab === 'GitHub') {
       window.open('https://github.com/VivekDudi-Github/XConnect' , '_blank') ;
