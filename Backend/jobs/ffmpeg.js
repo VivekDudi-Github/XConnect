@@ -353,7 +353,7 @@ async function createMasterPlaylist(hlsDir, probe) {
     `;
       }
 
-    // commented out because 720p rendition is not created on production server
+    // commented out because 720p rendition is creates extra pressure on production server
 
     //   if (width >= RENDITIONS[2]?.maxW || height >= RENDITIONS[2]?.maxH) {
     //     content += `

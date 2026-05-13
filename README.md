@@ -99,7 +99,7 @@ It enables users to connect, stream live, upload media, send superchats, receive
 XConnect
   │
   ├── Backend
-  │   ├── controllers
+  │   ├── modules
   │   ├── routes
   │   ├── models
   │   ├── middleware
