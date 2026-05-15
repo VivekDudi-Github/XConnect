@@ -95,7 +95,7 @@ export default function LoginForm (){
             <label className="block text-sm  text-gray-300">Email or Username</label>
             <input
               type="email"
-              placeholder="you@example.com"
+              placeholder="use four@four.com for demo"
               className="w-full px-4 py-2 mt-1 border rounded-lg bg-gray-100 dark:bg-black text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-white"
               required
               onChange={e => setEmail(e.target.value)}
@@ -108,7 +108,7 @@ export default function LoginForm (){
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
+                  placeholder="use 12345678 for demo"
                   className="w-full px-4 py-2 mt-1 border rounded-lg bg-gray-100 dark:bg-black text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-white"
                   required
                   onChange={e => setPassword(e.target.value)}

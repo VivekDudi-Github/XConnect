@@ -2,15 +2,16 @@ import React from 'react' ;
 import {CheckIcon, MailIcon} from 'lucide-react' ;
 
 const featureList = [
-  "User signup and login with JWT-based authentication and authorization",
   "Post creation, likes, comments, replies, bookmarks & media attachments",
-  "Video processing with ffmpeg and hsl delivery with CDN",
-  "Follow and notifications system",
-  "Live video streaming with mediasoup",
+  "Video processing with FFmpeg and HLS delivery with CDN",
+  "Fully deployed on AWS with CI/CD pipelines and production-ready architecture",
+  "Live video streaming with mediasoup & superchats payments with stripe",
   "Private and group video calls using WebRtc",
   "Real-time chat with WebSockets",
+  "Event driven presistent Notifications system",
+  "Follow/Unfollow , Personlised feed ,Search & trending pages" , 
   "Fully responsive and mobile-friendly with light-dark mode",
-  "superchats payments with stripe",
+  "User signup and login with JWT-based authentication and authorization",
 ]
 
 function AboutTab() {
@@ -47,6 +48,14 @@ function AboutTab() {
               <img className='size-16' src="https://icon.icepanel.io/Technology/svg/Node.js.svg" alt="" />
               Node js ●
             </div>
+            <div className='flex items-center gap-2 text-white font-bold text-lg '>
+              <img className='size-16 invert' src="https://raw.githubusercontent.com/lobehub/lobe-icons/refs/heads/master/packages/static-png/light/aws.png " alt="" />
+                ●
+            </div> 
+            <div className='flex items-center gap-2 text-white font-bold text-lg'>
+              <img className='h-16 ' src="https://miro.medium.com/1*iw_QvTSAAOBtE2BHoGrN6g.jpeg" alt="" />
+               ●
+            </div>
             <div className='flex items-center gap-2 text-white font-bold text-lg'>
               <img className='size-16 invert' src="https://icon.icepanel.io/Technology/png-shadow-512/Socket.io.png" alt="" />
               Socket io ●
@@ -56,7 +65,7 @@ function AboutTab() {
               ●
             </div>
             <div className='flex items-center gap-2 text-white font-bold text-lg'>
-              <img className='size-16' src="https://icon.icepanel.io/Technology/svg/MongoDB.svg" alt="" />
+              <img className='size-14' src="https://icon.icepanel.io/Technology/svg/MongoDB.svg" alt="" />
               MongoDB ●
             </div>
 
@@ -64,15 +73,19 @@ function AboutTab() {
               <img className='h-12  ' src="https://global.discourse-cdn.com/free1/uploads/mediasoup/original/2X/d/d23e0569df6cb9785ade9cea7d1bc48bfd7ced26.png" alt="" />
               {/* MediaSoup ● */} ● 
             </div>
-            {/* <div className='flex items-center gap-2 text-white font-bold text-lg'>
-              <img className='size-16' src="https://icon.icepanel.io/Technology/svg/Jest.svg" alt="" />
+            <div className='flex items-center gap-2 text-white font-bold text-lg'>
+              <img className='size-14' src="https://icon.icepanel.io/Technology/svg/Jest.svg" alt="" />
               Jest ●
-            </div> */}
+            </div>
+            <div className='flex items-center gap-2 text-white font-bold text-lg'>
+              <img className='h-14 bg-white invert ' src="https://cdn.creazilla.com/icons/3243993/ffmpeg-icon-md.png" alt="" />
+               FFmpeg ● 
+            </div>
           </div>
           <ol className='text-gray-300 text-wrap list-disc pl-4'>
             <li>Media storage: Cloudinary + Supabase</li>
             <li>Testing architecture: Supertest + Jest</li>
-            <li>Deployment delivered via Render & Vercel</li> 
+            <li>CI/CD architecture: Github Actions</li>
           </ol>
         </div>
       </div>
