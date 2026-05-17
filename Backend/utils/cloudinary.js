@@ -68,7 +68,7 @@ export const deleteFilesFromCloudinary = async(files =[]) => {
 
   try {
     const awaitedPromise = await Promise.all(promise) ;
-    console.log('cloudinary awaitedPromise' , awaitedPromise); 
+    // console.log('cloudinary awaitedPromise' , awaitedPromise); 
   } catch (error) {
     console.log('---error-- while deleting file from the cloudinary' ,error);
     throw new ErrorHandler("Error while deleting files in cloudinary" , 500);

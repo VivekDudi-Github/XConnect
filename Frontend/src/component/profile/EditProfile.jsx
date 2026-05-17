@@ -88,7 +88,7 @@ const handleSubmit = async(e) => {
   } catch (error) {
     console.log(error);
     toast.update(id , {
-      render : error.data.message || "Something went" ,
+      render : error.data.message || "Something went wrong" ,
       type : 'error' ,
       isLoading: false,
       autoClose: true,
@@ -120,7 +120,7 @@ const handleSubmit = async(e) => {
               type="file"
               ref={bannerInputRef}
               className="hidden"
-              accept="image/*"
+              accept="image/jpeg, image/png"
               onChange={(e) => handleImageChange(e, 'banner')}
             />
           </div>
@@ -137,7 +137,7 @@ const handleSubmit = async(e) => {
                 type="file"
                 ref={fileInputRef}
                 className="hidden"
-                accept="image/*"
+                accept="image/jpeg, image/png"
                 onChange={(e) => handleImageChange(e, 'avatar')}
               />
             </div>
