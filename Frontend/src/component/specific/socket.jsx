@@ -13,7 +13,7 @@ export const SocketProvider = ({ children , user }) => {
 
   
   const isProduction = import.meta.env.PROD ;
-  const production_url = import.meta.env.VITE_PRODUCTION_URL ;
+  const production_url = "http://localhost:80" //import.meta.env.VITE_PRODUCTION_URL ; 
   const development_url = import.meta.env.VITE_DEVELOPMENT_URL ;
 
 
