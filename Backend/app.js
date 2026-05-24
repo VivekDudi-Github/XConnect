@@ -46,6 +46,7 @@ const limiter = rateLimit({
 
 app.use('/api/', limiter);
 app.use(helmet()) ;
+//app.set('trust proxy', 1); // trust first proxy
 app.disable('x-powered-by')
 
 const io = new Server(newServer, {
@@ -59,7 +60,7 @@ const io = new Server(newServer, {
 
 io.use(checkSocketUser);
 app.use('/api/v1/stripe' , stripeWebhook);
-
+console.log(isDevelopment) ;
 app.use(cors({
   origin: [
     isDevelopment ? 'http://localhost:5173' : process.env.CLIENT_URL ,

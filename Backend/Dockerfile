@@ -8,8 +8,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
-RUN npm install
+ENV NODE_ENV=production
+RUN npm ci
 COPY . .
+EXPOSE 3000
 
-CMD ["npm", "run", "dev"]
+CMD ["npm", "start"]
 

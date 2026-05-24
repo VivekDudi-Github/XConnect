@@ -10,7 +10,7 @@ export const findOneOnOneRoom = (members) =>
     members: { $all: members },
   });
 
-export const createRoomRepo = (data) => Room.create(data);
+export const createRoomRepo = async (data) => Room.create(data);
 
 export const findRoomById = (id) => Room.findById(id);
 

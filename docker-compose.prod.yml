@@ -1,0 +1,25 @@
+version : "3.8"
+
+services:
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    restart: always
+    init : true
+    env_file:
+      - .env
+    volumes:
+      - /uploads:/app/uploads
+
+
+  ngnix:
+    build:
+      context: .
+      dockerfile: ngnix.Dockerfile
+    restart: always
+    ports:
+      - 80:80
+      - 443:443
+    depends_on:
+      - backend
