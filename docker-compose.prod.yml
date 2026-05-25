@@ -2,9 +2,7 @@ version : "3.8"
 
 services:
   backend:
-    build:
-      context: ./Backend
-      dockerfile: Dockerfile
+    image: vivekdudi/xconnect-backend:latest
     restart: always
     init : true
     env_file:
@@ -14,9 +12,7 @@ services:
 
 
   ngnix:
-    build:
-      context: .
-      dockerfile: ngnix.Dockerfile
+    image: vivekdudi/xconnect-nginx:latest
     restart: always
     ports:
       - 80:80

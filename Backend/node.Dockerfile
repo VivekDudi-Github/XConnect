@@ -1,4 +1,4 @@
-FROM node:lts-bookworm-slim
+FROM node:22-bookworm-slim
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -8,10 +8,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
-ENV NODE_ENV=production
+ENV NODE_ENV=PRODUCTION
 RUN npm ci
 COPY . .
 EXPOSE 3000
 
 CMD ["npm", "start"]
-
