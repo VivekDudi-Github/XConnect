@@ -95,7 +95,7 @@ async function StartServer(){
     
     await connectDB() ;
     
-    newServer.listen(process.env.PORT, async() => {
+    newServer.listen(process.env.PORT, "0.0.0.0", async() => {
       console.log("Server is running on port "+process.env.PORT+ " in "+process.env.NODE_ENV+" mode");
     });
 

@@ -43,7 +43,7 @@ export const createRoomService = async (user, payload) => {
           type,
         };
 
-  return createRoomRepo(roomData);
+  return await createRoomRepo(roomData);
 };
 
 export const updateGroupService = async (user, payload) => {

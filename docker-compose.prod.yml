@@ -1,0 +1,21 @@
+version : "3.8"
+
+services:
+  backend:
+    image: vivekdudi/xconnect-backend:latest
+    restart: always
+    init : true
+    env_file:
+      - .env
+    volumes:
+      - /uploads:/app/uploads
+
+
+  ngnix:
+    image: vivekdudi/xconnect-nginx:latest
+    restart: always
+    ports:
+      - 80:80
+      - 443:443
+    depends_on:
+      - backend

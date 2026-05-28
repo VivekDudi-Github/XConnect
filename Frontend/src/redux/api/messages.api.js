@@ -5,7 +5,7 @@ export function messagesApi(builder){
         url : '/room/get' ,
         credentials : 'include' ,
       }) ,
-       providesTags : ['Room'] ,
+      providesTags : ['Room'] ,
     }) ,
     createRoom : builder.mutation({
       query : (data) => ({
@@ -13,7 +13,8 @@ export function messagesApi(builder){
         method : 'POST' ,
         body : data ,
         credentials : 'include' ,
-      })
+      }) , 
+      invalidatesTags : ['Room'] ,
     }) ,
     getMessages: builder.query({
       query: ({ room, _id, limit }) => {

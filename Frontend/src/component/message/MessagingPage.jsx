@@ -40,7 +40,7 @@ export default function MessagingPage({username}) {
 
 
   const {title , avatar , username : userIdentifier  , lastOnline , type , _id , room_id } = useSelector(state => state.misc.chatName) ;
-  console.log(userIdentifier , _id , room_id);
+  console.log(userIdentifier  , room_id);
   
   const {isFetching , isSuccess , isError , data} = useGetMessagesQuery({
     room : room_id ,
@@ -182,11 +182,12 @@ export default function MessagingPage({username}) {
   } , [room_id , socket]) ;
 
   useEffect(() => {
-    setTimeout(() => {
+    const timeout = setTimeout(() => {
       if(!room_id){
         navigate('/messages') ;
       }
     } , 500)
+    return () => clearTimeout(timeout) ;
   }, [room_id]) ;
 
 

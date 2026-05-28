@@ -7,6 +7,7 @@ import { useEffect , useState } from 'react';
 import { toast } from 'react-toastify';
 import { useSocket } from '../specific/socket';
 import { ensureSocketReady } from '../shared/SharedFun';
+import { useRef } from 'react';
 
 function ProfileHeader() {
   const {username} = useParams();
@@ -19,7 +20,7 @@ function ProfileHeader() {
   const [user , setUser]  = useState({}) ;
   const [followStatus , setFollowStatus] = useState(false) ;
   const socket = useSocket() ;
-  
+  const navigateTimeout = useRef(null) ;
 
   const [followToggleMutation , {isLoading : followIsLoading} ] = useToggleFollowMutation() ;
   const {data ,isError , error , isLoading}  = useGetProfileQuery(username , {skip : !username})
@@ -76,12 +77,16 @@ function ProfileHeader() {
     try {
       const room = await createRoomMutation({type : 'one-on-one' , members : [user._id]}).unwrap() ;
       dispatch(setChatName({
-        _id : room._id , 
+        _id : user._id , 
+        room_id : room.data._id ,
         username : user.username , 
         fullName : user.fullname ,  
         avatar : user.avatar ,
       }))
-      navigate('/messages/chat/'+user.username) ;
+      console.log(room);
+      navigateTimeout.current = setTimeout(() => {
+        navigate('/messages/chat/'+user.username) ;
+      }, 500);
     } catch (error) {
       console.log(error);
       
@@ -90,6 +95,11 @@ function ProfileHeader() {
   }
   console.log(user);
 
+  useEffect(() => {
+    return () => {
+      if(navigateTimeout.current) clearTimeout(navigateTimeout.current) ;
+    }
+  } , [])
   
   return (
       <>
