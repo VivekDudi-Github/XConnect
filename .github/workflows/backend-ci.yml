@@ -19,7 +19,7 @@ concurrency:
 jobs:
   test:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
 
     defaults:
       run:
@@ -64,7 +64,7 @@ jobs:
 
   build-deploy:
     needs: test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
 
     steps:
       - name: Checkout Repository
@@ -127,7 +127,9 @@ jobs:
           host: ${{secrets.EC2_IP}}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
+          script_stop: true  
           script: |
+            set -e
             cd /home/ubuntu/xconnect
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
