@@ -16,6 +16,13 @@ const isProduction = process.env.NODE_ENV === 'PRODUCTION' ;
 const STORAGE_DIR = path.resolve('uploads/storage') ;
 const RENDITIONS = [
   {
+    name: "144",
+    maxW: 256,
+    maxH: 144,
+    maxrate: "250k",
+    bufsize: "500k"
+  } ,
+  {
     name: "360",
     maxW: 640,
     maxH: 360,
@@ -86,10 +93,6 @@ async function mergeUploadAsync(public_id) {
       await uploadDoc.save();
       
 
-      // Cleanup chunks
-      for (let i = 0; i < uploadDoc.totalChunks; i++) {
-        await fs.unlink(path.join(uploadDir, `part-${i}`));
-      }
       console.time(':: ffmpeg worker time') ;
       
       await startFFmpegWorker(public_id) ;
@@ -101,16 +104,19 @@ async function mergeUploadAsync(public_id) {
         { public_id },
         { status: "failed" ,}
       );
-      await fs.unlink(path.join(STORAGE_DIR, public_id, "final.mp4")); 
+      // await fs.unlink(path.join(STORAGE_DIR, public_id, "final.mp4")); 
+      throw err ;
     }
 }
 
 
 function probeVideo(inputPath) {
   return new Promise((resolve, reject) => {
+    const ffprobePath =  "/usr/bin/ffprobe"; // path to ffprobe binaries
+    
     execFile(
-      "ffprobe",
-      [
+      isProduction ? ffprobePath : "ffprobe",
+      [    
         "-v", "error",
         "-select_streams", "v:0",
         "-show_entries", "stream=width,height:format=duration",
@@ -227,112 +233,93 @@ function getVideoPoster(inputPath , posterPath , duration){
 }
 
 async function startFFmpegWorker(public_id ){
-  console.log('FFmpeg worker started for public_id:', public_id);
-  
-  const uploadDir = path.join(STORAGE_DIR, public_id);
-  const inputPath = path.join(uploadDir, "final.mp4");
-  const hlsDir = path.join(uploadDir, "hls");
-  
-  
-  await fs.mkdir(hlsDir , {recursive: true}) ;
-  
-  const probe = await probeVideo(inputPath);
-  const args = buildFfmpegArgs(inputPath, hlsDir, probe);
+  return new Promise(async (resolve , reject) => {
+    console.log('FFmpeg worker started for public_id:', public_id);
+      
+      const uploadDir = path.join(STORAGE_DIR, public_id);
+      const inputPath = path.join(uploadDir, "final.mp4");
+      const hlsDir = path.join(uploadDir, "hls");
+      
+      
+      await fs.mkdir(hlsDir , {recursive: true}) ;
+      
+      const probe = await probeVideo(inputPath);
+      const args = buildFfmpegArgs(inputPath, hlsDir, probe);
 
-  const ffmpegPath =  "/usr/bin/ffmpeg"; // path to ffmpeg binary on linux
-  const ffmpeg = isProduction ? 
-                  spawn("nice", ["-n", "10", ffmpegPath, "-threads", "1", ...args]) : 
-                  spawn('ffmpeg', args);
+      const ffmpegPath =  "/usr/bin/ffmpeg"; // path to ffmpeg binary on linux
+      const ffmpeg = isProduction ? 
+                      spawn("nice", ["-n", "10", ffmpegPath, "-threads", "1", ...args]) : 
+                      spawn('ffmpeg', args);
 
-  ffmpeg.stderr.on("data", data => {
-    console.log('::' , data.toString());
-  });
+      ffmpeg.stderr.on("data", data => {
+        console.log('::' , data.toString());
+      });
 
-  ffmpeg.on('error' , (err) => {
-    console.log(`FFMPEG error for public_id ${public_id}:`, err);
-    VideoUpload.updateOne(
-      { public_id },
-      { status: "failed" } ,
-    ) ; 
-  })
+      ffmpeg.on('error' , (err) => {
+        console.log(`FFMPEG error for public_id ${public_id}:`, err);
+        VideoUpload.updateOne(
+          { public_id },
+          { status: "failed" } ,
+        ) ; 
+      })
 
-  ffmpeg.on("close", async (code) => {
-    if (code === 0) {
-      try {
-        const posterPath = path.join(uploadDir , "poster.jpg") ;
-        
-        await getVideoPoster(inputPath , posterPath , probe.duration*0.2);
-        console.log('generated poster at :' , posterPath); 
-        
-        console.log('creating master playlist');
-        let uploadedPoster ;
-        try {
-          if (fsSync.existsSync(posterPath) === false){
-            throw new Error("Poster file does not exist");
-          }
-          uploadedPoster = await uploadFilesTOCloudinary([{path : posterPath , type : 'image'}]) 
-        } catch (err) {
-          console.error('error in uploading the poster files')
-          uploadedPoster = null ;
-        };
-          
+      ffmpeg.on("close", async (code) => {
+        if (code === 0) {
+          try {
+            const posterPath = path.join(uploadDir , "poster.jpg") ;
+            
+            await getVideoPoster(inputPath , posterPath , probe.duration*0.2);
+            console.log('generated poster at :' , posterPath); 
+            
+            console.log('creating master playlist');
+            let uploadedPoster ;
+            try {
+              if (fsSync.existsSync(posterPath) === false){
+                throw new Error("Poster file does not exist");
+              }
+              uploadedPoster = await uploadFilesTOCloudinary([{path : posterPath , type : 'image'}]) 
+            } catch (err) {
+              console.error('error in uploading the poster files')
+              uploadedPoster = null ;
+            };
+              
 
-        // Create master playlist manually
-        await createMasterPlaylist(hlsDir , probe);
-        await fs.unlink(inputPath) ;
-        console.log("Uploading HLS folder");
-        
-        let masterPlaylist = await uploadHLSFolder(public_id) ;          
-        await VideoUpload.findOneAndUpdate({public_id : public_id}  , {
-          url : masterPlaylist , 
-          status : "completed" ,
-          poster : uploadedPoster?.[0] ? {
-            url : uploadedPoster[0].url ,
-            public_id : uploadedPoster[0].public_id ,
-          } : null 
-        }) ;
+            // Create master playlist manually
+            await createMasterPlaylist(hlsDir , probe);
+            // await fs.unlink(inputPath) ;
+            console.log("Uploading HLS folder");
+            
+            let masterPlaylist = await uploadHLSFolder(public_id) ;          
+            await VideoUpload.findOneAndUpdate({public_id : public_id}  , {
+              url : masterPlaylist , 
+              status : "completed" ,
+              poster : uploadedPoster?.[0] ? {
+                url : uploadedPoster[0].url ,
+                public_id : uploadedPoster[0].public_id ,
+              } : null 
+            }) ;
+            resolve() ;
+          } catch (error) {
+              console.log('ffmpeg catch block error :' ,error);     
 
-      } catch (error) {
-          console.log('ffmpeg catch block error :' ,error);     
-          let paths = await walkDir(uploadDir) ;
+              await VideoUpload.updateOne(
+                { public_id },
+                { status: "failed" }
+              );
+              reject(error.message || "Error in processing video with ffmpeg") ;
+            }
+            
+        } else {
+          console.log('ffmpeg error:' , code);
 
           await VideoUpload.updateOne(
             { public_id },
             { status: "failed" }
           );
-
-          for(const path of paths){
-            await fs.unlink(path) ;
-          }
-          let posterPath = path.join(uploadDir , "poster.jpg") ;
-           fsSync.existsSync(inputPath) ? await fs.unlink(inputPath) : null ; 
-           fsSync.existsSync(posterPath) ? await fs.unlink(posterPath) : null;
-           fsSync.existsSync(uploadDir) ? await fs.rm(uploadDir , {recursive : true}) : null ;
+          reject(`FFmpeg exited with code ${code}`) ;
         }
-        
-    } else {
-      console.log('ffmpeg error:' , code);
-      let paths = await walkDir(uploadDir) ;
-
-      await VideoUpload.updateOne(
-        { public_id },
-        { status: "failed" }
-      );
-
-      for(const path of paths){
-        await fs.unlink(path) ;
-      }
-      let posterPath = path.join(uploadDir , "poster.jpg") ;
-       fsSync.existsSync(inputPath) ? await fs.unlink(inputPath) : null ; 
-       fsSync.existsSync(posterPath) ? await fs.unlink(posterPath) : null;
-       fsSync.existsSync(uploadDir) ? await fs.rm(uploadDir , {recursive : true}) : null ;
-
-      await VideoUpload.updateOne(
-        { public_id },
-        { status: "failed" }
-      );
-    }
-  });
+      });
+  }) ;
 }
 
 
@@ -342,26 +329,33 @@ async function createMasterPlaylist(hlsDir, probe) {
   let content = `#EXTM3U
     #EXT-X-VERSION:3
 
-    #EXT-X-STREAM-INF:BANDWIDTH=800000,RESOLUTION=640x360
+    #EXT-X-STREAM-INF:BANDWIDTH=300000,RESOLUTION=256x144 
     v0/index.m3u8
     `;
 
       if (width >= RENDITIONS[1].maxW || height >= RENDITIONS[1].maxH) {
         content += `
-    #EXT-X-STREAM-INF:BANDWIDTH=1400000,RESOLUTION=854x480
+    #EXT-X-STREAM-INF:BANDWIDTH=800000,RESOLUTION=640x360
     v1/index.m3u8
+    `;
+      }
+
+      if (width >= RENDITIONS[2].maxW || height >= RENDITIONS[2].maxH) {
+        content += `
+    #EXT-X-STREAM-INF:BANDWIDTH=1400000,RESOLUTION=854x480
+    v2/index.m3u8
     `;
       }
 
     // commented out because 720p rendition is creates extra pressure on production server
 
-    //   if (width >= RENDITIONS[2]?.maxW || height >= RENDITIONS[2]?.maxH) {
+    //   if (width >= RENDITIONS[3]?.maxW || height >= RENDITIONS[3]?.maxH) {
     //     content += `
     // #EXT-X-STREAM-INF:BANDWIDTH=2800000,RESOLUTION=1280x720
     // v2/index.m3u8
     // `;
     //   }
-
+      console.log('master playlist created');
       await fs.writeFile(path.join(hlsDir, "master.m3u8"), content.trim());
 }
 

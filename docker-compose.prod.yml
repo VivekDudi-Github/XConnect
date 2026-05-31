@@ -12,8 +12,6 @@ services:
       - /home/ubuntu/xconnect/uploads:/app/uploads
       - /usr/bin/ffmpeg:/usr/bin/ffmpeg:ro
 
-
-
   nginx:
     image: vivekdudi/xconnect-nginx:latest
     restart: always
@@ -25,5 +23,12 @@ services:
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt:ro
 
-
+  redis:
+    image: redis:7.4.9-alpine
+    restart: always
+    volumes:
+      - redis-volume:/data
+    command: redis-server --appendonly yes
     
+volumes:
+  redis-volume:

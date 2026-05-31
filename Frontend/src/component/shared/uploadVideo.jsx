@@ -33,6 +33,10 @@ function UploadVideo() {
       if(localStorage.getItem(fingerprint)){
         // fetch the last save of the upload
         const {public_id , chunkSize} = JSON.parse(localStorage.getItem(fingerprint));
+        if(!public_id || !chunkSize) {
+          localStorage.removeItem(fingerprint);
+          return toast.error('There was an error in resuming the upload. Please try again.');
+        }
         let uploadStatus = await uploadStatusCheck({public_id : public_id}).unwrap();
         console.log(uploadStatus);
         

@@ -55,6 +55,7 @@ export async function uploadHLSFolder(fileId) {
   console.log("Total files:", allFiles?.length);
   if(allFiles.length === 0)  return ;
 
+
   let allPromises = allFiles.map( (filePath) => {
     return limit( async () => {
       const relativePath = path.relative(localRoot, filePath);
@@ -62,7 +63,6 @@ export async function uploadHLSFolder(fileId) {
       const storageKey = `${fileId}/${relativePath}`;
 
       const fileBuffer = await fsPromise.readFile(filePath);
-
       const { error } = await supabase.storage
         .from(bucketName)
         .upload(storageKey, fileBuffer, {
@@ -77,8 +77,9 @@ export async function uploadHLSFolder(fileId) {
       await fsPromise.unlink(filePath);
       }) 
     });
+    
+    console.log('awaiting promises');
   await Promise.all(allPromises);
-
   await fsPromise.rm(localRoot, { recursive: true }); // Cleanup
   console.log("HLS Upload Complete");
 

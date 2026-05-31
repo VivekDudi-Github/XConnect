@@ -18,7 +18,7 @@ function InPostImages({imagesArray}) {
               key={index}
               src={url}
               alt={'post'+index}
-              className={` rounded-lg mb-2 object-contain sm:max-h-[220px] max-h-36 duration-200
+              className={` rounded-lg mb-2 object-cover sm:max-h-[300px] max-h-36 duration-200
                 ${length == 1 ? ' col-span-1 row-span-1 mx-auto h-full  ' : '' }
                 ${length == 3 && index == 2 ? ' col-span-1 row-span-2 w-full h-full ' : 'row-span-1 col-span-1 h-full w-full' }  
                 ${length == 2 ? 'row-span-2 h-full mx-auto' : '' }
@@ -41,7 +41,7 @@ function InPostImages({imagesArray}) {
                 key={index}
                 src={url}
                 alt={'post'+index}
-                className='w-full h-full rounded-lg mb-2 object-contain sm:max-h-[220px] max-h-36'
+                className='w-full h-full rounded-lg mb-2 object-cover sm:max-h-[300px] max-h-36'
               />
             )} 
           )}
@@ -58,7 +58,7 @@ function InPostImages({imagesArray}) {
               <img 
               loading='lazy' 
               src={imagesArray[3].url}  
-              className='w-full h-full rounded-lg mb-2 object-cover z-0 sm:max-h-[220px] max-h-36'
+              className='w-full h-full rounded-lg mb-2 object-cover z-0 sm:max-h-[300px] max-h-36'
               />
             )}
           </div>

@@ -4,21 +4,30 @@ services:
   backend:
     build:
       context: ./Backend
-      dockerfile: Dockerfile
-    restart: always
+      dockerfile: node.Dockerfile
     init : true
+    ports:
+      - 3000:3000
+      - "4444:4444/udp"
     volumes:
       - ./Backend:/app
-      - /app/node_modules
+      - /app/node_modules # Avoid overwriting node_modules with the host's directory
+
+  # nginx:
+  #   build:
+  #     context: .
+  #     dockerfile: nginx.Dockerfile
+  #   ports:
+  #     - 80:80
+  #     - 443:443
+  #   depends_on:
+  #     - backend
 
 
-  ngnix:
-    build:
-      context: .
-      dockerfile: ngnix.Dockerfile
+  redis:
+    image: redis:7.4.9-alpine
     restart: always
+    command: redis-server --appendonly yes
     ports:
-      - 80:80
-      - 443:443
-    depends_on:
-      - backend
+      - 6379:6379
+    

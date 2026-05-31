@@ -1,23 +1,22 @@
-import {io , newServer} from "./app.js";
+import {ip} from 'address';
+import {publicIpv4} from 'public-ip' ;
 import { configDotenv } from "dotenv";
 import * as mediasoup from "mediasoup";
+import { ffmpegWorker } from "./bullmq.js";
+
+import {io , newServer} from "./app.js";
 import connectDB from "./utils/connectDB.js";
 import { v2 as cloudinary } from 'cloudinary' ;
 import { RateLimiterMemory } from "rate-limiter-flexible";
 
-import {publicIpv4} from 'public-ip' ;
-import {ip} from 'address';
+import { User } from "./models/user.model.js";
+import { Following } from "./models/following.model.js";
 
+import { UserListener } from "./listeners/user.listener.js";
 import messageListener from "./listeners/message.listener.js";
+import { LiveStreamCleanup, StreamListener} from "./listeners/liveStream.listeners.js";
 import { MediaSoupCleanup, MediaSoupListener } from "./listeners/mediasoup.listeners.js";
 
-import { User } from "./models/user.model.js";
-import { UserListener } from "./listeners/user.listener.js";
-import { Following } from "./models/following.model.js";
-import { LiveStreamCleanup, StreamListener } from "./listeners/liveStream.listeners.js";
-
-import fs from "fs";
-import path from "path";
 
 const transportsBySocket = new Map();  // socket.id → array of transports
 const participants = new Map(); // roomId → array/set of userIds
@@ -107,7 +106,7 @@ async function StartServer(){
       
       socket.use(async( packet , next) => {
         try {
-          await rateLimiter.consume(socket.user._id)
+          await rateLimiter.consume(socket.user._id) ;
           next() ;
         } catch (error) {
           io.to(socket.id).emit('RATE_LIMIT_EXCEEDED') ;

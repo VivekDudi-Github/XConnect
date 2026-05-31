@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import {login} from '../../redux/reducer/authSlice'
 
+
 export default function LoginForm (){
   const navigate = useNavigate() ;
   const dispatch = useDispatch() ;
@@ -15,6 +16,7 @@ export default function LoginForm (){
   const [isLoading , setLoading] = useState(false)
 
   const UsernameRegex = /^[a-zA-Z0-9_]{3,20}$/; 
+  const EmailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   const [email , setEmail] =useState('') ;
   const [password , setPassword] = useState('') ;
@@ -28,9 +30,12 @@ export default function LoginForm (){
     e.preventDefault() ;
     try {
       setLoading(true) ;
-      const test = UsernameRegex.test(username) ;
+      let test = UsernameRegex.test(username) ;
       if(!test) return toast.error('Username can only have alphabets , underscores and numbers.' )
       
+      test = EmailRegex.test(email) ;
+      if(!test) return toast.error('Wrong Email format.' )
+
       const res = await RegisterMutation({
         email: email,
         password: password,
@@ -51,8 +56,16 @@ export default function LoginForm (){
     e.preventDefault() ;
     try {
       setLoading(true) ;
+      const test = EmailRegex.test(email) ;
+
+      let detail = {};
+      if(test) {
+        detail.email = email ;
+      } else {
+        detail.username = email ;
+      }
       const res = await LoginMutation({
-        email , password 
+        ...detail , password 
       }).unwrap() ;
       if(res){
         dispatch(login(res.data)) ;
@@ -94,8 +107,8 @@ export default function LoginForm (){
           <div>
             <label className="block text-sm  text-gray-300">Email or Username</label>
             <input
-              type="email"
-              placeholder="use four@four.com for demo"
+              type="text"
+              placeholder="use three@three.com for demo"
               className="w-full px-4 py-2 mt-1 border rounded-lg bg-gray-100 dark:bg-black text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-white"
               required
               onChange={e => setEmail(e.target.value)}

@@ -11,6 +11,7 @@ import RenderPostContent from '../specific/RenderPostContent';
 import DialogBox from '../shared/DialogBox';
 import { setisDeleteDialog } from '../../redux/reducer/miscSlice';
 import { useOnScreen } from '../specific/useOnScreen';
+import ImageSlider from '../ui/ImagesSlider';
 
 
 

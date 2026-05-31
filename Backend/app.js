@@ -6,6 +6,7 @@ import cors from 'cors' ;
 import mongoSanitizer from '@exortek/express-mongo-sanitize';
 import helmet from 'helmet' ;
 
+import createRedis from "ioredis";
 import {createServer} from 'http' ;
 import {Server} from 'socket.io' ;
 
@@ -44,11 +45,12 @@ const limiter = rateLimit({
   max: 500
 });
 
-app.use('/api/', limiter);
+app.set('trust proxy', 1);
+app.disable('x-powered-by'); // disable express header in responses
 app.use(helmet()) ;
-//app.set('trust proxy', 1); // trust first proxy
-app.disable('x-powered-by')
+app.use('/api/', limiter);
 
+const Redis = new createRedis(process.env.REDIS_PORT, isDevelopment ? 'localhost' :  process.env.REDIS_HOST, );
 const io = new Server(newServer, {
   cors: {
     origin: [
@@ -97,4 +99,4 @@ app.use('/api/v1/analytics' , analyticsRouter) ;
 app.use('/api/v1/video' , videoUploadRouter) ;
 
 
-export {io , newServer} ;
+export {io , newServer, Redis} ;

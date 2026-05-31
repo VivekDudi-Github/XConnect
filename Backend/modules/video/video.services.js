@@ -2,6 +2,7 @@ import fsSync from 'fs';
 import fs from 'fs/promises'
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import {ffmpegQueue} from '../../utils/ffmpeg.queue.js';
 
 import {
   CHUNK_SIZE,
@@ -10,13 +11,12 @@ import {
 } from '../../constants/video.constant.js';
 
 import * as videoRepo from './video.db.js';
-import { enqueueMerge } from "../../utils/mergeQueue.js";
 import ApiError from '../../utils/ApiError.js';
 
 export const initUpload = async ({ userId, fileSize, fileType }) => {
   const public_id = uuidv4();
   const totalChunks = Math.ceil(fileSize / CHUNK_SIZE);
-  if(fileSize > 1024 * 1024 * 25) return ApiError(400, 'File size exceeds the maximum allowed limit of 25 MB');
+  if(fileSize > 1024 * 1024 * 30) throw new ApiError(400, 'File size exceeds the maximum allowed limit of 30 MB');
 
   await fs.mkdir(path.join(STORAGE_DIR, public_id), { recursive: true });
   console.log('init upload', totalChunks , fileSize, CHUNK_SIZE);
@@ -113,7 +113,17 @@ export const verifyUpload = async (public_id) => {
   if (missingChunks.size === 0) {
     uploadDoc.status = VIDEO_STATUSES.PROCESSING;
     await videoRepo.saveUpload(uploadDoc);
-    enqueueMerge({ public_id });
+    await ffmpegQueue.add(
+      'merge & process', 
+      { public_id , totalChunks : uploadDoc.totalChunks } ,
+      {
+        attempts : 3,
+        backoff : {
+          type : 'exponential' ,
+          delay : 10000 // 10 seconds
+        }
+      }
+    );
     return 'Video verified successfully';
   }
 
