@@ -1,6 +1,6 @@
 
 let BufferTime = 1000 * 60 * 5 ; // 5 minutes
-const liveHosts = new Map();
+const liveHosts = new Map();// use hset for redis
 
 export const StreamListener = (socket , io) => {
   // CHECK ROOM JOINED OR NOT

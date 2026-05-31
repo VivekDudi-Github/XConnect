@@ -278,7 +278,7 @@ async function startFFmpegWorker(public_id ){
           
 
         // Create master playlist manually
-        createMasterPlaylist(hlsDir , probe);
+        await createMasterPlaylist(hlsDir , probe);
         await fs.unlink(inputPath) ;
         console.log("Uploading HLS folder");
         
