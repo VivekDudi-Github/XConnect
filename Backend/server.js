@@ -20,14 +20,14 @@ import fs from "fs";
 import path from "path";
 
 const transportsBySocket = new Map();  // socket.id → array of transports
-const participants = new Map(); // roomId → array of userIds
+const participants = new Map(); // roomId → array/set of userIds
+const roomMap = new Map(); // 
 
 configDotenv();
 
 
 const isProduction = process.env.NODE_ENV === 'PRODUCTION' ;
 
-const roomMap = new Map();
 let worker, router , webRtcServer;
 
 (async () => {
@@ -42,16 +42,16 @@ let worker, router , webRtcServer;
         ip: '0.0.0.0' , 
         announcedAddress: announcedIp,
         portRange: {
-          min: 40000,
-          max: 49999
+          min: 44000,
+          max: 44500
         }
       } , {
         protocol : 'tcp' ,
         ip : '0.0.0.0' ,
         announcedAddress : announcedIp,
         portRange: { 
-          min: 40000, 
-          max: 40100 
+          min: 44000, 
+          max: 44500 
         }
       }] ,
     })

@@ -53,9 +53,7 @@ export const MediaSoupListener = (socket , io , roomMap, participants , transpor
           socketId : socket.id ,
       }) ;
       roomMap.get(roomId).password = [socket.user._id , password ? password : ''] ;
-      participants.set(socket.user._id , roomId) ;
-      console.log('line:147 , createMeeting' ,roomMap );
-      
+      participants.set(socket.user._id , roomId) ;      
       return callback( { roomId , success : true});
   
     })

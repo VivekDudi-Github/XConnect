@@ -6,8 +6,12 @@ services:
     init : true
     env_file:
       - .env
+    ports:
+      - "44400-44500:44400-44500/udp"
     volumes:
       - /home/ubuntu/xconnect/uploads:/app/uploads
+      - /usr/bin/ffmpeg:/usr/bin/ffmpeg:ro
+
 
 
   nginx:
