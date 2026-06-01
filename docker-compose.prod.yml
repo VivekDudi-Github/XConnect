@@ -11,6 +11,8 @@ services:
     volumes:
       - /home/ubuntu/xconnect/uploads:/app/uploads
       - /usr/bin/ffmpeg:/usr/bin/ffmpeg:ro
+      - /usr/bin/ffprobe:/usr/bin/ffprobe:ro
+      
 
   nginx:
     image: vivekdudi/xconnect-nginx:latest
@@ -28,6 +30,8 @@ services:
     restart: always
     volumes:
       - redis-volume:/data
+    depends_on:
+      - backend
     command: redis-server --appendonly yes
     
 volumes:
