@@ -10,8 +10,6 @@ services:
       - "44400-44500:44400-44500/udp"
     volumes:
       - /home/ubuntu/xconnect/uploads:/app/uploads
-      - /usr/bin/ffmpeg:/usr/bin/ffmpeg:ro
-      - /usr/bin/ffprobe:/usr/bin/ffprobe:ro
       
 
   nginx:

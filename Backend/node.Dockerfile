@@ -3,6 +3,7 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 \
+    ffmpeg \
     make \
     g++ \
     && rm -rf /var/lib/apt/lists/*
