@@ -1,7 +1,7 @@
 import { Likes } from '../../../models/likes.model.js';
 import { Following } from '../../../models/following.model.js';
 import { ObjectId } from 'mongodb';
-
+import {Redis} from '../../../app.js' ;
 
 export const fetchTrendingDB = async ({ tab, skip, userId }) => {
   const cutoff = new Date(Date.now() - 60 * 24 * 3600 * 1000); //60days for to use seeded data longer , realistically only 3-7 days
@@ -16,7 +16,18 @@ export const fetchTrendingDB = async ({ tab, skip, userId }) => {
       $gte: [{ $size: { $ifNull: ['$media', []] } }, 1],
     });
 
-  return Likes.aggregate([
+  const cacheKey = `trending:${tab}:${skip}`;
+  const cached = await Redis.get(cacheKey);
+    
+  if (cached) {
+    try {
+      return JSON.parse(cached);
+    } catch (error) {
+      console.error(`Failed to parse cache for key ${cacheKey}:`, error);
+    }
+  }
+
+  const results = await Likes.aggregate([
     { $match: { createdAt: { $gte: cutoff } } },
     { $group: { _id: '$post', likeCount: { $sum: 1 } } },
     {
@@ -129,12 +140,27 @@ export const fetchTrendingDB = async ({ tab, skip, userId }) => {
       filteredPost : 0 ,
     }}
   ]);
+  if(results && results.length > 0){
+    await Redis.set(cacheKey , JSON.stringify(results) , 'EX' , 120) ; //cache for 2 mins
+  }
+  return results;
 };
 
 export const fetchPeopleDB = async ({ skip, userId }) => {
   const cutoff = new Date(Date.now() - 6 * 24 * 3600 * 1000);
 
-  return Following.aggregate([
+  const cacheKey = `trending:people:${skip}`;
+  const cached = await Redis.get(cacheKey);
+  
+  if (cached) {
+    try {
+      return JSON.parse(cached);
+    } catch (error) {
+      console.error(`Failed to parse cache for key ${cacheKey}:`, error);
+    }
+  }
+
+  const results = await Following.aggregate([
     { $match: { createdAt: { $gte: cutoff } } },
     { $group: { _id: '$followedTo', followerCount: { $sum: 1 } } },
     { $sort: { followerCount: -1 } },
@@ -191,4 +217,10 @@ export const fetchPeopleDB = async ({ skip, userId }) => {
     }} ,
     {$unwind : { path : '$userDetails' , preserveNullAndEmptyArrays : false}}
   ]);
+
+  if(results && results.length > 0){
+    await Redis.set(cacheKey , JSON.stringify(results) , 'EX' , 120) ; //cache for 2 mins
+  }
+
+  return results;
 };
