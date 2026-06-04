@@ -2,7 +2,7 @@ import {ip} from 'address';
 import {publicIpv4} from 'public-ip' ;
 import { configDotenv } from "dotenv";
 import * as mediasoup from "mediasoup";
-import { ffmpegWorker } from "./bullmq.js";
+import { ffmpegWorker } from "./bullmq.js"; // don't remove it
 
 import {io , newServer} from "./app.js";
 import connectDB from "./utils/connectDB.js";
@@ -26,6 +26,7 @@ configDotenv();
 
 
 const isProduction = process.env.NODE_ENV === 'PRODUCTION' ;
+const WEBRTC_PORT = process.env.WEBRTC_PORT || 44444 ;
 
 let worker, router , webRtcServer;
 
@@ -40,18 +41,12 @@ let worker, router , webRtcServer;
         protocol : 'udp' ,
         ip: '0.0.0.0' , 
         announcedAddress: announcedIp,
-        portRange: {
-          min: 44000,
-          max: 44500
-        }
+        port : WEBRTC_PORT
       } , {
         protocol : 'tcp' ,
         ip : '0.0.0.0' ,
         announcedAddress : announcedIp,
-        portRange: { 
-          min: 44000, 
-          max: 44500 
-        }
+        port : WEBRTC_PORT
       }] ,
     })
     router = await worker.createRouter({

@@ -7,7 +7,8 @@ services:
     env_file:
       - .env
     ports:
-      - "44400-44500:44400-44500/udp"
+      - "44444:44444/udp"
+      - "44444:44444/tcp"
     volumes:
       - /home/ubuntu/xconnect/uploads:/app/uploads
       
