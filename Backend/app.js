@@ -46,6 +46,8 @@ const limiter = rateLimit({
 });
 
 app.set('trust proxy', 1);
+app.use('/api/v1/stripe' , stripeWebhook);
+
 app.disable('x-powered-by'); // disable express header in responses
 app.use(helmet()) ;
 app.use('/api/', limiter);
@@ -61,7 +63,6 @@ const io = new Server(newServer, {
 });
 
 io.use(checkSocketUser);
-app.use('/api/v1/stripe' , stripeWebhook);
 console.log(isDevelopment) ;
 app.use(cors({
   origin: [
