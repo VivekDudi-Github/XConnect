@@ -118,8 +118,9 @@ jobs:
           host: ${{secrets.EC2_IP}}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "docker-compose.prod.yml"
+          source: "docker-compose.prod.yml,nginx/nginx.prod.conf"
           target: "/home/ubuntu/xconnect/"
+          strip_components: 1 # used to drop the parent directory from the source path when copying to the target
 
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.0
