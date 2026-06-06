@@ -1,4 +1,3 @@
-
 services:
   backend:
     image: vivekdudi/xconnect-backend:latest
@@ -6,6 +5,9 @@ services:
     init : true
     env_file:
       - .env
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
     ports:
       - "44444:44444/udp"
       - "44444:44444/tcp"

@@ -98,7 +98,7 @@ jobs:
         uses: docker/build-push-action@v7
         with: 
           context: .
-          file: nginx.Dockerfile
+          file: nginx.prod.Dockerfile
           push: true
           build-args: |
             VITE_STRIPE_PUBLISHABLE_KEY=${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
