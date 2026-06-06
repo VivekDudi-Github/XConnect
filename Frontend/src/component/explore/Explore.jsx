@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Loader from '../ui/Loader'
 import PostCard from "../post/PostCard";
-import { dummyPosts } from "../../sampleData";
 import SearchBar from "../specific/search/SearchBar";
 import { useLazyGetTrendingQuery, useNormalSearchMutation, useSearchBarMutation } from "../../redux/api/api";
 import { toast } from "react-toastify";
@@ -13,22 +12,7 @@ import CommunityPostCard from "../community/CommunityPostCard";
 
 
 const EXPLORE_TABS = ["Trending", "People", "Communities", "Media" , "Results"];
-// const autoComplete = ["#technology", "#art", "#science", "#music", "#travel", "#fitness"];
-const searchUsersDummy = [
-  //username , avatar , isFollowing , totalFollowers , fullname
-  { id: 1, username: "johndoe", avatar: {url :"https://i.pravatar.cc/150?img=1"} , isFollowing : true , totalFollowers : 100 , fullname : "John Doe" },
-  { id: 2, username: "janesmith", avatar: {url : "https://i.pravatar.cc/150?img=2"} , isFollowing : true , totalFollowers : 5865 , fullname : "Jane Smith" },
-  { id: 3, username: "mikejohnson", avatar: {url : "https://i.pravatar.cc/150?img=3"} , isFollowing : true , totalFollowers : 1200 , fullname : "Mike Johnson" },
-  { id: 4, username: "johndoe", avatar: {url : "https://i.pravatar.cc/150?img=4"} , isFollowing : false , totalFollowers : 12 , fullname : "John Doe" },
-  { id: 5, username: "janesmith", avatar: {url : "https://i.pravatar.cc/150?img=5"} , isFollowing : false , totalFollowers : 100 , fullname : "Jane Smith" },
-  ]
-const auto_communities = [
-  // name , avatar , banner , isFollowing , totalFollowers , description  
-  { id : 1 , name : 'Tech' , isFollowing : true  , avatar : {url :'https://i.pravatar.cc/150?img=5'} , banner : {url :'https://i.pravatar.cc/150?img=1'} , description : 'Technology is the lifeblood of our society.' , followers : 100 , tagline : 'Technology is the lifeblood of our society.' } ,
-  { id : 2 , name : 'Art'  , isFollowing : false , avatar : {url :'https://i.pravatar.cc/150?img=9'} , banner : {url : 'https://i.prbanner.cc/150?img=2'} , description : 'Art is the expression of human creativity and imagination.' , followers : 250 ,tagline : 'Art is the expression of human creativity and imagination.' } ,  
-  { id : 3 , name : 'Tech' , isFollowing : true , avatar : {url :'https://i.pravatar.cc/150?img=5'} , banner : {url :'https://i.pravatar.cc/150?img=1'} , description : 'Technology is the lifeblood of our society.' , followers : 100 , tagline : 'Technology is the lifeblood of our society.' } ,
-  { id : 4 , name : 'Art'  , isFollowing : false  , avatar : {url :'https://i.pravatar.cc/150?img=9'} , banner : {url : 'https://i.prbanner.cc/150?img=2'} , description : 'Art is the expression of human creativity and imagination.' , followers : 250 ,tagline : 'Art is the expression of human creativity and imagination.' } ,  
-]
+
 
 //Cache trending results to reduce load
 function Explore() {
