@@ -13,7 +13,7 @@ services:
       - "44444:44444/tcp"
     volumes:
       - /home/ubuntu/xconnect/uploads:/app/uploads
-      
+      - ./nginx.prod.conf:/etc/nginx/conf.d/default.conf:ro
 
   nginx:
     image: vivekdudi/xconnect-nginx:latest
@@ -25,7 +25,7 @@ services:
       - backend
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt:ro
-      - ./nginx/nginx.prod.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx.prod.conf:/etc/nginx/conf.d/default.conf:ro
 
   redis:
     image: redis:7.4.9-alpine
