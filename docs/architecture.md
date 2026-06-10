@@ -17,29 +17,76 @@ The architecture is divided into:
 ## High-Level Architecture
 
 ```
-Client (React)
+                     ┌────────────────────┐
+                     │       Client       │
+                     │      (React)       │
+                     └─────────┬──────────┘
+                               │
+                         HTTPS / WSS
+                               │
+                     ┌─────────▼──────────┐
+                     │      Nginx         │
+                     │   Reverse Proxy    │
+                     │   SSL / Routing    │ 
+                     └─────────┬──────────┘
+                               │
+            ┌──────────────────┼──────────────────┐
+            │                  │                  │
+            ▼                  ▼                  ▼
+      ┌────────────────┐ ┌────────────────┐ ┌──────────────────┐
+      │ Express REST   │ │ Socket.io      │ │ Mediasoup router │
+      │ API            │ │ Real-time      │ │ WebRTC SFU       │
+      │                │ │                │ │ Mediasoup        │
+      └───────┬────────┘ └───────┬────────┘ └──────────────────┘
+              │                  │
+              ▼                  ▼
+      ┌───────────────────────────────────┐
+      │            Backend Modules        │
+      │ Router                            │
+      │ Controller                        │
+      │ Validators                        │
+      │ Services                          │
+      └───────────────┬───────────────────┘
+                      │
+             ┌────────▼────────┐
+             │  MongoDB Atlas  │
+             └─────────────────┘
+```
+### Media Pipeline:
+```
+
+ Upload
    │
-   ├── REST API (Express)
-   │    └─ Router   
-   │        └── Modules
-   │            ├── Controller
-   │            ├── Validators
-   │            ├── Services
-   │            └── Database (MongoDB)
+   ▼
+BullMQ Queue
    │
-   ├── Socket.io (Real-Time Layer)
-   │       ├── Notification 
-   │       ├── Superchats 
-   │       └── Mediasoup (WebRTC SFU)
+   ▼
+  Redis
    │
-   ├── Media Content
-   │       ├── FFmpeg (Video processing)
-   │       ├── HLS Dash (Streaming)
-   │       ├── Supabase (Videos)
-   │       └── Cloudinary (Images)
+   ▼
+FFmpeg Workers
    │
-   └── External Services
-           └── Stripe (Payments)
+   ├── HLS/DASH Output
+   │
+   ├── Supabase Storage (Video)
+   │
+   └── Cloudinary (Images)
+
+``` 
+### External:
+```
+Stripe Payments
+```
+### Infrastructure:
+```
+┌──────────────────────────────────┐
+│ Docker                           │
+│                                  │
+│ Containers:                      │
+│ - nginx                          │
+│ - Nodejs Server                  │
+│ - Redis                          │
+└──────────────────────────────────┘
 ```
 
 ---
@@ -53,7 +100,9 @@ Handles all standard API interactions between client and server.
 ### Flow
 
 1. Client sends request via RTK Query or fetch
-2. Express routes request to controller
+2. The request reaches the Aws EC2 server with docker   
+3. Ngnix in docker listens to http & https requests & forwards them to the nodejs containers
+2. Express gets it & routes request to controller
 3. Controller sends to validator to validate input using Zod 
 4. Service layer processes business logic
 5. Database (MongoDB) is queried or updated
@@ -65,7 +114,8 @@ Handles all standard API interactions between client and server.
 * Service: Business logic
 * DB Layer: Data persistence
 * Middleware: Auth, Structured Logging & error handling
-
+* Docker: Containerization
+* Nginx: Reverse proxy, load balancing & SSL
 ---
 
 ## Authentication Flow
@@ -109,15 +159,16 @@ Handles large video uploads with chunking , processing and cloud storage .
 5. Backend creates upload session and metadata
 6. Client splits video into chunks
 7. Multer middleware check size limit and stores into temeporalry local storage
-8. After completion , controller checks for missing parts, change DB status to "processing" and initiates the merge process.
-9. FFmpeg processes video:
+8. After completion , controller checks for missing parts, change DB status to "processing" 
+9. BullMQ queues the job to FFmpeg process
+10. FFmpeg processes video:
 
    * Generates thumbnail
    * Creates multiple resolutions
    * Generates HLS segments and playlists
-10. Processed files uploaded to Supabase
-11. Thumbnail uploaded to Cloudinary
-12. Database updated with final status and URLs
+11. Processed files uploaded to Supabase
+12. Thumbnail uploaded to Cloudinary
+13. Database updated with final status and URLs
 
 ### Key Components
 
@@ -126,6 +177,7 @@ Handles large video uploads with chunking , processing and cloud storage .
 * HLS: Streaming format
 * Supabase: Video storage
 * Cloudinary: Image storage
+* BullMQ: Background processing
 
 ---
 
@@ -143,10 +195,10 @@ Implements live streaming and video communication using WebRTC with Mediasoup as
 4. Client requests RTP capabilities
 5. Device loads capabilities
 6. WebRTC transport is created (ICE + DTLS)
-7. Producer sends audio/video tracks
+7. Transport sends audio/video tracks
 8. Producer IDs stored in room metadata
 9. New users request producer list
-10. Consumers are created for each producer
+10. Consumers are created for every other producer in the room
 11. Consumers receive tracks
 12. MediaStream is rendered using Video.js
 
@@ -222,33 +274,37 @@ Automates testing, building, and deployment.
 
 ### Flow
 
-1. Code pushed to GitHub
-2. GitHub Actions triggers pipeline
-3. Dependencies installed
-4. Tests executed (Jest + Supertest)
-5. Build process runs
-6. Application deployed
+1. Github Actions detects the push event and starts the CI pipeline. 
+2. Pipeline checks out the latest source code . 
+3. Installs project dependencies and restores cache if available .
+4. Runs linting. unit tests and API integration tests .
+5. If checks pass. starts Docker image build process .
+6. Creates production images: Frontend. Backend. Nginx & Redis  .
+7. Tags and pushes Docker images to Docker Hub / Container Registry .
+8. Uploads deployment configuration including docker-compose.yml and nginx.conf.
+9. Production server pulls the latest images.
+10. Docker executes the compose files & creates and starts all containers . 
+11. Nginx starts reverse proxy routing.
+12. Health checks verify services are running successfully.
 
 ### Key Components
 
 * GitHub Actions: Automation
 * Jest: Testing
 * Supertest: API testing
-* Vercel / Render: Deployment
+* AWS : Deployment
 
 ---
 
 ## Deployment Architecture
 
-### Frontend
-
-* Hosted on Vercel
-* Static assets served via CDN
-
-### Backend
-
-* Hosted on AWS EC2
-* Handles API and WebSocket connections
+### Host
+* Hosted on AWS EC2 
+* Handles the Dockerized containers
+* Handle the following containers:
+  * NGINX : ServeS as frontend as static assets & reverse proxy  
+  * Backend : Node.js , Express.js , Socket.io , Mediasoup , FFmpeg  
+  * Redis: BullMQ & Page Caching
 
 ### Database
 
@@ -264,11 +320,9 @@ Automates testing, building, and deployment.
 ## Future Improvements
 
 * Creator payout system (Stripe Connect)
-* Redis caching layer
 * Horizontal scaling for media workers
 * Kubernetes deployment
 * Advanced analytics dashboard
-* Multi-region streaming support
 
 ---
 

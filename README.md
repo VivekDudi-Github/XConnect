@@ -31,30 +31,35 @@ It enables users to connect, stream live, upload media, send superchats, receive
 ## Core System Features
 
 - Real-time streaming via WebRTC SFU
-- Chunked video upload + FFmpeg processing (HLS) 
+- Chunked Resumable video upload + FFmpeg processing (HLS) 
 - Event-driven notifications using sockets
-- SuperChat payments via Stripe
+- SuperChat payments via Stripe Webhooks
 - Meeting and call with mediasoup SFU with simulcast support
 - Swagger Documentation
-
-## Platform Features
-
-- Posts, likes, comments
-- Follow system
-- User profiles & communities
+- Full Dockerized Backend & Nginx reverse proxy
+- BullMQ for Background FFmpeg jobs
+- Redis Caching For Faster Performance
+- Redux Store, Caching & Query Mangement 
+- CI/CD Pipeline managing automated testing, builds & deploy containers 
 ---
 
 ## High-Level Architecture Diagram
 ```
-              Client (React)
-                   │
-     ┌─────────────┼─────────────┐
-     │             │             │
- REST API      Socket.io      Media Pipeline
- (Express)     (Realtime)     (FFmpeg)
-     │           │               │
-  MongoDB     Stripe/Mediasoup  HLS + Storage
-               
+                      Client (React)
+                          │
+                      AWS[Docker]
+                          |
+                        Nginx
+                          |
+                        Node.js
+                          |
+            ┌─────────────┼─────────────┐
+            │             │             │
+        REST API      Socket.io      Media Pipeline
+        (Express)     (Realtime)     (FFmpeg)
+            │             │             │
+          MongoDB      Mediasoup      HLS + Storage
+                      
                       
 ```
 ### [More Detailed Architecture Link](./docs/architecture.md)  
@@ -82,12 +87,12 @@ It enables users to connect, stream live, upload media, send superchats, receive
 | Backend           | Node.js , Express , Mongo Atlas , Mongoose                       |
 | Real-Time Comms   | Mediasoup , Socket.io , WebRTC                                   |
 | Media Processing  | Multer , FFmpeg , HLS                                            |
-| Payments          | Stripe                                                           |
-| Storage           | Cloudinary , Supabase                                            |  
+| Dev Ops           | GitHub Actions, AWS EC2, Nginx, Docker, Redis, BullMQ            |
+| Storage           | Cloudinary , Supabase                                            |
 | Security          | Helmet, CORS, Rate Limiting, JWT, Http only Cookies, Zod         |
 | Backend Testing   | supertest + Jest                                                 |
-| Dev Ops           | GitHub Actions , AWS EC2                                                  | 
-| API Docs          | Swagger                                                          |
+| Payments          | Stripe                                                           |
+| API Docs          | Swagger , OpenApi                                                |
 
 ---
 
@@ -106,21 +111,35 @@ XConnect
   │   ├── utils
   │   ├── tests
   │   ├── server.js
-  |   ├── swagger.js
+  │   ├── swagger.js
   │   └── app.js
   │
   ├── Frontend
-  │   ├── src
+  │   └── src
   │       ├── components
-  |       ├── layout
-  |       ├── constants
+  │       ├── layout
+  │       ├── constants
   │       ├── pages
   │       ├── redux
-  |       ├── api
-  |       ├── main.jsx
+  │       ├── api
+  │       ├── main.jsx
   │       └── app.jsx
+  ├── nginx
+  │   ├── nginx.dev.conf
+  │   └── nginx.prod.conf
+  │
+  ├── .github
+  │   └── workflows
+  │       └── backend-ci.yml
+  │
+  ├── docker-compose.dev.yml
+  ├── docker-compose.prod.yml
+  │
+  ├── nginx.dev.Dockerfile
+  ├── nginx.prod.Dockerfile
   │
   └── README.md
+
   ```
 ---
 
@@ -155,8 +174,8 @@ npm run test
 ```
 ---
 ## Environment Variables
+### Backend:
 ```text
-Backend:
 PORT=
 MONGO_URL=
 ACCESS_TOKEN_SECRET=
@@ -175,7 +194,12 @@ CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
 
-Frontend:
+REDIS_HOST='redis'
+REDIS_PORT= '6379'
+
+```
+### Frontend:
+```text
 VITE_STRIPE_PUBLISHABLE_KEY=
 VITE_PRODUCTION_URL =
 VITE_DEVELOPMENT_URL =
@@ -188,7 +212,6 @@ VITE_DEVELOPMENT_URL =
 - Advanced analytics
 - Scalable media workers
 - SVC suppport on mediasoup
-- Redis caching
 
 ---
 
@@ -200,8 +223,8 @@ VITE_DEVELOPMENT_URL =
   
 ### Social Platform
 - Create and manage posts
-- Follow - unfollow & like comment
-- Personalized feed system
+- Follow - unfollow & like, comment
+- Personalized feed system & trending page
 
 ### Media Upload
 - Chunked video upload
@@ -230,6 +253,9 @@ VITE_DEVELOPMENT_URL =
 ### DevOps
 - GitHub Actions CI with automated testing
 - Deployment pipeline
+- Dockerized Backend & Nginx reverse proxy
+- BullMQ for Background FFmpeg jobs
+- Uses Redis for caching the Trending Page
 
 
 ## Author
@@ -238,6 +264,6 @@ Vivek Dudi
 
 GitHub: https://github.com/VivekDudi-Github 
 <br/>
-LinkedIn: https://linkedin.com/in/vivek-dudi-12b2a8300
+LinkedIn: https://www.linkedin.com/in/vivek-dudi
 
 ---

@@ -1,4 +1,4 @@
-import { ArrowRightLeftIcon, BlocksIcon, ChartNetworkIcon, ChevronRightIcon, ClipboardPenLine, CloudUploadIcon, CogIcon, CookieIcon, DatabaseZapIcon, DownloadIcon, FileVideoIcon, GitCompareArrowsIcon, GithubIcon, Grid2X2Icon, GridIcon, Hand, HandIcon, icons, ImageDownIcon, ImagePlayIcon, ImageUpIcon, LayoutDashboardIcon, LoaderIcon, LucideDatabaseZap, LucideFileOutput, LucideLoader, LucideNewspaper, LucideVideotape, LucideView, MonitorSmartphoneIcon, NavigationIcon, NetworkIcon, PackageIcon, PanelBottomCloseIcon, PanelsLeftRightIcon, PickaxeIcon, Plug2Icon, SendToBack, ServerCogIcon, SquareSplitVerticalIcon, TextSelectionIcon, TrendingUpDown, TruckElectricIcon, UnplugIcon, UploadIcon, User2Icon, UserCheck } from 'lucide-react'
+import { ArrowRightLeftIcon, BlocksIcon, BoxIcon, ChartNetworkIcon, ChevronRightIcon, ClipboardPenLine, CloudUploadIcon, CogIcon, CookieIcon, DatabaseZapIcon, DownloadIcon, FileOutputIcon, FileVideoIcon, GitCompareArrowsIcon, GithubIcon, Grid2X2Icon, GridIcon, Hand, HandIcon, icons, ImageDownIcon, ImagePlayIcon, ImageUpIcon, LayoutDashboardIcon, ListTodoIcon, LoaderIcon, LucideDatabaseZap, LucideFileOutput, LucideLoader, LucideNewspaper, LucideVideotape, LucideView, MonitorSmartphoneIcon, NavigationIcon, NetworkIcon, PackageIcon, PackageOpenIcon, PanelBottomCloseIcon, PanelsLeftRightIcon, PickaxeIcon, Plug2Icon, RocketIcon, SendToBack, ServerCogIcon, ShieldCheckIcon, SquareSplitVerticalIcon, TextSelectionIcon, TrendingUpDown, TruckElectricIcon, UnplugIcon, UploadCloudIcon, UploadIcon, User2Icon, UserCheck, VideoIcon } from 'lucide-react'
 import React, { useState } from 'react'
 import DownArrow from '../ui/DownArrow';
 
@@ -74,49 +74,161 @@ const flows = [
       {name : 'Cookies :' , content :'Http only cookies, cookie parser'},
     ] ,
   } , {
-    name: 'Media Upload Flow' ,
-    description : 'Handles video uploads with secure stroage and processing',
+    name: 'Media Upload Flow',
+    description: 'Handles video uploads with secure storage and background processing',
+
     flowDiagram:[
-      {color:'bg-purple-800' , mainText: 'Client Select' , secText: 'Video file' , icon: ImagePlayIcon},
-      {color:'bg-yellow-600' , mainText : 'Initiate Api' ,  secText:'Create upload session & chunk metadata ' , icon: PanelsLeftRightIcon },
-      {color:'bg-sky-600' , mainText : 'Media-Chunked' ,  secText:'Resumable & Multipart' , icon: Grid2X2Icon },
-      {color:'bg-red-600' , mainText : 'Chunks Upload' ,  secText:'Uploads to server' , icon: BlocksIcon },
-      
-      {color:'bg-green-600' , mainText : 'Multer Middleware' ,  secText:'chunk and file handling' , icon: PanelBottomCloseIcon },
-      {color:'bg-blue-600' , mainText : 'Controller' , secText:'Integrity & completion Checks' , icon : SendToBack} ,   
-      {color:'bg-gray-600' , mainText : 'Video Merge Queue' ,  secText:'Merges chunks' , icon: FileVideoIcon },
-      {color:'bg-pink-600' , mainText : 'Child Process' ,  secText:'Spin up FFmpeg' , icon:  LucideLoader }, 
-      {color:'bg-zinc-300' , mainText: 'HLS creations' , secText: '360p/480p quality' , icon: LucideVideotape },
-      {color:'bg-orange-600' , mainText : 'FFmpeg Output' , secText : 'm3u8 playlist' , icon: LucideFileOutput },
-      {color: 'bg-purple-600/50', mainText: 'Upload Cloud' , secText: 'Calls supabase uploader' , icon: CloudUploadIcon },   
-      {color: 'bg-teal-600', mainText: 'DB Layer' , secText: 'Update video status & metadata' , icon: DatabaseZapIcon }, 
-    ] ,
-    responsiblities : [
-      {name : 'Multer :' , content : 'Handles media files ,storage, do type and size check'}, 
-      {name : 'FFmpeg :' , content : 'Handles merger, multiple resolution downscaling, HLS segementation and m3u8 playlist creation'},   
-      {name : 'Supabase :' , content : 'cloud storage for hsl videos and provide the cdn for fast access'},
-      {name : 'Cloudinary :' , content : 'Handles media uploads to images'},
-    ] ,
-    stack : [
-      {name : 'Server File Handling' , content : 'Multer'},
-      {name : 'Video operations ' , content : 'FFmpeg'}, 
-      {name : 'Cloud Storage' , content : 'Cloudinary ,Supabase' },
-      {name : 'Child Process' , content : 'Nodejs'},
-    ] ,
-    process : [
-      'For Images- User > Multer size & type checks > Controller > Cloudinary > DB URL Update (Images uploades are straight forward)' ,
-      'User intiates the Video upload' , 
-      'File type and size are send to Initate Api which size check, calculates the total required chunks , intiate the new MongoDB record and return to client',  
-      'Client slices the video into chunks and uploads one by one.' , 
-      'Multer middleware check size limit and puts into local storage ',
-      'After completion , controller checks for missing parts, change DB status to "processing" and initiates the merge process' ,
-      'It reads the chunks and merges them into a single video final size are checks with DB' , 
-      'A child process is spawned to start FFmpeg worker' ,
-      'FFmpeg probes the video generates a thumbnail and creates different streams of segments withing 360p, 480p and 720p resolution.' ,
-      'Creates playlist for every resolution stream and finally it creates a master playlist.' , 
-      'In the end the playlists along with all segments with their respective folder structure uploaded to supabase' ,  
-      'Thumbnail as poster is uploaded to cloudinary',
-      'In end DB is updated with "completed" status and thumnail url'
+      {
+        color:'bg-purple-800',
+        mainText:'Client Select',
+        secText:'Video file',
+        icon:ImagePlayIcon
+      },
+      {
+        color:'bg-yellow-600',
+        mainText:'Initiate API',
+        secText:'Create upload session',
+        icon:PanelsLeftRightIcon
+      },
+      {
+        color:'bg-sky-600',
+        mainText:'Chunk Upload',
+        secText:'Resumable Multipart',
+        icon:Grid2X2Icon
+      },
+      {
+        color:'bg-red-600',
+        mainText:'Multer',
+        secText:'Validate & Store Chunks',
+        icon:PanelBottomCloseIcon
+      },
+      {
+        color:'bg-blue-600',
+        mainText:'Controller',
+        secText:'Integrity Checks',
+        icon:SendToBack
+      },
+      {
+        color:'bg-gray-600',
+        mainText:'BullMQ Queue',
+        secText:'Create Processing Job',
+        icon:ListTodoIcon
+      },
+      {
+        color:'bg-indigo-600',
+        mainText:'Worker',
+        secText:'Background Processor',
+        icon:CogIcon
+      },
+      {
+        color:'bg-pink-600',
+        mainText:'Child Process',
+        secText:'Spawn FFmpeg',
+        icon:LoaderIcon
+      },
+      {
+        color:'bg-slate-600',
+        mainText:'FFmpeg',
+        secText:'Merge + Transcode',
+        icon:VideoIcon
+      },
+      {
+        color:'bg-orange-600',
+        mainText:'HLS Output',
+        secText:'m3u8 + Segments',
+        icon:FileOutputIcon
+      },
+      {
+        color:'bg-purple-600/50',
+        mainText:'Cloud Upload',
+        secText:'Supabase Storage',
+        icon:CloudUploadIcon
+      },
+      {
+        color:'bg-teal-600',
+        mainText:'DB Update',
+        secText:'Completed Status',
+        icon:DatabaseZapIcon
+      },
+    ],
+
+    process:[
+      'For images: User uploads → Multer validates → Controller → Cloudinary → DB URL update',
+
+      'User initiates video upload',
+
+      'Client sends metadata to Initiate API',
+
+      'Server validates size/type, calculates chunks, creates MongoDB upload record',
+
+      'Client slices video and uploads chunks',
+
+      'Multer validates chunks and stores temporarily',
+
+      'Controller verifies missing chunks and updates status to processing',
+
+      'A BullMQ job is created for video processing',
+
+      'BullMQ worker picks the job asynchronously',
+
+      'Worker merges uploaded chunks into final video file',
+
+      'Child process starts FFmpeg worker',
+
+      'FFmpeg generates thumbnail, compresses video and creates multiple resolutions',
+
+      'FFmpeg creates HLS streams (360p, 480p, 720p) with m3u8 playlists',
+
+      'Generated HLS folders and segments are uploaded to Supabase',
+
+      'Thumbnail is uploaded to Cloudinary',
+
+      'Database is updated with completed status, playback URL and thumbnail URL'
+    ],
+    responsiblities:[
+      {
+        name:'Multer',
+        content:'Handles chunk receiving, validation, temporary storage and file checks'
+      },
+      {
+        name:'BullMQ',
+        content:'Manages background video processing jobs and prevents blocking API requests'
+      },
+      {
+        name:'FFmpeg',
+        content:'Handles merging, encoding, HLS segmentation, resolutions and thumbnails'
+      },
+      {
+        name:'Supabase',
+        content:'Stores processed HLS videos and provides CDN delivery'
+      },
+      {
+        name:'Cloudinary',
+        content:'Stores thumbnails and image assets'
+      }
+    ],
+
+    stack:[
+      {
+        name:'Upload Handling',
+        content:'Multer'
+      },
+      {
+        name:'Queue System',
+        content:'BullMQ + Redis'
+      },
+      {
+        name:'Video Processing',
+        content:'FFmpeg + Node Child Process'
+      },
+      {
+        name:'Storage',
+        content:'Supabase + Cloudinary'
+      },
+      {
+        name:'Database',
+        content:'MongoDB'
+      }
     ]
   } , {
     name : 'Real Time Communication',
@@ -194,34 +306,152 @@ const flows = [
       {name : 'Notification' , content : 'MongoDB Atlas'},
     ]
   } , {
-    name : 'CI/CD Flow' ,
-    description : 'Automatic testing and deployment using Github Actions' ,
-    flowDiagram : [
-      {color : 'bg-purple-800' , mainText : 'Development Push' , secText : 'Git Content' , icon :UploadIcon},
-      {color : 'bg-yellow-600' , mainText : 'Github Actions' , secText : 'CI Pipeline' , icon : GithubIcon},
-      {color : 'bg-sky-600' , mainText : 'Install Dependencies' , secText : '' , icon : DownloadIcon}, 
-      {color : 'bg-sky-600' , mainText : 'Run Tests' , secText : 'Jest+ SuperTest' , icon : TextSelectionIcon},
-      {color : 'bg-red-600' , mainText : 'Build' , secText : 'Vite Build' , icon : PackageIcon},
-      {color : 'bg-green-600' , mainText : 'Deploy' , secText : 'Hosting/Server' , icon : ServerCogIcon},
-    ] ,
-    process : [
-      'User pushes code to github' ,
-      'Github actions detects the changes and triggers the pipeline' ,
-      'Pipeline runs tests and checks for the potentials errorrs' ,
-      'If no errors are found , different production build is created' , 
-      'Build is deployed to hosting' ,
-    ] ,
-    stack : [
-      {name : 'Github Actions' , content : 'Github , NodeJS , Vite '},
-      {name : 'Testing' , content : 'Jest , SuperTest'},
-      {name : 'Hosting' , content : 'Vercel, Render'},
-    ] ,
-    responsiblities : [
-      {name : 'Github Actions' , content : 'Looks for changes and triggers the test pipeline'}, 
-      {name : 'Jest , supertest' , content : 'Creates and runs predefined tests & flags inconsistencies before deplyoment.'},  
-      {name : 'Vercel , Render' , content : 'Hosts the production application.'},
-    ]
-  } 
+  name: 'CI/CD Flow',
+  description: 'Automatic testing, containerization and deployment using Github Actions',
+
+  flowDiagram: [
+    {
+      color: 'bg-purple-800',
+      mainText: 'Code Push',
+      secText: 'Git Repository',
+      icon: UploadIcon
+    },
+    {
+      color: 'bg-yellow-600',
+      mainText: 'Github Actions',
+      secText: 'CI Trigger',
+      icon: GithubIcon
+    },
+    {
+      color: 'bg-blue-600',
+      mainText: 'Checkout Code',
+      secText: 'Clone Repository',
+      icon: DownloadIcon
+    },
+    {
+      color: 'bg-cyan-600',
+      mainText: 'Install Packages',
+      secText: 'npm / pnpm',
+      icon: PackageOpenIcon
+    },
+    {
+      color: 'bg-indigo-600',
+      mainText: 'Quality Checks',
+      secText: 'Lint + Jest + SuperTest',
+      icon: ShieldCheckIcon
+    },
+    {
+      color: 'bg-orange-600',
+      mainText: 'Docker Build',
+      secText: 'Create Images',
+      icon: BoxIcon
+    },
+    {
+      color: 'bg-purple-600',
+      mainText: 'Push Images',
+      secText: 'Docker Registry',
+      icon: UploadCloudIcon
+    },
+    {
+      color: 'bg-red-600',
+      mainText: 'Deploy Config',
+      secText: 'Compose + Nginx',
+      icon: ServerCogIcon
+    },
+    {
+      color: 'bg-green-600',
+      mainText: 'Production Online',
+      secText: 'Containers Running',
+      icon: RocketIcon
+    }
+  ],
+
+  process: [
+    'Developer pushes code changes to Github repository',
+
+    'Github Actions detects the push event and starts the CI pipeline',
+
+    'Pipeline checks out the latest source code',
+
+    'Installs project dependencies and restores cache if available',
+
+    'Runs linting, unit tests and API integration tests',
+
+    'If checks pass, starts Docker image build process',
+
+    'Creates production images: Frontend, Backend, Nginx & Redis ',
+
+    'Tags and pushes Docker images to Docker Hub / Container Registry',
+
+    'Uploads deployment configuration including docker-compose.yml and nginx.conf',
+
+    'Production server pulls the latest images',
+
+    'Docker executes the compose files & creates and starts all containers', 
+
+    'Nginx starts reverse proxy routing',
+
+    'Health checks verify services are running successfully'
+  ],
+
+  stack: [
+    {
+      name: 'CI/CD',
+      content: 'Github Actions, Github Repository'
+    },
+    {
+      name: 'Testing',
+      content: 'Jest, SuperTest, ESLint'
+    },
+    {
+      name: 'Containerization',
+      content: 'Docker, Docker Compose'
+    },
+    {
+      name: 'Registry',
+      content: 'Docker Hub'
+    },
+    {
+      name: 'Deployment',
+      content: 'AWS EC2 / Cloud Server'
+    },
+    {
+      name: 'Reverse Proxy',
+      content: 'Nginx'
+    }
+  ],
+
+  responsiblities: [
+    {
+      name: 'Github Actions',
+      content: 'Automates checkout, testing, building and deployment workflows.'
+    },
+    {
+      name: 'Jest + SuperTest',
+      content: 'Runs automated tests and prevents broken builds from reaching production.'
+    },
+    {
+      name: 'Docker',
+      content: 'Packages frontend, backend and infrastructure services into isolated containers.'
+    },
+    {
+      name: 'Docker Compose',
+      content: 'Defines and starts multi-container production environments.'
+    },
+    {
+      name: 'Docker Hub',
+      content: 'Stores versioned production container images.'
+    },
+    {
+      name: 'Nginx',
+      content: 'Handles SSL termination, reverse proxying, static files and API routing.'
+    },
+    {
+      name: 'AWS',
+      content: 'Provides production hosting infrastructure for running containers.'
+    }
+  ]
+} 
 
 
 
@@ -229,7 +459,6 @@ const flows = [
 
 function ArchitectureTab() {
   const [selectedFlow , setSelectedFlow] = useState('Request Flow') ;
-  
   function selectFlow(flow){
     if(selectedFlow === flow) return setSelectedFlow('') ;
     setSelectedFlow(flow) ;
