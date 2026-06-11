@@ -5,6 +5,7 @@ const featureList = [
   "Post creation, likes, comments, replies, bookmarks & media attachments",
   "Video processing with FFmpeg and HLS delivery with CDN",
   "Fully deployed on AWS with CI/CD pipelines and production-ready architecture",
+  "Redis Caching & BullMQ for background job processing",
   "Live video streaming with mediasoup & superchats payments with stripe",
   "Private and group video calls using WebRtc",
   "Real-time chat with WebSockets",
@@ -49,11 +50,11 @@ function AboutTab() {
               Node js ●
             </div>
             <div className='flex items-center gap-2 text-white font-bold text-lg '>
-              <img className='size-16 invert' src="https://raw.githubusercontent.com/lobehub/lobe-icons/refs/heads/master/packages/static-png/light/aws.png " alt="" />
+              <img className='size-16 invert' src="https://raw.githubusercontent.com/lobehub/lobe-icons/refs/heads/master/packages/static-png/light/aws.png " alt="AWS" />
                 ●
             </div> 
             <div className='flex items-center gap-2 text-white font-bold text-lg'>
-              <img className='h-16 ' src="https://miro.medium.com/1*iw_QvTSAAOBtE2BHoGrN6g.jpeg" alt="" />
+              <img className='h-16 ' src="https://miro.medium.com/1*iw_QvTSAAOBtE2BHoGrN6g.jpeg" alt="Github Actions" />
                ●
             </div>
             <div className='flex items-center gap-2 text-white font-bold text-lg'>
@@ -61,10 +62,10 @@ function AboutTab() {
               Socket io ●
             </div>
             <div className='flex items-center gap-2 text-white font-bold text-lg'>
-              <img className='h-16 w-20 scale-110' src="https://cdn-icons-png.flaticon.com/128/5968/5968382.png" alt="" />
+              <img className='h-16 w-20 scale-110' src="https://cdn-icons-png.flaticon.com/128/5968/5968382.png" alt="stripe" />
               ●
             </div>
-            <div className='flex items-center gap-2 text-white font-bold text-lg'>
+            <div className='flex items-center gap-1 text-white font-bold text-lg'>
               <img className='size-14' src="https://icon.icepanel.io/Technology/svg/MongoDB.svg" alt="" />
               MongoDB ●
             </div>
@@ -73,13 +74,13 @@ function AboutTab() {
               <img className='h-12  ' src="https://global.discourse-cdn.com/free1/uploads/mediasoup/original/2X/d/d23e0569df6cb9785ade9cea7d1bc48bfd7ced26.png" alt="" />
               {/* MediaSoup ● */} ● 
             </div>
-            <div className='flex items-center gap-2 text-white font-bold text-lg'>
-              <img className='size-14' src="https://icon.icepanel.io/Technology/svg/Jest.svg" alt="" />
-              Jest ●
+            <div className='flex items-center gap-2 text-white font-bold text-lg -translate-y-3'>
+              <img className='h-20 w-24 invert contrast-150 ' src="https://toppng.com/uploads/preview/docker-logo-116093594376yxkrwzocu.png" alt="Docker" /> 
+              ●
             </div>
             <div className='flex items-center gap-2 text-white font-bold text-lg'>
-              <img className='h-14 bg-white invert ' src="https://cdn.creazilla.com/icons/3243993/ffmpeg-icon-md.png" alt="" />
-               FFmpeg ● 
+              <img className='h-14 contrast-125 ' src="https://assets.zonalogo.com/programming/redis.io/logo-light-1780209381766-84900.svg" alt="" />
+              ● 
             </div>
           </div>
           <ol className='text-gray-300 text-wrap list-disc pl-4'>
